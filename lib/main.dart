@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-const String apiUrl = 'https://script.google.com/macros/s/AKfycbwQrzpBP6slXtPX8-dZUtnQxMwnMXLcUCTvblAvmamCdjcfmBtWCYeAeZwkFOP711Nr8A/exec';
+const String apiUrl = '';
 
 void main() {
   runApp(MaterialApp(
