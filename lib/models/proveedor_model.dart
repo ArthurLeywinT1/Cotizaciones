@@ -2,30 +2,44 @@ class Proveedor {
   final String id;
   final String razonSocial;
   final String rfc;
-  final String direccion;
+  final String? direccion;
   final String? telefono;
   final String? correoElectronico;
-  final DateTime fechaModificacion;
+  final DateTime? fechaModificacion;
 
   Proveedor({
     required this.id,
     required this.razonSocial,
     required this.rfc,
-    required this.direccion,
+    this.direccion,
     this.telefono,
     this.correoElectronico,
-    required this.fechaModificacion,
+    this.fechaModificacion,
   });
 
   factory Proveedor.fromMap(Map<String, dynamic> map) {
     return Proveedor(
-      id: map['id'],
-      razonSocial: map['razon_social'],
-      rfc: map['rfc'],
-      direccion: map['direccion'],
-      telefono: map['telefono'],
-      correoElectronico: map['correo_electronico'],
-      fechaModificacion: DateTime.parse(map['fecha_modificacion']),
+      id: map['id'].toString(),
+      razonSocial: map['razon_social'].toString(),
+      rfc: map['rfc'].toString(),
+      direccion: map['direccion']?.toString(),
+      telefono: map['telefono']?.toString(),
+      correoElectronico: map['correo_electronico']?.toString(),
+      fechaModificacion: map['fecha_modificacion'] != null
+          ? DateTime.tryParse(map['fecha_modificacion'].toString())
+          : null,
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'razon_social': razonSocial,
+      'rfc': rfc,
+      'direccion': direccion,
+      'telefono': telefono,
+      'correo_electronico': correoElectronico,
+      'fecha_modificacion': fechaModificacion?.toIso8601String(),
+    };
   }
 }

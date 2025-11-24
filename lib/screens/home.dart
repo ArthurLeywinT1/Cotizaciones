@@ -1,8 +1,8 @@
+import 'package:cotizador/screens/usuario_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
 import '../Widgets/barra.dart';
-import 'usuarios_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -68,7 +68,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         body: Column(
           children: [
-            // Barra de tareas superior
             Container(
               color: const Color.fromARGB(255, 219, 253, 255),
               height: 38,
@@ -93,10 +92,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ],
               ),
             ),
-            // Contenido dinámico según pantalla actual
             Expanded(
               child: pantallaActual == 'usuarios'
-                  ? const UsuariosScreen()
+                  ? const UsuarioScreen()
                   : Container(
                       color: Colors.grey[400],
                       child: Center(
