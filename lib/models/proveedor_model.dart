@@ -1,7 +1,7 @@
 class Proveedor {
   final String id;
   final String razonSocial;
-  final String rfc;
+  final String? rfc;
   final String? direccion;
   final String? telefono;
   final String? correoElectronico;
@@ -10,7 +10,7 @@ class Proveedor {
   Proveedor({
     required this.id,
     required this.razonSocial,
-    required this.rfc,
+    this.rfc,
     this.direccion,
     this.telefono,
     this.correoElectronico,
@@ -21,7 +21,7 @@ class Proveedor {
     return Proveedor(
       id: map['id'].toString(),
       razonSocial: map['razon_social'].toString(),
-      rfc: map['rfc'].toString(),
+      rfc: map['rfc']?.toString(),
       direccion: map['direccion']?.toString(),
       telefono: map['telefono']?.toString(),
       correoElectronico: map['correo_electronico']?.toString(),

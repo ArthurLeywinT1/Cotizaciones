@@ -27,7 +27,7 @@ class Tabla extends StatelessWidget {
             headingRowColor: MaterialStateProperty.all(
               headerColor ?? const Color(0xFF1976D2),
             ),
-            dataRowColor: WidgetStateProperty.resolveWith<Color?>((states) {
+            dataRowColor: MaterialStateProperty.resolveWith<Color?>((states) {
               return Colors.white;
             }),
             columnSpacing: 20,

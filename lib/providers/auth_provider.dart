@@ -3,9 +3,7 @@ import '../models/usuario_model.dart';
 import '../services/auth_service.dart';
 
 //Aqui se verifican los datos del usuario y se maneja el estado de autenticación
-final authServiceProvider = Provider(
-  (ref) => AuthService(),
-);
+final authServiceProvider = Provider((ref) => AuthService());
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   final authService = ref.watch(authServiceProvider);
