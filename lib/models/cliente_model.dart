@@ -1,7 +1,7 @@
 class Cliente {
   final String id;
   final String razonSocial;
-  final String rfc;
+  final String? rfc;
   final String? calle;
   final String? noExterior;
   final String? noInterior;
@@ -17,7 +17,7 @@ class Cliente {
   Cliente({
     required this.id,
     required this.razonSocial,
-    required this.rfc,
+    this.rfc,
     this.calle,
     this.noExterior,
     this.noInterior,
@@ -35,7 +35,7 @@ class Cliente {
     return Cliente(
       id: map['id'].toString(),
       razonSocial: map['razon_social'].toString(),
-      rfc: map['rfc'].toString(),
+      rfc: map['rfc']?.toString(),
       calle: map['calle']?.toString(),
       noExterior: map['no_exterior']?.toString(),
       noInterior: map['no_interior']?.toString(),

@@ -17,12 +17,12 @@ class Usuario {
 
   factory Usuario.fromMap(Map<String, dynamic> map) {
     return Usuario(
-      id: map['id'],
-      usuario: map['usuario'],
-      tipoUsuario: map['tipo_usuario'],
-      nombre: map['nombre'],
-      apellidoPaterno: map['apellido_paterno'],
-      apellidoMaterno: map['apellido_materno'],
+      id: map['id'].toString(),
+      usuario: map['usuario'].toString(),
+      tipoUsuario: map['tipo_usuario'].toString(),
+      nombre: map['nombre'].toString(),
+      apellidoPaterno: map['apellido_paterno'].toString(),
+      apellidoMaterno: map['apellido_materno']?.toString(),
     );
   }
 

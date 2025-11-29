@@ -4,7 +4,7 @@ import '../models/usuario_model.dart';
 import '../providers/usuario_provider.dart';
 import '../widgets/boton.dart';
 import '../widgets/tabla.dart';
-import 'dialogo_usuario.dart';
+import 'modals/modal_usuario.dart';
 
 class UsuarioScreen extends ConsumerWidget {
   const UsuarioScreen({super.key});
@@ -27,7 +27,7 @@ class UsuarioScreen extends ConsumerWidget {
   void _agregarUsuario(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
-      builder: (context) => DialogoUsuario(
+      builder: (context) => ModalUsuario(
         titulo: 'Crear Nuevo Usuario',
         onGuardar:
             (usuario, contrasena, tipo, nombre, apellidoP, apellidoM) async {
@@ -62,7 +62,7 @@ class UsuarioScreen extends ConsumerWidget {
   void _modificarUsuario(BuildContext context, WidgetRef ref, Usuario usuario) {
     showDialog(
       context: context,
-      builder: (context) => DialogoUsuario(
+      builder: (context) => ModalUsuario(
         titulo: 'Modificar Usuario',
         usuarioInicial: usuario,
         onGuardar:
@@ -258,7 +258,6 @@ class UsuarioScreen extends ConsumerWidget {
                     }).toList(),
                   ),
           ),
-          // Botones en la parte inferior
           Container(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             decoration: BoxDecoration(
@@ -278,7 +277,7 @@ class UsuarioScreen extends ConsumerWidget {
                   label: "Modificar Usuario",
                   onPressed: () {
                     if (usuarioSeleccionado != null) {
-                      _modificarUsuario(context, ref, usuarioSeleccionado!);
+                      _modificarUsuario(context, ref, usuarioSeleccionado);
                     }
                   },
                 ),
@@ -288,7 +287,7 @@ class UsuarioScreen extends ConsumerWidget {
                   isDestructive: true,
                   onPressed: () {
                     if (usuarioSeleccionado != null) {
-                      _eliminarUsuario(context, ref, usuarioSeleccionado!);
+                      _eliminarUsuario(context, ref, usuarioSeleccionado);
                     }
                   },
                 ),

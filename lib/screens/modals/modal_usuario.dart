@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/usuario_model.dart';
+import '../../models/usuario_model.dart';
 
-class DialogoUsuario extends StatefulWidget {
+class ModalUsuario extends StatefulWidget {
   final String titulo;
   final Usuario? usuarioInicial;
   final Function(
@@ -14,7 +14,7 @@ class DialogoUsuario extends StatefulWidget {
   )
   onGuardar;
 
-  const DialogoUsuario({
+  const ModalUsuario({
     super.key,
     required this.titulo,
     required this.onGuardar,
@@ -22,10 +22,10 @@ class DialogoUsuario extends StatefulWidget {
   });
 
   @override
-  State<DialogoUsuario> createState() => _DialogoUsuarioState();
+  State<ModalUsuario> createState() => _ModalUsuarioState();
 }
 
-class _DialogoUsuarioState extends State<DialogoUsuario> {
+class _ModalUsuarioState extends State<ModalUsuario> {
   late TextEditingController usuarioController;
   late TextEditingController contrasenaController;
   late TextEditingController nombreController;
