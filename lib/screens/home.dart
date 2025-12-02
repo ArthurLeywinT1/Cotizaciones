@@ -9,6 +9,10 @@ import 'papel_screen.dart';
 import 'maquina_screen.dart';
 import 'extra_screen.dart';
 import 'descuento_screen.dart';
+import 'segmentacion_pliegos_screen.dart';
+import 'catalogo_cotizaciones_screen.dart';
+import 'cotizacion_plana_screen.dart';
+import 'cotizacion_revista_screen.dart';
 import 'login.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -88,9 +92,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       case 'extras':
         return const ExtraScreen();
       case 'cotizacion_plana':
+        return const CotizacionPlanaScreen();
       case 'cotizacion_revista':
       case 'historial_cotizaciones':
       case 'segmentacion':
+        return const SegmentacionPliegosScreen();
       default:
         return _buildDashboard();
     }
