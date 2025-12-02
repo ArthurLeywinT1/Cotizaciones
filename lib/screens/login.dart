@@ -20,7 +20,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     usuarioController.dispose();
     contrasenaController.dispose();
     super.dispose();
-  }// Esta cosa borra lo que guardan las variables locales
+  } // Esta cosa borra lo que guardan las variables locales
 
   void _handleLogin() async {
     if (formKey.currentState!.validate()) {
@@ -32,7 +32,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
-      }// Esto esta en el auth_provider, el provider guarda y revisa todo
+      } // Esto esta en el auth_provider, el provider guarda y revisa todo
     }
   }
 

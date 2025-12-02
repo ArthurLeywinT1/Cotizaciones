@@ -29,7 +29,10 @@ class DatabaseService {
 
       _connection = await Connection.open(
         endpoint,
-        settings: ConnectionSettings(sslMode: SslMode.require),
+        settings: ConnectionSettings(
+          sslMode: SslMode.require,
+          connectTimeout: Duration(seconds: 10),
+        ),
       );
       print("Conexión establecida exitosamente.");
     } catch (e) {

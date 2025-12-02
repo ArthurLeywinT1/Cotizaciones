@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../providers/auth_provider.dart';
 import '../widgets/barra.dart';
-
-// PANTALLAS
-import 'usuarios_screen.dart';
-import 'clientes_screen.dart';
-import 'proveedores_screen.dart';
+import 'usuario_screen.dart';
+import 'cliente_screen.dart';
+import 'proveedor_screen.dart';
 import 'papel_screen.dart';
-import 'descuentos_papel_screen.dart';
-import 'maquinas_screen.dart';
-import 'extras_screen.dart';
+import 'maquina_screen.dart';
+import 'extra_screen.dart';
+import 'descuento_screen.dart';
+import 'login.dart';
 import 'segmentacion_pliegos_screen.dart';
-import 'catalogo_cotizaciones_screen.dart';
 import 'cotizacion_plana_screen.dart';
-import 'cotizacion_revista_screen.dart';
+
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -27,166 +24,196 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   String pantallaActual = '';
 
-  void _abrir(String pantalla) {
-    setState(() => pantallaActual = pantalla);
+  void _abrirPantalla(String pantalla) {
+    setState(() {
+      pantallaActual = pantalla;
+    });
   }
 
-  void _volver() {
-    setState(() => pantallaActual = '');
+  void _volverPrincipal() {
+    setState(() {
+      pantallaActual = '';
+    });
   }
 
   void _logout() {
     ref.read(authProvider.notifier).logout();
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      (route) => false,
+    );
   }
 
-  String _tituloPantalla() {
+  String _getTitulo(String? usuarioNombre) {
     switch (pantallaActual) {
-      case "usuarios": return "Usuarios";
-      case "clientes": return "Clientes";
-      case "proveedores": return "Proveedores";
-      case "papel": return "Papel";
-      case "descuentos_papel": return "Descuentos Papel";
-      case "maquinas": return "Maquinas";
-      case "extras": return "Extras";
-      case "segmentacion": return "Segmentación Pliegos";
-      case "catalogo_cotizaciones": return "Catálogo Cotizaciones";
-      case "cotizacion_plana": return "Crear Cotización Plana";
-      case "cotizacion_revista": return "Crear Cotización Revista";
-      default: return "Pantalla Principal";
+      case 'usuarios':
+        return 'Gestión de Usuarios';
+      case 'clientes':
+        return 'Catálogo de Clientes';
+      case 'proveedores':
+        return 'Catálogo de Proveedores';
+      case 'papeles':
+        return 'Catálogo de Papeles';
+      case 'descuentos':
+        return 'Descuentos de Papel';
+      case 'maquinas':
+        return 'Catálogo de Máquinas';
+      case 'extras':
+        return 'Catálogo de Extras';
+      case 'segmentacion':
+        return 'Segmentación de Pliegos';
+      case 'catalogo_cotizaciones':
+        return 'Cátalago de Cotizaciones';
+      case 'cotizacion_plana':
+        return 'Cátalago de Cotización Plana';
+      case 'cotizacion_revista':
+        return 'Cátalogo de Cotización Revista';
+      default:
+        return 'Pagina principal';
+    }
+  }
+
+  Widget _construirPantallaActual() {
+    switch (pantallaActual) {
+      case 'usuarios':
+        return const UsuarioScreen();
+      case 'clientes':
+        return const ClienteScreen();
+      case 'proveedores':
+        return const ProveedorScreen();
+      case 'papeles':
+        return const PapelScreen();
+      case 'descuentos':
+        return const DescuentoScreen();
+      case 'maquinas':
+        return const MaquinaScreen();
+      case 'extras':
+        return const ExtraScreen();
+      case 'cotizacion_plana':
+        return const CotizacionPlanaScreen();
+      case 'cotizacion_revista':
+      case 'historial_cotizaciones':
+      case 'segmentacion':
+        return const SegmentacionPliegosScreen();
+      default:
+        return _buildDashboard();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
-    final usuario = authState.usuario?.usuario ?? "";
+    final usuario = authState.usuario;
 
     return WillPopScope(
       onWillPop: () async {
         if (pantallaActual.isNotEmpty) {
-          _volver();
+          _volverPrincipal();
           return false;
         }
         return true;
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color.fromARGB(255, 255, 252, 252),
 
         appBar: AppBar(
           leading: pantallaActual.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.arrow_back),
-                  onPressed: _volver,
+                  onPressed: _volverPrincipal,
                 )
               : null,
-
-          title: Text("Romosso - Cotizador - ${_tituloPantalla()}"),
-
+          title: Text(_getTitulo(usuario?.usuario)),
           backgroundColor: const Color.fromARGB(255, 18, 41, 248),
-
+          foregroundColor: Colors.white,
+          elevation: 0,
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
-              tooltip: "Cerrar sesión",
               onPressed: _logout,
-            )
+              tooltip: 'Cerrar sesión',
+            ),
           ],
         ),
 
         body: Column(
           children: [
-            // ------- BARRA SUPERIOR ----------
             Container(
-              color: const Color.fromARGB(255, 212, 249, 255),
-              height: 38,
+              color: const Color.fromARGB(255, 219, 253, 255),
+              height: 45,
               child: ListView(
                 scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 4),
                 children: [
-                  const SizedBox(width: 8),
+                  BarraItem(
+                    texto: 'Usuarios',
+                    onTap: () => _abrirPantalla('usuarios'),
+                  ),
 
-                  BarraItem(texto: "Usuarios", onTap: () => _abrir("usuarios")),
-
-                  PopupMenuButton<String>(
-                    child: _barraTexto("Catálogos"),
-                    onSelected: (opcion) => _abrir(opcion),
-                    itemBuilder: (context) => const [
+                  BarraDropdown(
+                    titulo: "Catálogos",
+                    opciones: const [
                       PopupMenuItem(value: "clientes", child: Text("Clientes")),
-                      PopupMenuItem(value: "proveedores", child: Text("Proveedores")),
-                      PopupMenuItem(value: "papel", child: Text("Papel")),
-                      PopupMenuItem(value: "descuentos_papel", child: Text("Descuentos Papel")),
-                      PopupMenuItem(value: "maquinas", child: Text("Maquinas")),
+                      PopupMenuItem(
+                        value: "proveedores",
+                        child: Text("Proveedores"),
+                      ),
+                      PopupMenuItem(value: "papeles", child: Text("Papeles")),
+                      PopupMenuItem(
+                        value: "descuentos",
+                        child: Text("Descuentos Papel"),
+                      ),
+                      PopupMenuItem(value: "maquinas", child: Text("Máquinas")),
                       PopupMenuItem(value: "extras", child: Text("Extras")),
                     ],
+                    onSelected: _abrirPantalla,
                   ),
 
                   BarraItem(
-                    texto: "Segmentación Pliegos",
-                    onTap: () => _abrir("segmentacion"),
+                    texto: 'Segmentación',
+                    onTap: () => _abrirPantalla('segmentacion'),
                   ),
 
-                  PopupMenuButton<String>(
-                    child: _barraTexto("Cotizaciones"),
-                    onSelected: (opcion) => _abrir(opcion),
-                    itemBuilder: (context) => const [
-                      PopupMenuItem(value: "catalogo_cotizaciones", child: Text("Catálogo Cotizaciones")),
-                      PopupMenuItem(value: "cotizacion_plana", child: Text("Crear Cotización Plana")),
-                      PopupMenuItem(value: "cotizacion_revista", child: Text("Crear Cotización Revista")),
+                  BarraDropdown(
+                    titulo: "Cotizaciones",
+                    opciones: const [
+                      PopupMenuItem(
+                        value: "catalogo_cotizaciones",
+                        child: Text("Cátalago de Cotizaciones"),
+                      ),
+                      PopupMenuItem(
+                        value: "cotizacion_plana",
+                        child: Text("Crear Cotización Plana"),
+                      ),
+                      PopupMenuItem(
+                        value: "cotizacion_revista",
+                        child: Text("Crear Cotización Revista"),
+                      ),
                     ],
+                    onSelected: _abrirPantalla,
                   ),
-
-                  const SizedBox(width: 8),
                 ],
               ),
             ),
 
-            // ------- CONTENIDO ----------
-            Expanded(
-              child: pantallaActual == "usuarios"
-                  ? const UsuariosScreen()
-                  : pantallaActual == "clientes"
-                      ? const ClientesScreen()
-                  : pantallaActual == "proveedores"
-                      ? const ProveedoresScreen()
-                  : pantallaActual == "papel"
-                      ? const PapelScreen()
-                  : pantallaActual == "descuentos_papel"
-                      ? const DescuentosPapelScreen()
-                  : pantallaActual == "maquinas"
-                      ? const MaquinasScreen()
-                  : pantallaActual == "extras"
-                      ? const ExtrasScreen()
-                  : pantallaActual == "segmentacion"
-                      ? SegmentacionPliegosScreen()
-                  : pantallaActual == "catalogo_cotizaciones"
-                      ? const CatalogoCotizacionesScreen()
-                  : pantallaActual == "cotizacion_plana"
-                      ? const CotizacionPlanaScreen()
-                  : pantallaActual == "cotizacion_revista"
-                      ? const CotizacionRevistaScreen()
-                  : Container(
-                       color: Colors.grey[300],
-                       child: const Center(
-                         child: Text(
-                           "Área principal vacía",
-                           style: TextStyle(fontSize: 20),
-                         ),
-                       ),
-                     ),
-            ),
+            Expanded(child: _construirPantallaActual()),
           ],
         ),
       ),
     );
   }
 
-  Widget _barraTexto(String texto) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Text(
-        texto,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 15,
+  Widget _buildDashboard() {
+    return Container(
+      color: Colors.grey[100],
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: 20),
+            Text('Área principal vacía', style: TextStyle(fontSize: 24)),
+          ],
         ),
       ),
     );
