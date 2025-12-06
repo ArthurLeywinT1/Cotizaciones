@@ -205,7 +205,7 @@ class _ModalUsuarioState extends State<ModalUsuario> {
             TextField(
               controller: apellidoMController,
               decoration: const InputDecoration(
-                labelText: 'Apellido Materno (opcional)',
+                labelText: 'Apellido Materno',
                 border: OutlineInputBorder(),
               ),
             ),

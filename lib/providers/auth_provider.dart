@@ -2,73 +2,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/usuario_model.dart';
 import '../services/auth_service.dart';
 
-//Aqui se verifican los datos del usuario y se maneja el estado de autenticación
-final authServiceProvider = Provider((ref) => AuthService());
-
-final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
-  final authService = ref.watch(authServiceProvider);
-  return AuthNotifier(authService);
+final authServiceProvider = Provider<AuthService>((ref) {
+  return AuthService();
 });
 
-class AuthNotifier extends StateNotifier<AuthState> {
-  final AuthService _authService;
-
-  AuthNotifier(this._authService) : super(AuthState.initial());
-
-  // Esta cosa verifica tus datos demo, todavia no hay conexion a base de datos
-  Future<bool> login(String usuario, String contrasena) async {
-    state = state.copyWith(isLoading: true, error: '');
-
-    try {
-      final usuarioAutenticado = await _authService.login(usuario, contrasena);
-
-      if (usuarioAutenticado != null) {
-        if (_authService.esAdmin(usuarioAutenticado)) {
-          state = state.copyWith(
-            isLoading: false,
-            usuario: usuarioAutenticado,
-            error: '',
-          );
-          return true;
-        } else {
-          state = state.copyWith(
-            isLoading: false,
-            error: 'Solo administradores pueden iniciar sesión.',
-          );
-          return false;
-        }
-      } else {
-        state = state.copyWith(
-          isLoading: false,
-          error: 'Usuario o contraseña incorrectos.',
-        );
-        return false;
-      }
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: 'Error: ${e.toString()}');
-      return false;
-    }
-  }
-
-  // Esta cosa cierra la sesion del usuario, la establece como esta abajo, como datos vacios
-  void logout() {
-    state = AuthState.initial();
-  }
-}
+final authProvider = NotifierProvider<AuthNotifier, AuthState>(
+  AuthNotifier.new,
+);
 
 class AuthState {
   final bool isLoading;
   final Usuario? usuario;
-  final String error;
+  final String? error;
 
-  AuthState({
-    required this.isLoading,
-    required this.usuario,
-    required this.error,
-  });
+  const AuthState({this.isLoading = false, this.usuario, this.error});
 
   factory AuthState.initial() =>
-      AuthState(isLoading: false, usuario: null, error: '');
+      const AuthState(isLoading: false, usuario: null, error: null);
 
   bool get isAuthenticated => usuario != null;
 
@@ -76,7 +26,64 @@ class AuthState {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
       usuario: usuario ?? this.usuario,
-      error: error ?? this.error,
+      error: error,
     );
+  }
+}
+
+class AuthNotifier extends Notifier<AuthState> {
+  @override
+  AuthState build() {
+    return AuthState.initial();
+  }
+
+  Future<bool> login(String usuario, String contrasena) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    if (state.error != null) {
+      state = const AuthState(isLoading: true, usuario: null, error: null);
+    }
+
+    try {
+      final authService = ref.read(authServiceProvider);
+
+      final usuarioAutenticado = await authService.login(usuario, contrasena);
+
+      if (usuarioAutenticado != null) {
+        if (authService.esAdmin(usuarioAutenticado)) {
+          state = state.copyWith(
+            isLoading: false,
+            usuario: usuarioAutenticado,
+            error: null,
+          );
+          return true;
+        } else {
+          state = const AuthState(
+            isLoading: false,
+            usuario: null,
+            error: 'Solo los administradores pueden iniciar sesión.',
+          );
+          return false;
+        }
+      } else {
+        state = const AuthState(
+          isLoading: false,
+          usuario: null,
+          error: 'Usuario o contraseña incorrectos.',
+        );
+        return false;
+      }
+    } catch (e) {
+      state = AuthState(
+        isLoading: false,
+        usuario: null,
+        error: 'Error: ${e.toString()}',
+      );
+      return false;
+    }
+  }
+
+  void logout() {
+    state = AuthState.initial();
   }
 }

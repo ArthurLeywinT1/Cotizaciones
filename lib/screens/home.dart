@@ -71,7 +71,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       case 'cotizacion_revista':
         return 'Cátalogo de Cotización Revista';
       default:
-        return 'Pagina principal';
+        return 'Romosso - Cotizador - Usuario: ${usuarioNombre ?? 'Desconocido'}';
     }
   }
 

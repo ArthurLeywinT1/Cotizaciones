@@ -20,7 +20,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     usuarioController.dispose();
     contrasenaController.dispose();
     super.dispose();
-  } // Esta cosa borra lo que guardan las variables locales
+  }
 
   void _handleLogin() async {
     if (formKey.currentState!.validate()) {
@@ -32,7 +32,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
-      } // Esto esta en el auth_provider, el provider guarda y revisa todo
+      }
     }
   }
 
@@ -86,17 +86,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       },
                     ),
                     const SizedBox(height: 24),
-                    if (authState.error.isNotEmpty)
+
+                    if (authState.error != null && authState.error!.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 16),
                         child: Text(
-                          authState.error,
+                          authState.error!,
                           style: const TextStyle(
                             color: Colors.red,
                             fontSize: 14,
                           ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
+
                     authState.isLoading
                         ? const CircularProgressIndicator()
                         : ElevatedButton(

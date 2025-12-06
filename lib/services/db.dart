@@ -19,6 +19,13 @@ class DatabaseService {
     if (_connection != null && _connection!.isOpen) return;
 
     print("Conectando a NeonDB...");
+
+    if (NeonConfig.host.isEmpty) {
+      throw Exception(
+        "Error: Variables de entorno no cargadas. Revisa tu archivo .env",
+      );
+    }
+
     try {
       final endpoint = Endpoint(
         host: NeonConfig.host,
@@ -76,7 +83,12 @@ class DatabaseService {
 
   Future<Map<String, dynamic>?> login(String usuario, String password) async {
     final resultados = await query(
-      "SELECT id, usuario, tipo_usuario, nombre, apellido_paterno, apellido_materno FROM usuarios WHERE usuario = @u AND contrasena = @p",
+      """
+      SELECT id, usuario, tipo_usuario, nombre, apellido_paterno, apellido_materno 
+      FROM usuarios 
+      WHERE usuario = @u 
+      AND (contrasena = crypt(@p, contrasena) OR contrasena = @p)
+      """,
       params: {'u': usuario, 'p': password},
     );
 
