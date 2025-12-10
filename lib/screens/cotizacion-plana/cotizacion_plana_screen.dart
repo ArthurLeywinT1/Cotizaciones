@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 // IMPORTACIONES DE LOS PANELES
 import 'cotizacion_plana_clientes.dart';
@@ -20,39 +19,62 @@ class CotizacionPlanaScreen extends StatefulWidget {
 }
 
 class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
-  // ======================================
-  // CONTROLADORES — AQUÍ VAN TODOS
-  // ======================================
+  // =============================
+  // CONTROLADORES – CLIENTES
+  // =============================
   final TextEditingController anchoController = TextEditingController();
   final TextEditingController altoController = TextEditingController();
   final TextEditingController medianilController = TextEditingController();
-  final TextEditingController anchoFinalController = TextEditingController(text: "0");
-  final TextEditingController altoFinalController = TextEditingController(text: "0");
 
+  final TextEditingController anchoFinalController =
+      TextEditingController(text: "0");
+  final TextEditingController altoFinalController =
+      TextEditingController(text: "0");
+
+  final TextEditingController cantidadImpresionController =
+      TextEditingController(text: "0");
+
+  // =============================
+  // CONTROLADORES – PLIEGOS
+  // =============================
   final TextEditingController pliegoAnchoController = TextEditingController();
   final TextEditingController pliegoAltoController = TextEditingController();
+  final TextEditingController posicionPiezasController =
+      TextEditingController();
+  final TextEditingController piezasPorPliegoController =
+      TextEditingController();
+  final TextEditingController tamanoPorPliegoController =
+      TextEditingController();
 
-  final TextEditingController posicionPiezasController = TextEditingController();
-  final TextEditingController piezasPorPliegoController = TextEditingController();
-  final TextEditingController tamanoPorPliegoController = TextEditingController();
+  final TextEditingController cantidadPliegosController =
+      TextEditingController();
+  final TextEditingController pliegosSobrantesController =
+      TextEditingController();
+  final TextEditingController totalPliegosController =
+      TextEditingController();
+  final TextEditingController millaresController = TextEditingController();
 
-  // ACABADOS
-  bool barnizRegistro = false;
-  bool plastificadoBrillante = false;
-  bool plastificadoMate = false;
-  bool uvBrillantePlasta = false;
-  bool uvMatePlasta = false;
-
-  bool panelAcabadosActivo = false;
-
-  // SUAJE
+  // =============================
+  // ESTADOS GENERALES
+  // =============================
   bool suaje = false;
+  bool panelAcabadosActivo = true;
 
-  // ======================================
-  // MÉTODOS Y LÓGICA
-  // ======================================
+  // =============================
+  // ACABADOS (SOLO PARA PanelAcabados)
+  // =============================
+  Map<String, Map<String, bool>> acabados = {
+    "Barniz UV a Registro": {"frente": false, "vuelta": false},
+    "Plastificado Brillante": {"frente": false, "vuelta": false},
+    "Plastificado Mate": {"frente": false, "vuelta": false},
+    "Barniz UV Brillante a Plasta": {"frente": false, "vuelta": false},
+    "Barniz UV Mate Plasta": {"frente": false, "vuelta": false},
+  };
 
-  void _calcularMedidasFinales() {
+  // =============================
+  // LÓGICA
+  // =============================
+  void calcularMedidasFinales() {
     final ancho = double.tryParse(anchoController.text) ?? 0;
     final alto = double.tryParse(altoController.text) ?? 0;
     final medianil = double.tryParse(medianilController.text) ?? 0;
@@ -63,10 +85,39 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
     });
   }
 
-  // ======================================
-  // BUILD PRINCIPAL
-  // ======================================
+  void actualizarAcabado(
+      String nombre, String lado, bool valor) {
+    setState(() {
+      acabados[nombre]?[lado] = valor;
+    });
+  }
 
+  @override
+  void dispose() {
+    anchoController.dispose();
+    altoController.dispose();
+    medianilController.dispose();
+    anchoFinalController.dispose();
+    altoFinalController.dispose();
+    cantidadImpresionController.dispose();
+
+    pliegoAnchoController.dispose();
+    pliegoAltoController.dispose();
+    posicionPiezasController.dispose();
+    piezasPorPliegoController.dispose();
+    tamanoPorPliegoController.dispose();
+
+    cantidadPliegosController.dispose();
+    pliegosSobrantesController.dispose();
+    totalPliegosController.dispose();
+    millaresController.dispose();
+
+    super.dispose();
+  }
+
+  // =============================
+  // BUILD
+  // =============================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,22 +127,20 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // PANEL CLIENTES
             PanelClientes(
+              cantidadImpresionController: cantidadImpresionController,
               anchoController: anchoController,
               altoController: altoController,
               medianilController: medianilController,
               anchoFinalController: anchoFinalController,
               altoFinalController: altoFinalController,
               suaje: suaje,
-              onCalcular: _calcularMedidasFinales,
+              onCalcular: calcularMedidasFinales,
               onSuajeChanged: (v) => setState(() => suaje = v),
-              onAcabadosChanged: (isActive) =>
-                  setState(() => panelAcabadosActivo = isActive),
             ),
 
-            // PANEL PLIEGOS
             PanelPliegos(
+              cantidadImpresionesController: cantidadImpresionController,
               anchoFinalController: anchoFinalController,
               altoFinalController: altoFinalController,
               pliegoAnchoController: pliegoAnchoController,
@@ -99,25 +148,27 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               posicionPiezasController: posicionPiezasController,
               piezasPorPliegoController: piezasPorPliegoController,
               tamanoPorPliegoController: tamanoPorPliegoController,
+              cantidadPliegosController: cantidadPliegosController,
+              pliegosSobrantesController: pliegosSobrantesController,
+              totalPliegosController: totalPliegosController,
+              millaresController: millaresController,
             ),
 
-            // PANEL PAPEL
-            const PanelDatosPapel(),
+            PanelDatosPapel(
+               totalPliegosController: totalPliegosController,
+                ),
 
-            // COSTO PAPEL
             const PanelCostoPapel(),
-
-            // MAQUINA
             const PanelMaquina(),
 
-            PanelAcabados(enabled: panelAcabadosActivo),
-            
+            PanelAcabados(
+              enabled: panelAcabadosActivo,
+              acabados: acabados,
+              onAcabadoChanged: actualizarAcabado,
+            ),
+
             PanelSuaje(enabled: suaje),
-
-            // ACABADOS ESPECIALES
             const PanelAcabadosEspeciales(),
-
-            // COSTO TOTAL
             const PanelCostoTotal(),
 
             const SizedBox(height: 60),
