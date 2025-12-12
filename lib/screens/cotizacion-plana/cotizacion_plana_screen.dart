@@ -61,7 +61,7 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   bool panelAcabadosActivo = true;
 
   // =============================
-  // ACABADOS (SOLO PARA PanelAcabados)
+  // ACABADOS
   // =============================
   Map<String, Map<String, bool>> acabados = {
     "Barniz UV a Registro": {"frente": false, "vuelta": false},
@@ -71,9 +71,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
     "Barniz UV Mate Plasta": {"frente": false, "vuelta": false},
   };
 
-  // =============================
-  // LÓGICA
-  // =============================
   void calcularMedidasFinales() {
     final ancho = double.tryParse(anchoController.text) ?? 0;
     final alto = double.tryParse(altoController.text) ?? 0;
@@ -85,8 +82,7 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
     });
   }
 
-  void actualizarAcabado(
-      String nombre, String lado, bool valor) {
+  void actualizarAcabado(String nombre, String lado, bool valor) {
     setState(() {
       acabados[nombre]?[lado] = valor;
     });
@@ -154,9 +150,7 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               millaresController: millaresController,
             ),
 
-            PanelDatosPapel(
-               totalPliegosController: totalPliegosController,
-                ),
+            PanelDatosPapel(totalPliegosController: totalPliegosController),
 
             const PanelCostoPapel(),
             const PanelMaquina(),
@@ -171,9 +165,45 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
             const PanelAcabadosEspeciales(),
             const PanelCostoTotal(),
 
-            const SizedBox(height: 60),
+            const SizedBox(height: 40),
+
+            // ==========================================
+            //          BOTONES FINALES
+            // ==========================================
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                botonAccion("Guardar Cotización"),
+                botonAccion("Cancelar"),
+                botonAccion("Modificar Descuentos"),
+                botonAccion("Recotizar"),
+                botonAccion("Recotizar Cantidad"),
+                botonAccion("Generar OT"),
+                botonAccion("Cancelar Cotización"),
+              ],
+            ),
+
+            const SizedBox(height: 40),
           ],
         ),
+      ),
+    );
+  }
+
+  // =============================
+  //  WIDGET BOTÓN REUTILIZABLE
+  // =============================
+  Widget botonAccion(String texto) {
+    return ElevatedButton(
+      onPressed: () {},
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.grey[300],
+        foregroundColor: Colors.black,
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      ),
+      child: Text(
+        texto,
+        textAlign: TextAlign.center,
       ),
     );
   }
