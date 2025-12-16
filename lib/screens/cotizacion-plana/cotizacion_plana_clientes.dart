@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'buscador_cliente.dart';
 
-class PanelClientes extends StatefulWidget {
+class PanelClientes extends ConsumerStatefulWidget {
+  final TextEditingController razonSocialController;
+
   final TextEditingController cantidadImpresionController;
   final TextEditingController anchoController;
   final TextEditingController altoController;
@@ -15,6 +19,7 @@ class PanelClientes extends StatefulWidget {
 
   const PanelClientes({
     super.key,
+    required this.razonSocialController,
     required this.cantidadImpresionController,
     required this.anchoController,
     required this.altoController,
@@ -27,11 +32,11 @@ class PanelClientes extends StatefulWidget {
   });
 
   @override
-  State<PanelClientes> createState() => _PanelClientesState();
+  ConsumerState<PanelClientes> createState() => _PanelClientesState();
 }
 
-class _PanelClientesState extends State<PanelClientes> {
-  /// ✅ Estado SOLO para Prueba de Color
+class _PanelClientesState extends ConsumerState<PanelClientes> {
+  /// Estado SOLO para Prueba de Color
   bool pruebaColor = false;
 
   final TextEditingController porcentajePruebaController =
@@ -41,15 +46,10 @@ class _PanelClientesState extends State<PanelClientes> {
   void _buscarCliente() {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Buscar Cliente"),
-        content: const Text("Aquí irá la búsqueda de clientes."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cerrar"),
-          ),
-        ],
+      builder: (_) => DialogoSelectorCliente(
+        onSeleccionado: (cliente) {
+          widget.razonSocialController.text = cliente.razonSocial;
+        },
       ),
     );
   }
@@ -83,10 +83,14 @@ class _PanelClientesState extends State<PanelClientes> {
               children: [
                 Expanded(
                   child: TextField(
+                    readOnly: true,
+                    controller: widget.razonSocialController,
                     decoration: const InputDecoration(
                       labelText: "Razón Social Cliente",
                       border: OutlineInputBorder(),
                       isDense: true,
+                      filled: true,
+                      fillColor: Color(0xFFEEEEEE),
                     ),
                   ),
                 ),
@@ -94,8 +98,8 @@ class _PanelClientesState extends State<PanelClientes> {
                 IconButton(
                   onPressed: _buscarCliente,
                   icon: const Icon(Icons.search),
+                  tooltip: "Buscar cliente en base de datos",
                 ),
-
               ],
             ),
 
@@ -132,8 +136,9 @@ class _PanelClientesState extends State<PanelClientes> {
                 Expanded(
                   child: TextField(
                     controller: widget.anchoController,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     decoration: const InputDecoration(
                       labelText: "Ancho",
                       border: OutlineInputBorder(),
@@ -147,8 +152,9 @@ class _PanelClientesState extends State<PanelClientes> {
                 Expanded(
                   child: TextField(
                     controller: widget.altoController,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     decoration: const InputDecoration(
                       labelText: "Alto",
                       border: OutlineInputBorder(),
@@ -168,8 +174,9 @@ class _PanelClientesState extends State<PanelClientes> {
                   width: 120,
                   child: TextField(
                     controller: widget.medianilController,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     decoration: const InputDecoration(
                       labelText: "Medianil (cm)",
                       border: OutlineInputBorder(),
@@ -193,11 +200,13 @@ class _PanelClientesState extends State<PanelClientes> {
                 Expanded(
                   child: TextField(
                     controller: widget.anchoFinalController,
-                    enabled: false,
+                    readOnly: true,
                     decoration: const InputDecoration(
                       labelText: "Ancho Final",
                       border: OutlineInputBorder(),
                       isDense: true,
+                      filled: true,
+                      fillColor: Color(0xFFEEEEEE),
                     ),
                   ),
                 ),
@@ -207,11 +216,13 @@ class _PanelClientesState extends State<PanelClientes> {
                 Expanded(
                   child: TextField(
                     controller: widget.altoFinalController,
-                    enabled: false,
+                    readOnly: true,
                     decoration: const InputDecoration(
                       labelText: "Alto Final",
                       border: OutlineInputBorder(),
                       isDense: true,
+                      filled: true,
+                      fillColor: Color(0xFFEEEEEE),
                     ),
                   ),
                 ),
@@ -248,7 +259,7 @@ class _PanelClientesState extends State<PanelClientes> {
 
             const SizedBox(height: 12),
 
-            /// ✅ PRUEBA DE COLOR (ÚNICO ACABADO AQUÍ)
+            /// PRUEBA DE COLOR (ÚNICO ACABADO AQUÍ)
             const Text(
               "Prueba de Color",
               style: TextStyle(fontWeight: FontWeight.bold),

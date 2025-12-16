@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/usuario_model.dart';
-import '../providers/usuario_provider.dart';
-import '../widgets/boton.dart';
-import '../widgets/tabla.dart';
+import '../../models/usuario_model.dart';
+import '../../providers/usuario_provider.dart';
+import '../../widgets/boton.dart';
+import '../../widgets/tabla.dart';
 import 'modals/modal_usuario.dart';
 
 class UsuarioScreen extends ConsumerWidget {
@@ -160,7 +160,6 @@ class UsuarioScreen extends ConsumerWidget {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // Tabla de usuarios
           Expanded(
             child: usuariosState.isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -245,7 +244,6 @@ class UsuarioScreen extends ConsumerWidget {
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: _getColorPorRol(usuario.tipoUsuario),
-                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
@@ -258,6 +256,7 @@ class UsuarioScreen extends ConsumerWidget {
                     }).toList(),
                   ),
           ),
+
           Container(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             decoration: BoxDecoration(
@@ -269,12 +268,12 @@ class UsuarioScreen extends ConsumerWidget {
               children: [
                 Boton(
                   icon: Icons.person_add,
-                  label: "Añadir Usuario",
+                  label: "Añadir",
                   onPressed: () => _agregarUsuario(context, ref),
                 ),
                 Boton(
                   icon: Icons.edit,
-                  label: "Modificar Usuario",
+                  label: "Modificar",
                   onPressed: () {
                     if (usuarioSeleccionado != null) {
                       _modificarUsuario(context, ref, usuarioSeleccionado);
@@ -283,12 +282,20 @@ class UsuarioScreen extends ConsumerWidget {
                 ),
                 Boton(
                   icon: Icons.delete,
-                  label: "Eliminar Usuario",
+                  label: "Eliminar",
                   isDestructive: true,
                   onPressed: () {
                     if (usuarioSeleccionado != null) {
                       _eliminarUsuario(context, ref, usuarioSeleccionado);
                     }
+                  },
+                ),
+
+                Boton(
+                  icon: Icons.refresh,
+                  label: "Recargar",
+                  onPressed: () {
+                    ref.read(usuariosProvider.notifier).recargar();
                   },
                 ),
               ],

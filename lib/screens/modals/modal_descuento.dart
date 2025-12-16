@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
 import '../../models/descuento_model.dart';
-import '../../models/papel_model.dart';
 
 class ModalDescuento extends StatefulWidget {
   final String titulo;
   final DescuentoPapel? descuentoInicial;
-  final List<Papel> listaPapeles;
   final Function(DescuentoPapel) onGuardar;
 
   const ModalDescuento({
     super.key,
     required this.titulo,
     required this.onGuardar,
-    required this.listaPapeles,
     this.descuentoInicial,
   });
 
@@ -23,7 +20,6 @@ class ModalDescuento extends StatefulWidget {
 class _ModalDescuentoState extends State<ModalDescuento> {
   final _formKey = GlobalKey<FormState>();
 
-  String? papelSeleccionadoId;
   late TextEditingController desdeCtrl;
   late TextEditingController hastaCtrl;
   late TextEditingController descuentoCtrl;
@@ -32,12 +28,6 @@ class _ModalDescuentoState extends State<ModalDescuento> {
   void initState() {
     super.initState();
     final d = widget.descuentoInicial;
-
-    if (d?.papelId != null) {
-      if (widget.listaPapeles.any((p) => p.id == d!.papelId)) {
-        papelSeleccionadoId = d!.papelId;
-      }
-    }
 
     desdeCtrl = TextEditingController(text: d?.cantidadDesde.toString() ?? '');
     hastaCtrl = TextEditingController(text: d?.cantidadHasta.toString() ?? '');
@@ -56,7 +46,6 @@ class _ModalDescuentoState extends State<ModalDescuento> {
     if (_formKey.currentState!.validate()) {
       final nuevoDescuento = DescuentoPapel(
         id: widget.descuentoInicial?.id ?? '',
-        papelId: papelSeleccionadoId!,
         cantidadDesde: int.parse(desdeCtrl.text),
         cantidadHasta: int.parse(hastaCtrl.text),
         descuento: double.parse(descuentoCtrl.text),
@@ -79,32 +68,11 @@ class _ModalDescuentoState extends State<ModalDescuento> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                DropdownButtonFormField<String>(
-                  value: papelSeleccionadoId,
-                  decoration: const InputDecoration(
-                    labelText: 'Papel',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: widget.listaPapeles.map((papel) {
-                    return DropdownMenuItem(
-                      value: papel.id,
-                      child: Text(
-                        papel.nombre,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (val) => setState(() => papelSeleccionadoId = val),
-                  validator: (val) =>
-                      val == null ? 'Selecciona un papel' : null,
-                ),
-                const SizedBox(height: 16),
-
                 const Text(
                   "Rango de Cantidad (Hojas)",
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(

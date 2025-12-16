@@ -188,6 +188,13 @@ class ClienteScreen extends ConsumerWidget {
                       _eliminarCliente(context, ref, clienteSeleccionado);
                   },
                 ),
+                Boton(
+                  icon: Icons.refresh,
+                  label: "Recargar",
+                  onPressed: () {
+                    ref.read(clientesProvider.notifier).recargar();
+                  },
+                ),
               ],
             ),
           ),

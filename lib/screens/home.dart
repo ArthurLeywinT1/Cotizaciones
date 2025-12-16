@@ -10,8 +10,8 @@ import 'maquina_screen.dart';
 import 'extra_screen.dart';
 import 'descuento_screen.dart';
 import 'segmentacion_pliegos_screen.dart';
-import 'catalogo_cotizaciones_screen.dart';
 import 'cotizacion-plana/cotizacion_plana_screen.dart';
+import 'catalogo_cotizaciones_screen.dart';
 import 'cotizacion_revista_screen.dart';
 import 'login.dart';
 
@@ -65,56 +65,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       case 'segmentacion':
         return 'Segmentación de Pliegos';
       case 'catalogo_cotizaciones':
-        return 'Cátalago de Cotizaciones';
+        return 'Catálogo de Cotizaciones';
       case 'cotizacion_plana':
-        return 'Cátalago de Cotización Plana';
+        return 'Catálogo de Cotización Plana';
       case 'cotizacion_revista':
-        return 'Cátalogo de Cotización Revista';
+        return 'Catálogo de Cotización Revista';
       default:
         return 'Romosso - Cotizador - Usuario: ${usuarioNombre ?? 'Desconocido'}';
     }
   }
 
-Widget _construirPantallaActual() {
-  switch (pantallaActual) {
-    case 'usuarios':
-      return const UsuarioScreen();
-
-    case 'clientes':
-      return const ClienteScreen();
-
-    case 'proveedores':
-      return const ProveedorScreen();
-
-    case 'papeles':
-      return const PapelScreen();
-
-    case 'descuentos':
-      return const DescuentoScreen();
-
-    case 'maquinas':
-      return const MaquinaScreen();
-
-    case 'extras':
-      return const ExtraScreen();
-
-    case 'segmentacion':
-      return const SegmentacionPliegosScreen();
-
-    case 'catalogo_cotizaciones':
-      return const CatalogoCotizacionesScreen();  // ⭐ AGREGADO
-
-    case 'cotizacion_plana':
-      return const CotizacionPlanaScreen();
-
-    case 'cotizacion_revista':
-      return const CotizacionRevistaScreen();     // ⭐ ARREGLADO
-
-    default:
-      return _buildDashboard();
+  Widget _construirPantallaActual() {
+    switch (pantallaActual) {
+      case 'usuarios':
+        return const UsuarioScreen();
+      case 'clientes':
+        return const ClienteScreen();
+      case 'proveedores':
+        return const ProveedorScreen();
+      case 'papeles':
+        return const PapelScreen();
+      case 'descuentos':
+        return const DescuentoScreen();
+      case 'maquinas':
+        return const MaquinaScreen();
+      case 'extras':
+        return const ExtraScreen();
+      case 'cotizacion_plana':
+        return const CotizacionPlanaScreen();
+      case 'cotizacion_revista':
+      case 'historial_cotizaciones':
+      case 'segmentacion':
+        return const SegmentacionPliegosScreen();
+      default:
+        return _buildDashboard();
+    }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {

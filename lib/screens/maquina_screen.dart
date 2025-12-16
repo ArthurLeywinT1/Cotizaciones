@@ -168,6 +168,13 @@ class MaquinaScreen extends ConsumerWidget {
                       _eliminar(context, ref, seleccionado);
                   },
                 ),
+                Boton(
+                  icon: Icons.refresh,
+                  label: "Recargar",
+                  onPressed: () {
+                    ref.read(maquinasProvider.notifier).recargar();
+                  },
+                ),
               ],
             ),
           ),

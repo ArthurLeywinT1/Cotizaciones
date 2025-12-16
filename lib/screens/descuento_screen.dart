@@ -31,7 +31,6 @@ class DescuentoScreen extends ConsumerWidget {
       builder: (context) => ModalDescuento(
         titulo: descuento == null ? 'Nuevo Descuento' : 'Modificar Descuento',
         descuentoInicial: descuento,
-        listaPapeles: listaPapeles,
         onGuardar: (nuevoDescuento) async {
           bool success;
           if (descuento == null) {
@@ -96,15 +95,6 @@ class DescuentoScreen extends ConsumerWidget {
     );
   }
 
-  String _nombrePapel(String id, WidgetRef ref) {
-    final papeles = ref.watch(papelesProvider).papeles;
-    try {
-      return papeles.firstWhere((p) => p.id == id).nombre;
-    } catch (e) {
-      return 'Papel Desconocido';
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final descuentosState = ref.watch(descuentosProvider);
@@ -129,7 +119,6 @@ class DescuentoScreen extends ConsumerWidget {
                   )
                 : Tabla(
                     columns: const [
-                      DataColumn(label: Text('Papel')),
                       DataColumn(label: Text('Cantidad Desde')),
                       DataColumn(label: Text('Cantidad Hasta')),
                       DataColumn(label: Text('Descuento (%)')),
@@ -147,14 +136,6 @@ class DescuentoScreen extends ConsumerWidget {
                               : d;
                         },
                         cells: [
-                          DataCell(
-                            Text(
-                              _nombrePapel(d.papelId, ref),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
                           DataCell(Text(d.cantidadDesde.toString())),
                           DataCell(Text(d.cantidadHasta.toString())),
                           DataCell(
@@ -203,6 +184,13 @@ class DescuentoScreen extends ConsumerWidget {
                   onPressed: () {
                     if (seleccionado != null)
                       _eliminar(context, ref, seleccionado);
+                  },
+                ),
+                Boton(
+                  icon: Icons.refresh,
+                  label: "Recargar",
+                  onPressed: () {
+                    ref.read(descuentosProvider.notifier).recargar();
                   },
                 ),
               ],
