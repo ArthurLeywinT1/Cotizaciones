@@ -164,6 +164,8 @@ class _PanelCostoPapelState extends ConsumerState<PanelCostoPapel> {
                             _usarDescuentoGeneral = v ?? false;
                             if (_usarDescuentoGeneral) {
                               _calcular();
+                            } else {
+                              widget.descuentoController.text = "0";
                             }
                           });
                         },

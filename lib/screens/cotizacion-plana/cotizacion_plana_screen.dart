@@ -24,7 +24,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   final TextEditingController anchoController = TextEditingController();
   final TextEditingController altoController = TextEditingController();
   final TextEditingController medianilController = TextEditingController();
-
   final TextEditingController anchoFinalController = TextEditingController(
     text: "0",
   );
@@ -45,7 +44,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
       TextEditingController();
   final TextEditingController tamanoPorPliegoController =
       TextEditingController();
-
   final TextEditingController cantidadPliegosController =
       TextEditingController();
   final TextEditingController pliegosSobrantesController =
@@ -62,7 +60,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   final TextEditingController proveedorPapelController =
       TextEditingController();
   final TextEditingController costoMillarController = TextEditingController();
-
   final TextEditingController costoTotalPapelController = TextEditingController(
     text: "0.00",
   );
@@ -77,19 +74,16 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   final TextEditingController costoPlacaController = TextEditingController(
     text: "0.00",
   );
-
   final TextEditingController tintasFteController = TextEditingController();
   final TextEditingController tintasRevController = TextEditingController();
   final TextEditingController cantidadTotalTintasController =
       TextEditingController();
-
   final TextEditingController costoUnitFteController = TextEditingController();
   final TextEditingController costoTotalFteController = TextEditingController();
   final TextEditingController costoUnitRevController = TextEditingController();
   final TextEditingController costoTotalRevController = TextEditingController();
   final TextEditingController costoGranTotalTintasController =
       TextEditingController();
-
   final TextEditingController cantidadPlacasController = TextEditingController(
     text: "0",
   );
@@ -99,11 +93,18 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   final TextEditingController costoTotalPlacasController =
       TextEditingController(text: "0.00");
 
-  // =============================
-  // ESTADOS GENERALES
-  // =============================
-  bool suaje = false;
-  bool panelAcabadosActivo = true;
+  // Contoladores suaje
+  final TextEditingController tamanoSuajeController = TextEditingController();
+  final TextEditingController costoSuajeCmController = TextEditingController(
+    text: "0.00",
+  );
+  final TextEditingController costoTotalSuajeController = TextEditingController(
+    text: "0.00",
+  );
+  final TextEditingController costoArregloSuajeController =
+      TextEditingController(text: "0.00");
+  final TextEditingController costoTotalSuajadoController =
+      TextEditingController(text: "0.00");
 
   // =============================
   // ACABADOS
@@ -111,8 +112,16 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   final Map<String, TextEditingController> acabadosCostoCm2Controllers = {};
   final Map<String, TextEditingController> acabadosCostoTotalControllers = {};
 
+  // =============================
+  // ESTADOS GENERALES
+  // =============================
+  bool suaje = false;
+  bool panelAcabadosActivo = true;
   bool barnizMaquina = false;
   bool cambiarPrecioPlaca = false;
+
+  bool gastosEntrega = false;
+  bool duplicarCostoSuaje = false;
 
   Map<String, Map<String, bool>> acabados = {
     "Barniz UV a Registro": {"frente": false, "vuelta": false},
@@ -193,6 +202,12 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
     costoBarnizController.dispose();
     costoTotalPlacasController.dispose();
 
+    tamanoSuajeController.dispose();
+    costoSuajeCmController.dispose();
+    costoTotalSuajeController.dispose();
+    costoArregloSuajeController.dispose();
+    costoTotalSuajadoController.dispose();
+
     for (var controller in acabadosCostoCm2Controllers.values) {
       controller.dispose();
     }
@@ -203,9 +218,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
     super.dispose();
   }
 
-  // =============================
-  // BUILD
-  // =============================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -294,15 +306,28 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               controllersCostoTotal: acabadosCostoTotalControllers,
             ),
 
-            PanelSuaje(enabled: suaje),
+            PanelSuaje(
+              enabled: suaje,
+              tamanoSuajeController: tamanoSuajeController,
+              costoSuajeCmController: costoSuajeCmController,
+              costoTotalSuajeController: costoTotalSuajeController,
+              costoArregloSuajeController: costoArregloSuajeController,
+              costoTotalSuajadoController: costoTotalSuajadoController,
+
+              gastosEntrega: gastosEntrega,
+              onGastosEntregaChanged: (v) =>
+                  setState(() => gastosEntrega = v ?? false),
+
+              duplicarCosto: duplicarCostoSuaje,
+              onDuplicarCostoChanged: (v) =>
+                  setState(() => duplicarCostoSuaje = v ?? false),
+            ),
+
             const PanelAcabadosEspeciales(),
             const PanelCostoTotal(),
 
             const SizedBox(height: 40),
 
-            // ==========================================
-            //          BOTONES FINALES
-            // ==========================================
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -323,9 +348,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
     );
   }
 
-  // =============================
-  //  WIDGET BOTÓN REUTILIZABLE
-  // =============================
   Widget botonAccion(String texto) {
     return ElevatedButton(
       onPressed: () {},

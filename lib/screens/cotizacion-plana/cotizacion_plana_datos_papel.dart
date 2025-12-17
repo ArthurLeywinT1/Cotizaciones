@@ -36,26 +36,29 @@ class _PanelDatosPapelState extends ConsumerState<PanelDatosPapel> {
       context: context,
       builder: (_) => DialogoSelectorPapel(
         onSeleccionado: (papel) {
-          widget.nombrePapelController.text = papel.nombre;
-          widget.tipoPapelController.text = papel.tipo ?? '';
-          widget.anchoPapelController.text = papel.ancho?.toString() ?? '0';
-          widget.largoPapelController.text = papel.largo?.toString() ?? '0';
-          widget.pesoPapelController.text = papel.peso?.toString() ?? '0';
-          widget.costoMillarController.text = papel.costoMillar.toString();
+          setState(() {
+            widget.nombrePapelController.text = papel.nombre;
+            widget.tipoPapelController.text = papel.tipo ?? '';
+            widget.anchoPapelController.text = papel.ancho?.toString() ?? '0';
+            widget.largoPapelController.text = papel.largo?.toString() ?? '0';
+            widget.pesoPapelController.text = papel.peso?.toString() ?? '0';
+            widget.costoMillarController.text = papel.costoMillar.toString();
 
-          if (papel.proveedorId != null) {
-            final proveedores = ref.read(proveedoresProvider).proveedores;
-            try {
-              final proveedor = proveedores.firstWhere(
-                (p) => p.id == papel.proveedorId,
-              );
-              widget.proveedorPapelController.text = proveedor.razonSocial;
-            } catch (e) {
-              widget.proveedorPapelController.text = "Proveedor no encontrado";
+            if (papel.proveedorId != null) {
+              final proveedores = ref.read(proveedoresProvider).proveedores;
+              try {
+                final proveedor = proveedores.firstWhere(
+                  (p) => p.id == papel.proveedorId,
+                );
+                widget.proveedorPapelController.text = proveedor.razonSocial;
+              } catch (e) {
+                widget.proveedorPapelController.text =
+                    "Proveedor no encontrado";
+              }
+            } else {
+              widget.proveedorPapelController.text = "";
             }
-          } else {
-            widget.proveedorPapelController.text = "";
-          }
+          });
         },
       ),
     );
