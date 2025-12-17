@@ -2,8 +2,8 @@ class Papel {
   final String id;
   final String nombre;
   final String? tipo;
-  final int? ancho;
-  final int? largo;
+  final double? ancho;
+  final double? largo;
   final int? peso;
   final double costoMillar;
   final String? proveedorId;
@@ -27,10 +27,10 @@ class Papel {
       nombre: map['nombre_papel'].toString(),
       tipo: map['tipo_papel']?.toString(),
       ancho: map['medida_ancho'] != null
-          ? int.tryParse(map['medida_ancho'].toString())
+          ? double.tryParse(map['medida_ancho'].toString())
           : null,
       largo: map['medida_largo'] != null
-          ? int.tryParse(map['medida_largo'].toString())
+          ? double.tryParse(map['medida_largo'].toString())
           : null,
       peso: map['peso_gramaje'] != null
           ? int.tryParse(map['peso_gramaje'].toString())

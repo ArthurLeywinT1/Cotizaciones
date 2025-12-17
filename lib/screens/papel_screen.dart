@@ -154,7 +154,7 @@ class PapelScreen extends ConsumerWidget {
                           DataCell(Text(papel.tipo ?? '-')),
                           DataCell(Text(papel.medidas)),
                           DataCell(
-                            Text(papel.peso != null ? '${papel.peso}' : '-'),
+                            Text(papel.peso != null ? '${papel.peso} g' : '-'),
                           ),
                           DataCell(
                             Text('\$${papel.costoMillar.toStringAsFixed(2)}'),
@@ -204,6 +204,13 @@ class PapelScreen extends ConsumerWidget {
                     if (papelSeleccionado != null) {
                       _eliminarPapel(context, ref, papelSeleccionado);
                     }
+                  },
+                ),
+                Boton(
+                  icon: Icons.refresh,
+                  label: "Recargar",
+                  onPressed: () {
+                    ref.read(papelesProvider.notifier).recargar();
                   },
                 ),
               ],

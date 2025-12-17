@@ -1,19 +1,111 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/extra_provider.dart';
 
-class PanelSuaje extends StatefulWidget {
+class PanelSuaje extends ConsumerStatefulWidget {
   final bool enabled;
+  final TextEditingController tamanoSuajeController;
+  final TextEditingController costoSuajeCmController;
+  final TextEditingController costoTotalSuajeController;
+  final TextEditingController costoArregloSuajeController;
+  final TextEditingController costoTotalSuajadoController;
 
-  const PanelSuaje({super.key, required this.enabled});
+  final bool gastosEntrega;
+  final ValueChanged<bool?> onGastosEntregaChanged;
+
+  final bool duplicarCosto;
+  final ValueChanged<bool?> onDuplicarCostoChanged;
+
+  const PanelSuaje({
+    super.key,
+    required this.enabled,
+    required this.tamanoSuajeController,
+    required this.costoSuajeCmController,
+    required this.costoTotalSuajeController,
+    required this.costoArregloSuajeController,
+    required this.costoTotalSuajadoController,
+    required this.gastosEntrega,
+    required this.onGastosEntregaChanged,
+    required this.duplicarCosto,
+    required this.onDuplicarCostoChanged,
+  });
 
   @override
-  State<PanelSuaje> createState() => _PanelSuajeState();
+  ConsumerState<PanelSuaje> createState() => _PanelSuajeState();
 }
 
-class _PanelSuajeState extends State<PanelSuaje> {
-  bool gastosEntrega = false;
+class _PanelSuajeState extends ConsumerState<PanelSuaje> {
+  @override
+  void initState() {
+    super.initState();
+    widget.tamanoSuajeController.addListener(_calcularTotales);
+    widget.costoSuajeCmController.addListener(_calcularTotales);
+    widget.costoArregloSuajeController.addListener(_calcularTotales);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _cargarCostosBD());
+  }
+
+  void _cargarCostosBD() {
+    final extrasState = ref.read(extrasProvider);
+
+    try {
+      final extraSuaje = extrasState.extras.firstWhere(
+        (e) => e.nombre.trim().toLowerCase() == 'suaje',
+      );
+
+      final double valorActualSuaje =
+          double.tryParse(widget.costoSuajeCmController.text) ?? 0.0;
+
+      if (valorActualSuaje == 0) {
+        widget.costoSuajeCmController.text = (extraSuaje.costoCm2 ?? 0.0)
+            .toStringAsFixed(4);
+      }
+    } catch (_) {}
+
+    try {
+      final extraArreglo = extrasState.extras.firstWhere(
+        (e) => e.nombre.trim().toLowerCase() == 'arreglo suaje',
+      );
+
+      final double valorActualArreglo =
+          double.tryParse(widget.costoArregloSuajeController.text) ?? 0.0;
+
+      if (valorActualArreglo == 0) {
+        widget.costoArregloSuajeController.text =
+            (extraArreglo.costoFijo ?? 0.0).toStringAsFixed(2);
+      }
+    } catch (_) {}
+
+    _calcularTotales();
+  }
+
+  void _calcularTotales() {
+    if (!widget.enabled) return;
+
+    final double tamano =
+        double.tryParse(widget.tamanoSuajeController.text) ?? 0.0;
+    final double costoCm =
+        double.tryParse(widget.costoSuajeCmController.text) ?? 0.0;
+
+    final double costoTotalSuaje = tamano * costoCm;
+    widget.costoTotalSuajeController.text = costoTotalSuaje.toStringAsFixed(2);
+
+    final double costoArreglo =
+        double.tryParse(widget.costoArregloSuajeController.text) ?? 0.0;
+
+    double granTotal = costoTotalSuaje + costoArreglo;
+
+    if (widget.duplicarCosto) {
+      granTotal = granTotal * 2;
+    }
+
+    widget.costoTotalSuajadoController.text = granTotal.toStringAsFixed(2);
+  }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(extrasProvider, (prev, next) => _cargarCostosBD());
+
     return Card(
       margin: const EdgeInsets.only(bottom: 20),
       child: Padding(
@@ -21,7 +113,6 @@ class _PanelSuajeState extends State<PanelSuaje> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             // ======================================================
             //     SECCIÓN SÚAJE (esta sí depende de enabled)
             // ======================================================
@@ -34,14 +125,21 @@ class _PanelSuajeState extends State<PanelSuaje> {
                   children: [
                     const Text(
                       "Datos Suaje, Suajado",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 10),
 
                     const Text("Tamaño Suaje por Pieza (cm):"),
                     const SizedBox(height: 4),
-                    const TextField(
-                      decoration: InputDecoration(
+                    TextField(
+                      controller: widget.tamanoSuajeController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      decoration: const InputDecoration(
                         border: OutlineInputBorder(),
                         isDense: true,
                         contentPadding: EdgeInsets.all(10),
@@ -51,8 +149,13 @@ class _PanelSuajeState extends State<PanelSuaje> {
                     const SizedBox(height: 10),
                     const Text("Costo del Suaje por cm:"),
                     const SizedBox(height: 4),
-                    const TextField(
-                      decoration: InputDecoration(
+                    TextField(
+                      readOnly: true,
+                      controller: widget.costoSuajeCmController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      decoration: const InputDecoration(
                         border: OutlineInputBorder(),
                         prefixText: "\$ ",
                         isDense: true,
@@ -66,11 +169,15 @@ class _PanelSuajeState extends State<PanelSuaje> {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 4),
-                    const TextField(
-                      decoration: InputDecoration(
+                    TextField(
+                      controller: widget.costoTotalSuajeController,
+                      readOnly: true,
+                      decoration: const InputDecoration(
                         border: OutlineInputBorder(),
                         prefixText: "\$ ",
                         isDense: true,
+                        filled: true,
+                        fillColor: Color(0xFFEEEEEE),
                         contentPadding: EdgeInsets.all(10),
                       ),
                     ),
@@ -78,8 +185,13 @@ class _PanelSuajeState extends State<PanelSuaje> {
                     const SizedBox(height: 15),
                     const Text("Costo Arreglo Suajado:"),
                     const SizedBox(height: 4),
-                    const TextField(
-                      decoration: InputDecoration(
+                    TextField(
+                      readOnly: true,
+                      controller: widget.costoArregloSuajeController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      decoration: const InputDecoration(
                         border: OutlineInputBorder(),
                         prefixText: "\$ ",
                         isDense: true,
@@ -89,9 +201,15 @@ class _PanelSuajeState extends State<PanelSuaje> {
 
                     const SizedBox(height: 6),
                     Row(
-                      children: const [
-                        Checkbox(value: false, onChanged: null),
-                        Text("Duplicar Costo Suajado")
+                      children: [
+                        Checkbox(
+                          value: widget.duplicarCosto,
+                          onChanged: (v) {
+                            widget.onDuplicarCostoChanged(v);
+                            Future.delayed(Duration.zero, _calcularTotales);
+                          },
+                        ),
+                        const Text("Duplicar Costo Suajado"),
                       ],
                     ),
 
@@ -101,11 +219,15 @@ class _PanelSuajeState extends State<PanelSuaje> {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 4),
-                    const TextField(
-                      decoration: InputDecoration(
+                    TextField(
+                      controller: widget.costoTotalSuajadoController,
+                      readOnly: true,
+                      decoration: const InputDecoration(
                         border: OutlineInputBorder(),
                         prefixText: "\$ ",
                         isDense: true,
+                        filled: true,
+                        fillColor: Color(0xFFEEEEEE),
                         contentPadding: EdgeInsets.all(10),
                       ),
                     ),
@@ -138,12 +260,8 @@ class _PanelSuajeState extends State<PanelSuaje> {
                   Row(
                     children: [
                       Checkbox(
-                        value: gastosEntrega,
-                        onChanged: (value) {
-                          setState(() {
-                            gastosEntrega = value!;
-                          });
-                        },
+                        value: widget.gastosEntrega,
+                        onChanged: widget.onGastosEntregaChanged,
                       ),
                       const Text("Gastos de Entrega:"),
                     ],
@@ -155,9 +273,9 @@ class _PanelSuajeState extends State<PanelSuaje> {
 
                   // Campo de costo: activado / desactivado dinámicamente
                   Opacity(
-                    opacity: gastosEntrega ? 1.0 : 0.4,
+                    opacity: widget.gastosEntrega ? 1.0 : 0.4,
                     child: IgnorePointer(
-                      ignoring: !gastosEntrega,
+                      ignoring: !widget.gastosEntrega,
                       child: const TextField(
                         decoration: InputDecoration(
                           border: OutlineInputBorder(),

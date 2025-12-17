@@ -1,4 +1,3 @@
-import 'package:cotizador/screens/Revista/revista_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
@@ -11,8 +10,8 @@ import 'maquina_screen.dart';
 import 'extra_screen.dart';
 import 'descuento_screen.dart';
 import 'segmentacion_pliegos_screen.dart';
-import 'catalogo_cotizaciones_screen.dart';
 import 'cotizacion-plana/cotizacion_plana_screen.dart';
+import 'cotizacion_revista_screen.dart';
 import 'login.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -65,11 +64,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       case 'segmentacion':
         return 'Segmentación de Pliegos';
       case 'catalogo_cotizaciones':
-        return 'Cátalago de Cotizaciones';
+        return 'Catálogo de Cotizaciones';
       case 'cotizacion_plana':
-        return 'Cátalago de Cotización Plana';
+        return 'Catálogo de Cotización Plana';
       case 'cotizacion_revista':
-        return 'Cátalogo de Cotización Revista';
+        return 'Catálogo de Cotización Revista';
       default:
         return 'Romosso - Cotizador - Usuario: ${usuarioNombre ?? 'Desconocido'}';
     }
@@ -108,7 +107,7 @@ Widget _construirPantallaActual() {
       return const CotizacionPlanaScreen();
 
     case 'cotizacion_revista':
-      return const RevistaScreen();     // ⭐ ARREGLADO
+      return const CotizacionRevistaScreen();     // ⭐ ARREGLADO
 
     default:
       return _buildDashboard();

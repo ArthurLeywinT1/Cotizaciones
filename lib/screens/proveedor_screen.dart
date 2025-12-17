@@ -186,6 +186,13 @@ class ProveedorScreen extends ConsumerWidget {
                       _eliminarProveedor(context, ref, proveedorSeleccionado);
                   },
                 ),
+                Boton(
+                  icon: Icons.refresh,
+                  label: "Recargar",
+                  onPressed: () {
+                    ref.read(proveedoresProvider.notifier).recargar();
+                  },
+                ),
               ],
             ),
           ),

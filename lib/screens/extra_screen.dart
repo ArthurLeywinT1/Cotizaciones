@@ -100,7 +100,6 @@ class ExtraScreen extends ConsumerWidget {
                       DataColumn(label: Text('Costo cm²')),
                       DataColumn(label: Text('Costo Fijo')),
                       DataColumn(label: Text('Costo Min. Total')),
-                      DataColumn(label: Text('Costo Fijo')),
                       DataColumn(label: Text('Fecha Modificación')),
                     ],
                     rows: extrasState.extras.map((e) {
@@ -133,11 +132,6 @@ class ExtraScreen extends ConsumerWidget {
                               e.costoMinimoTotal != null
                                   ? '\$${e.costoMinimoTotal}'
                                   : '-',
-                            ),
-                          ),
-                          DataCell(
-                            Text(
-                              e.costoFijo != null ? '\$${e.costoFijo}' : '-',
                             ),
                           ),
                           DataCell(
@@ -178,6 +172,13 @@ class ExtraScreen extends ConsumerWidget {
                   onPressed: () {
                     if (seleccionado != null)
                       _eliminar(context, ref, seleccionado);
+                  },
+                ),
+                Boton(
+                  icon: Icons.refresh,
+                  label: "Recargar",
+                  onPressed: () {
+                    ref.read(extrasProvider.notifier).recargar();
                   },
                 ),
               ],

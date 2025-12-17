@@ -7,7 +7,7 @@ class DescuentoService {
   Future<List<DescuentoPapel>> obtenerDescuentos() async {
     try {
       final resultado = await db.query(
-        'SELECT * FROM papel_descuentos ORDER BY papel_id, cantidad_desde ASC',
+        'SELECT id, cantidad_desde, cantidad_hasta, descuento, fecha_modificacion FROM papel_descuentos ORDER BY cantidad_desde ASC',
       );
       return resultado.map((row) => DescuentoPapel.fromMap(row)).toList();
     } catch (e) {
@@ -20,10 +20,9 @@ class DescuentoService {
     try {
       await db.execute(
         '''INSERT INTO papel_descuentos (
-             papel_id, cantidad_desde, cantidad_hasta, descuento
-           ) VALUES (@pid, @desde, @hasta, @desc)''',
+             cantidad_desde, cantidad_hasta, descuento
+           ) VALUES (@desde, @hasta, @desc)''',
         params: {
-          'pid': descuento.papelId,
           'desde': descuento.cantidadDesde,
           'hasta': descuento.cantidadHasta,
           'desc': descuento.descuento,
@@ -39,13 +38,13 @@ class DescuentoService {
     try {
       await db.execute(
         '''UPDATE papel_descuentos 
-           SET papel_id = @pid, cantidad_desde = @desde, 
-               cantidad_hasta = @hasta, descuento = @desc, 
+           SET cantidad_desde = @desde, 
+               cantidad_hasta = @hasta, 
+               descuento = @desc, 
                fecha_modificacion = NOW()
            WHERE id = @id''',
         params: {
           'id': descuento.id,
-          'pid': descuento.papelId,
           'desde': descuento.cantidadDesde,
           'hasta': descuento.cantidadHasta,
           'desc': descuento.descuento,
