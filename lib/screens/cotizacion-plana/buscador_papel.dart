@@ -6,7 +6,15 @@ import '../../providers/papel_provider.dart';
 class DialogoSelectorPapel extends ConsumerStatefulWidget {
   final Function(Papel) onSeleccionado;
 
-  const DialogoSelectorPapel({super.key, required this.onSeleccionado});
+  final double minAncho;
+  final double minLargo;
+
+  const DialogoSelectorPapel({
+    super.key,
+    required this.onSeleccionado,
+    this.minAncho = 0.0,
+    this.minLargo = 0.0,
+  });
 
   @override
   ConsumerState<DialogoSelectorPapel> createState() =>
@@ -15,6 +23,7 @@ class DialogoSelectorPapel extends ConsumerStatefulWidget {
 
 class _DialogoSelectorPapelState extends ConsumerState<DialogoSelectorPapel> {
   String _filtro = "";
+  bool _mostrarTodos = false;
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +49,26 @@ class _DialogoSelectorPapelState extends ConsumerState<DialogoSelectorPapel> {
                 });
               },
             ),
+
+            if (widget.minAncho > 0 || widget.minLargo > 0)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Row(
+                  children: [
+                    Checkbox(
+                      value: !_mostrarTodos,
+                      onChanged: (val) => setState(() => _mostrarTodos = !val!),
+                    ),
+                    Expanded(
+                      child: Text(
+                        "¨Papeles donde quepa el pliego (${widget.minAncho}x${widget.minLargo})",
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
             const SizedBox(height: 10),
 
             Expanded(
@@ -58,20 +87,45 @@ class _DialogoSelectorPapelState extends ConsumerState<DialogoSelectorPapel> {
                       itemCount: papelesState.papeles.length,
                       itemBuilder: (context, index) {
                         final papel = papelesState.papeles[index];
+                        final papelAncho = papel.ancho?.toDouble() ?? 0.0;
+                        final papelLargo = papel.largo?.toDouble() ?? 0.0;
 
                         if (_filtro.isNotEmpty &&
                             !papel.nombre.toLowerCase().contains(_filtro)) {
                           return const SizedBox.shrink();
                         }
 
+                        bool cabe =
+                            (papelAncho >= widget.minAncho &&
+                                papelLargo >= widget.minLargo) ||
+                            (papelAncho >= widget.minLargo &&
+                                papelLargo >= widget.minAncho);
+
+                        if (!_mostrarTodos &&
+                            !cabe &&
+                            (widget.minAncho > 0 || widget.minLargo > 0)) {
+                          return const SizedBox.shrink();
+                        }
+
                         return ListTile(
-                          leading: const Icon(Icons.description),
+                          leading: Icon(
+                            Icons.description,
+                            color: cabe ? Colors.blue : Colors.grey,
+                          ),
                           title: Text(
                             papel.nombre,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: cabe ? Colors.black : Colors.grey,
+                            ),
                           ),
                           subtitle: Text(
-                            "${papel.tipo ?? 'Sin tipo'} | ${papel.peso ?? '?'}g",
+                            "${papel.tipo ?? 'Sin tipo'} | ${papel.peso ?? '?'}g | ${papel.ancho ?? 0}x${papel.largo ?? 0} cm",
+                            style: TextStyle(
+                              color: cabe
+                                  ? Colors.black87
+                                  : Colors.red.shade300,
+                            ),
                           ),
                           trailing: Text(
                             "\$${papel.costoMillar}",
@@ -81,6 +135,15 @@ class _DialogoSelectorPapelState extends ConsumerState<DialogoSelectorPapel> {
                             ),
                           ),
                           onTap: () {
+                            if (!cabe) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    "Advertencia: El pliego es más grande que este papel.",
+                                  ),
+                                ),
+                              );
+                            }
                             widget.onSeleccionado(papel);
                             Navigator.pop(context);
                           },

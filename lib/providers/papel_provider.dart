@@ -17,7 +17,6 @@ class PapelesNotifier extends Notifier<PapelesState> {
   PapelesState build() {
     _service = ref.read(papelServiceProvider);
 
-    // CORRECCIÓN: Usamos microtask para diferir la carga hasta que el provider esté listo.
     Future.microtask(() => _cargarPapeles());
 
     return PapelesState.initial();
