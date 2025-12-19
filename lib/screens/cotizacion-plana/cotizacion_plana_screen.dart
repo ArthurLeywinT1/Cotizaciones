@@ -119,7 +119,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   bool panelAcabadosActivo = true;
   bool barnizMaquina = false;
   bool cambiarPrecioPlaca = false;
-
   bool gastosEntrega = false;
   bool duplicarCostoSuaje = false;
 
@@ -144,7 +143,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
     final ancho = double.tryParse(anchoController.text) ?? 0;
     final alto = double.tryParse(altoController.text) ?? 0;
     final medianil = double.tryParse(medianilController.text) ?? 0;
-
     setState(() {
       anchoFinalController.text = (ancho + medianil).toStringAsFixed(2);
       altoFinalController.text = (alto + medianil).toStringAsFixed(2);
@@ -166,7 +164,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
     anchoFinalController.dispose();
     altoFinalController.dispose();
     cantidadImpresionController.dispose();
-
     pliegoAnchoController.dispose();
     pliegoAltoController.dispose();
     posicionPiezasController.dispose();
@@ -176,7 +173,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
     pliegosSobrantesController.dispose();
     totalPliegosController.dispose();
     millaresController.dispose();
-
     nombrePapelController.dispose();
     tipoPapelController.dispose();
     anchoPapelController.dispose();
@@ -187,7 +183,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
     costoTotalPapelController.dispose();
     descuentoPapelController.dispose();
     costoPapelConIvaController.dispose();
-
     nombreMaquinaController.dispose();
     costoPlacaController.dispose();
     tintasFteController.dispose();
@@ -201,20 +196,15 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
     cantidadPlacasController.dispose();
     costoBarnizController.dispose();
     costoTotalPlacasController.dispose();
-
     tamanoSuajeController.dispose();
     costoSuajeCmController.dispose();
     costoTotalSuajeController.dispose();
     costoArregloSuajeController.dispose();
     costoTotalSuajadoController.dispose();
-
-    for (var controller in acabadosCostoCm2Controllers.values) {
+    for (var controller in acabadosCostoCm2Controllers.values)
       controller.dispose();
-    }
-    for (var controller in acabadosCostoTotalControllers.values) {
+    for (var controller in acabadosCostoTotalControllers.values)
       controller.dispose();
-    }
-
     super.dispose();
   }
 
@@ -264,6 +254,8 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               proveedorPapelController: proveedorPapelController,
               costoMillarController: costoMillarController,
               totalPliegosController: totalPliegosController,
+              pliegoAnchoController: pliegoAnchoController,
+              pliegoAltoController: pliegoAltoController,
             ),
 
             PanelCostoPapel(
@@ -313,11 +305,9 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               costoTotalSuajeController: costoTotalSuajeController,
               costoArregloSuajeController: costoArregloSuajeController,
               costoTotalSuajadoController: costoTotalSuajadoController,
-
               gastosEntrega: gastosEntrega,
               onGastosEntregaChanged: (v) =>
                   setState(() => gastosEntrega = v ?? false),
-
               duplicarCosto: duplicarCostoSuaje,
               onDuplicarCostoChanged: (v) =>
                   setState(() => duplicarCostoSuaje = v ?? false),

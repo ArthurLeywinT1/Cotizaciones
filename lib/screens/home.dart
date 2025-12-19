@@ -1,3 +1,4 @@
+import 'package:cotizador/screens/catalogo_cotizaciones_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
@@ -11,7 +12,7 @@ import 'extra_screen.dart';
 import 'descuento_screen.dart';
 import 'segmentacion_pliegos_screen.dart';
 import 'cotizacion-plana/cotizacion_plana_screen.dart';
-import 'cotizacion_revista_screen.dart';
+import 'package:cotizador/screens/revista/revista_screen.dart';
 import 'login.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -101,13 +102,13 @@ Widget _construirPantallaActual() {
       return const SegmentacionPliegosScreen();
 
     case 'catalogo_cotizaciones':
-      return const CatalogoCotizacionesScreen();  // ⭐ AGREGADO
+      return const CatalogoCotizacionesScreen();  
 
     case 'cotizacion_plana':
       return const CotizacionPlanaScreen();
 
     case 'cotizacion_revista':
-      return const CotizacionRevistaScreen();     // ⭐ ARREGLADO
+      return const RevistaScreen();     
 
     default:
       return _buildDashboard();

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/proveedor_provider.dart';
 import 'buscador_papel.dart';
@@ -14,6 +13,9 @@ class PanelDatosPapel extends ConsumerStatefulWidget {
   final TextEditingController costoMillarController;
   final TextEditingController totalPliegosController;
 
+  final TextEditingController pliegoAnchoController;
+  final TextEditingController pliegoAltoController;
+
   const PanelDatosPapel({
     super.key,
     required this.nombrePapelController,
@@ -24,6 +26,8 @@ class PanelDatosPapel extends ConsumerStatefulWidget {
     required this.proveedorPapelController,
     required this.costoMillarController,
     required this.totalPliegosController,
+    required this.pliegoAnchoController,
+    required this.pliegoAltoController,
   });
 
   @override
@@ -32,33 +36,37 @@ class PanelDatosPapel extends ConsumerStatefulWidget {
 
 class _PanelDatosPapelState extends ConsumerState<PanelDatosPapel> {
   void _buscarPapel() {
+    final double reqAncho =
+        double.tryParse(widget.pliegoAnchoController.text) ?? 0.0;
+    final double reqAlto =
+        double.tryParse(widget.pliegoAltoController.text) ?? 0.0;
+
     showDialog(
       context: context,
       builder: (_) => DialogoSelectorPapel(
+        minAncho: reqAncho,
+        minLargo: reqAlto,
         onSeleccionado: (papel) {
-          setState(() {
-            widget.nombrePapelController.text = papel.nombre;
-            widget.tipoPapelController.text = papel.tipo ?? '';
-            widget.anchoPapelController.text = papel.ancho?.toString() ?? '0';
-            widget.largoPapelController.text = papel.largo?.toString() ?? '0';
-            widget.pesoPapelController.text = papel.peso?.toString() ?? '0';
-            widget.costoMillarController.text = papel.costoMillar.toString();
+          widget.nombrePapelController.text = papel.nombre;
+          widget.tipoPapelController.text = papel.tipo ?? '';
+          widget.anchoPapelController.text = papel.ancho?.toString() ?? '0';
+          widget.largoPapelController.text = papel.largo?.toString() ?? '0';
+          widget.pesoPapelController.text = papel.peso?.toString() ?? '0';
+          widget.costoMillarController.text = papel.costoMillar.toString();
 
-            if (papel.proveedorId != null) {
-              final proveedores = ref.read(proveedoresProvider).proveedores;
-              try {
-                final proveedor = proveedores.firstWhere(
-                  (p) => p.id == papel.proveedorId,
-                );
-                widget.proveedorPapelController.text = proveedor.razonSocial;
-              } catch (e) {
-                widget.proveedorPapelController.text =
-                    "Proveedor no encontrado";
-              }
-            } else {
-              widget.proveedorPapelController.text = "";
+          if (papel.proveedorId != null) {
+            final proveedores = ref.read(proveedoresProvider).proveedores;
+            try {
+              final proveedor = proveedores.firstWhere(
+                (p) => p.id == papel.proveedorId,
+              );
+              widget.proveedorPapelController.text = proveedor.razonSocial;
+            } catch (e) {
+              widget.proveedorPapelController.text = "Proveedor no encontrado";
             }
-          });
+          } else {
+            widget.proveedorPapelController.text = "";
+          }
         },
       ),
     );
@@ -84,12 +92,12 @@ class _PanelDatosPapelState extends ConsumerState<PanelDatosPapel> {
             // ================= NOMBRE PAPEL ====================
             Row(
               children: [
+                const SizedBox(width: 120, child: Text("Nombre Papel:")),
                 Expanded(
                   child: TextField(
                     controller: widget.nombrePapelController,
                     readOnly: true,
                     decoration: const InputDecoration(
-                      labelText: "Nombre Papel",
                       border: OutlineInputBorder(),
                       isDense: true,
                       filled: true,
@@ -110,12 +118,12 @@ class _PanelDatosPapelState extends ConsumerState<PanelDatosPapel> {
             // ================= TIPO PAPEL ====================
             Row(
               children: [
+                const SizedBox(width: 120, child: Text("Tipo Papel:")),
                 Expanded(
                   child: TextField(
                     controller: widget.tipoPapelController,
                     readOnly: true,
                     decoration: const InputDecoration(
-                      labelText: "Tipo Papel",
                       border: OutlineInputBorder(),
                       isDense: true,
                       filled: true,
@@ -139,6 +147,7 @@ class _PanelDatosPapelState extends ConsumerState<PanelDatosPapel> {
                   child: TextField(
                     controller: widget.anchoPapelController,
                     readOnly: true,
+                    textAlign: TextAlign.center,
                     decoration: const InputDecoration(
                       isDense: true,
                       border: OutlineInputBorder(),
@@ -155,6 +164,7 @@ class _PanelDatosPapelState extends ConsumerState<PanelDatosPapel> {
                   child: TextField(
                     controller: widget.largoPapelController,
                     readOnly: true,
+                    textAlign: TextAlign.center,
                     decoration: const InputDecoration(
                       isDense: true,
                       border: OutlineInputBorder(),
@@ -170,6 +180,7 @@ class _PanelDatosPapelState extends ConsumerState<PanelDatosPapel> {
                   child: TextField(
                     controller: widget.pesoPapelController,
                     readOnly: true,
+                    textAlign: TextAlign.center,
                     decoration: const InputDecoration(
                       isDense: true,
                       border: OutlineInputBorder(),
@@ -185,12 +196,12 @@ class _PanelDatosPapelState extends ConsumerState<PanelDatosPapel> {
             // ================= PROVEEDOR ====================
             Row(
               children: [
+                const SizedBox(width: 150, child: Text("Proveedor del Papel:")),
                 Expanded(
                   child: TextField(
                     controller: widget.proveedorPapelController,
                     readOnly: true,
                     decoration: const InputDecoration(
-                      labelText: "Proveedor del Papel",
                       isDense: true,
                       border: OutlineInputBorder(),
                       filled: true,
@@ -202,7 +213,7 @@ class _PanelDatosPapelState extends ConsumerState<PanelDatosPapel> {
             ),
             const SizedBox(height: 16),
 
-            // ================= COSTO POR MILLAR ====================
+            // ================= COSTO POR MILLAR Y TOTAL PLIEGOS ====================
             Row(
               children: [
                 const SizedBox(
