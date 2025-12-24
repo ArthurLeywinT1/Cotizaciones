@@ -4,7 +4,7 @@ import '../../models/descuento_model.dart';
 class ModalDescuento extends StatefulWidget {
   final String titulo;
   final DescuentoPapel? descuentoInicial;
-  final Function(DescuentoPapel) onGuardar;
+  final Future<void> Function(DescuentoPapel) onGuardar;
 
   const ModalDescuento({
     super.key,
@@ -20,6 +20,7 @@ class ModalDescuento extends StatefulWidget {
 class _ModalDescuentoState extends State<ModalDescuento> {
   final _formKey = GlobalKey<FormState>();
 
+  bool _isSaving = false;
   late TextEditingController desdeCtrl;
   late TextEditingController hastaCtrl;
   late TextEditingController descuentoCtrl;
@@ -42,8 +43,13 @@ class _ModalDescuentoState extends State<ModalDescuento> {
     super.dispose();
   }
 
-  void _guardar() {
+  Future<void> _guardar() async {
+    if (_isSaving) return;
+
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isSaving = true;
+      });
       final nuevoDescuento = DescuentoPapel(
         id: widget.descuentoInicial?.id ?? '',
         cantidadDesde: int.parse(desdeCtrl.text),
@@ -52,7 +58,13 @@ class _ModalDescuentoState extends State<ModalDescuento> {
         fechaModificacion: DateTime.now(),
       );
 
-      widget.onGuardar(nuevoDescuento);
+      await widget.onGuardar(nuevoDescuento);
+
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
   }
 
@@ -94,10 +106,22 @@ class _ModalDescuentoState extends State<ModalDescuento> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: _isSaving ? null : () => Navigator.pop(context),
           child: const Text('Cancelar'),
         ),
-        ElevatedButton(onPressed: _guardar, child: const Text('Guardar')),
+        ElevatedButton(
+          onPressed: _isSaving ? null : _guardar,
+          child: _isSaving
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Guardar'),
+        ),
       ],
     );
   }
@@ -109,6 +133,7 @@ class _ModalDescuentoState extends State<ModalDescuento> {
   }) {
     return TextFormField(
       controller: ctrl,
+      enabled: !_isSaving,
       keyboardType: isNumber
           ? const TextInputType.numberWithOptions(decimal: true)
           : TextInputType.text,

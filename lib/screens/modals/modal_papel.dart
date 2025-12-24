@@ -6,7 +6,7 @@ class ModalPapel extends StatefulWidget {
   final String titulo;
   final Papel? papelInicial;
   final List<Proveedor> listaProveedores;
-  final Function(Papel) onGuardar;
+  final Future<void> Function(Papel) onGuardar;
 
   const ModalPapel({
     super.key,
@@ -23,6 +23,7 @@ class ModalPapel extends StatefulWidget {
 class _ModalPapelState extends State<ModalPapel> {
   final _formKey = GlobalKey<FormState>();
 
+  bool _isSaving = false;
   late TextEditingController nombreCtrl;
   late TextEditingController tipoCtrl;
   late TextEditingController anchoCtrl;
@@ -64,8 +65,13 @@ class _ModalPapelState extends State<ModalPapel> {
     super.dispose();
   }
 
-  void _guardar() {
+  Future<void> _guardar() async {
+    if (_isSaving) return;
+
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isSaving = true;
+      });
       final nuevoPapel = Papel(
         id: widget.papelInicial?.id ?? '',
         nombre: nombreCtrl.text,
@@ -78,7 +84,13 @@ class _ModalPapelState extends State<ModalPapel> {
         fechaModificacion: DateTime.now(),
       );
 
-      widget.onGuardar(nuevoPapel);
+      await widget.onGuardar(nuevoPapel);
+
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
   }
 
@@ -197,10 +209,22 @@ class _ModalPapelState extends State<ModalPapel> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: _isSaving ? null : () => Navigator.pop(context),
           child: const Text('Cancelar'),
         ),
-        ElevatedButton(onPressed: _guardar, child: const Text('Guardar')),
+        ElevatedButton(
+          onPressed: _isSaving ? null : _guardar,
+          child: _isSaving
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Guardar'),
+        ),
       ],
     );
   }
@@ -213,6 +237,7 @@ class _ModalPapelState extends State<ModalPapel> {
   }) {
     return TextFormField(
       controller: ctrl,
+      enabled: !_isSaving,
       keyboardType: isNumber
           ? const TextInputType.numberWithOptions(decimal: true)
           : TextInputType.text,

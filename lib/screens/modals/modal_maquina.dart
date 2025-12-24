@@ -4,7 +4,7 @@ import '../../models/maquina_model.dart';
 class ModalMaquina extends StatefulWidget {
   final String titulo;
   final Maquina? maquinaInicial;
-  final Function(Maquina) onGuardar;
+  final Future<void> Function(Maquina) onGuardar;
 
   const ModalMaquina({
     super.key,
@@ -20,6 +20,7 @@ class ModalMaquina extends StatefulWidget {
 class _ModalMaquinaState extends State<ModalMaquina> {
   final _formKey = GlobalKey<FormState>();
 
+  bool _isSaving = false;
   late TextEditingController nombreCtrl;
   late TextEditingController tintasCtrl;
   late TextEditingController tamanosCtrl;
@@ -54,8 +55,12 @@ class _ModalMaquinaState extends State<ModalMaquina> {
     super.dispose();
   }
 
-  void _guardar() {
+  Future<void> _guardar() async {
+    if (_isSaving) return;
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isSaving = true;
+      });
       final nuevaMaquina = Maquina(
         id: widget.maquinaInicial?.id ?? '',
         nombre: nombreCtrl.text,
@@ -67,7 +72,13 @@ class _ModalMaquinaState extends State<ModalMaquina> {
         fechaModificacion: DateTime.now(),
       );
 
-      widget.onGuardar(nuevaMaquina);
+      await widget.onGuardar(nuevaMaquina);
+
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
   }
 
@@ -149,10 +160,22 @@ class _ModalMaquinaState extends State<ModalMaquina> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: _isSaving ? null : () => Navigator.pop(context),
           child: const Text('Cancelar'),
         ),
-        ElevatedButton(onPressed: _guardar, child: const Text('Guardar')),
+        ElevatedButton(
+          onPressed: _isSaving ? null : _guardar,
+          child: _isSaving
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Guardar'),
+        ),
       ],
     );
   }
@@ -165,6 +188,7 @@ class _ModalMaquinaState extends State<ModalMaquina> {
   }) {
     return TextFormField(
       controller: ctrl,
+      enabled: !_isSaving,
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
       decoration: InputDecoration(
         labelText: label,

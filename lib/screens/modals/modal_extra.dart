@@ -4,7 +4,7 @@ import '../../models/extra_model.dart';
 class ModalExtra extends StatefulWidget {
   final String titulo;
   final Extra? extraInicial;
-  final Function(Extra) onGuardar;
+  final Future<void> Function(Extra) onGuardar;
 
   const ModalExtra({
     super.key,
@@ -20,6 +20,7 @@ class ModalExtra extends StatefulWidget {
 class _ModalExtraState extends State<ModalExtra> {
   final _formKey = GlobalKey<FormState>();
 
+  bool _isSaving = false;
   late TextEditingController nombreCtrl;
   late TextEditingController costoCm2Ctrl;
   late TextEditingController costoMinimoCtrl;
@@ -46,8 +47,13 @@ class _ModalExtraState extends State<ModalExtra> {
     super.dispose();
   }
 
-  void _guardar() {
+  Future<void> _guardar() async {
+    if (_isSaving) return;
+
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isSaving = true;
+      });
       final nuevoExtra = Extra(
         id: widget.extraInicial?.id ?? '',
         nombre: nombreCtrl.text,
@@ -57,7 +63,13 @@ class _ModalExtraState extends State<ModalExtra> {
         fechaModificacion: DateTime.now(),
       );
 
-      widget.onGuardar(nuevoExtra);
+      await widget.onGuardar(nuevoExtra);
+
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
   }
 
@@ -118,10 +130,22 @@ class _ModalExtraState extends State<ModalExtra> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: _isSaving ? null : () => Navigator.pop(context),
           child: const Text('Cancelar'),
         ),
-        ElevatedButton(onPressed: _guardar, child: const Text('Guardar')),
+        ElevatedButton(
+          onPressed: _isSaving ? null : _guardar,
+          child: _isSaving
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Guardar'),
+        ),
       ],
     );
   }
@@ -134,6 +158,7 @@ class _ModalExtraState extends State<ModalExtra> {
   }) {
     return TextFormField(
       controller: ctrl,
+      enabled: !_isSaving,
       keyboardType: isNumber
           ? const TextInputType.numberWithOptions(decimal: true)
           : TextInputType.text,

@@ -11,7 +11,7 @@ final maquinaSeleccionadoProvider = StateProvider<Maquina?>((ref) => null);
 class MaquinaScreen extends ConsumerWidget {
   const MaquinaScreen({super.key});
 
-  void _abrirModal(BuildContext context, WidgetRef ref, Maquina? maquina) {
+  void _agregarMaquina(BuildContext context, WidgetRef ref, Maquina? maquina) {
     showDialog(
       context: context,
       builder: (context) => ModalMaquina(
@@ -149,14 +149,14 @@ class MaquinaScreen extends ConsumerWidget {
                 Boton(
                   icon: Icons.add,
                   label: "Nueva Máquina",
-                  onPressed: () => _abrirModal(context, ref, null),
+                  onPressed: () => _agregarMaquina(context, ref, null),
                 ),
                 Boton(
                   icon: Icons.edit,
                   label: "Modificar",
                   onPressed: () {
                     if (seleccionado != null)
-                      _abrirModal(context, ref, seleccionado);
+                      _agregarMaquina(context, ref, seleccionado);
                   },
                 ),
                 Boton(

@@ -9,7 +9,7 @@ import 'modals/modal_extra.dart';
 class ExtraScreen extends ConsumerWidget {
   const ExtraScreen({super.key});
 
-  void _abrirModal(BuildContext context, WidgetRef ref, Extra? extra) {
+  void _agregarExtra(BuildContext context, WidgetRef ref, Extra? extra) {
     showDialog(
       context: context,
       builder: (context) => ModalExtra(
@@ -155,14 +155,14 @@ class ExtraScreen extends ConsumerWidget {
                 Boton(
                   icon: Icons.add,
                   label: "Nuevo Extra",
-                  onPressed: () => _abrirModal(context, ref, null),
+                  onPressed: () => _agregarExtra(context, ref, null),
                 ),
                 Boton(
                   icon: Icons.edit,
                   label: "Modificar",
                   onPressed: () {
                     if (seleccionado != null)
-                      _abrirModal(context, ref, seleccionado);
+                      _agregarExtra(context, ref, seleccionado);
                   },
                 ),
                 Boton(

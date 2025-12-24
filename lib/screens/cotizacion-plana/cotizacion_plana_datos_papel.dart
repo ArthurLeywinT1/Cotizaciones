@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/papel_provider.dart';
 import '../../providers/proveedor_provider.dart';
+import '../modals/modal_papel.dart';
 import 'buscador_papel.dart';
 
 class PanelDatosPapel extends ConsumerStatefulWidget {
@@ -72,6 +74,31 @@ class _PanelDatosPapelState extends ConsumerState<PanelDatosPapel> {
     );
   }
 
+  void _agregarPapel(
+    BuildContext context,
+    WidgetRef ref,
+    List<dynamic> proveedores,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => ModalPapel(
+        titulo: 'Nuevo Papel',
+        listaProveedores: ref.read(proveedoresProvider).proveedores,
+        onGuardar: (papelNuevo) async {
+          final success = await ref
+              .read(papelesProvider.notifier)
+              .crearPapel(papelNuevo);
+          if (success && context.mounted) {
+            Navigator.pop(context);
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Papel creado')));
+          }
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -109,7 +136,12 @@ class _PanelDatosPapelState extends ConsumerState<PanelDatosPapel> {
                 IconButton(
                   icon: const Icon(Icons.search),
                   onPressed: _buscarPapel,
-                  tooltip: "Buscar papel en catálogo",
+                  tooltip: "Buscar papel",
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () => _agregarPapel(context, ref, []),
+                  tooltip: "Agregar papel",
                 ),
               ],
             ),
