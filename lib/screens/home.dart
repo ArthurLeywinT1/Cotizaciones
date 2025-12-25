@@ -12,7 +12,6 @@ import 'extra_screen.dart';
 import 'descuento_screen.dart';
 import 'segmentacion_pliegos_screen.dart';
 import 'cotizacion-plana/cotizacion_plana_screen.dart';
-import 'package:cotizador/screens/revista/revista_screen.dart';
 import 'login.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -68,8 +67,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         return 'Catálogo de Cotizaciones';
       case 'cotizacion_plana':
         return 'Catálogo de Cotización Plana';
-      case 'cotizacion_revista':
-        return 'Catálogo de Cotización Revista';
       default:
         return 'Romosso - Cotizador - Usuario: ${usuarioNombre ?? 'Desconocido'}';
     }
@@ -105,10 +102,7 @@ Widget _construirPantallaActual() {
       return const CatalogoCotizacionesScreen();  
 
     case 'cotizacion_plana':
-      return const CotizacionPlanaScreen();
-
-    case 'cotizacion_revista':
-      return const RevistaScreen();     
+      return const CotizacionPlanaScreen();   
 
     default:
       return _buildDashboard();
@@ -200,10 +194,6 @@ Widget _construirPantallaActual() {
                       PopupMenuItem(
                         value: "cotizacion_plana",
                         child: Text("Crear Cotización Plana"),
-                      ),
-                      PopupMenuItem(
-                        value: "cotizacion_revista",
-                        child: Text("Crear Cotización Revista"),
                       ),
                     ],
                     onSelected: _abrirPantalla,
