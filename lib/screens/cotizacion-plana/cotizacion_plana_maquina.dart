@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../models/maquina_model.dart';
+import '../../providers/maquina_provider.dart';
+import '../modals/modal_maquina.dart';
 import 'buscador_maquina.dart';
 import '../../providers/extra_provider.dart';
 
@@ -147,6 +150,39 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
     );
   }
 
+  void _agregarMaquina(BuildContext context, WidgetRef ref, Maquina? maquina) {
+    showDialog(
+      context: context,
+      builder: (context) => ModalMaquina(
+        titulo: maquina == null ? 'Nueva Máquina' : 'Modificar Máquina',
+        maquinaInicial: maquina,
+        onGuardar: (nuevaMaquina) async {
+          bool success;
+          if (maquina == null) {
+            success = await ref
+                .read(maquinasProvider.notifier)
+                .crearMaquina(nuevaMaquina);
+          } else {
+            success = await ref
+                .read(maquinasProvider.notifier)
+                .actualizarMaquina(nuevaMaquina);
+          }
+
+          if (success && context.mounted) {
+            Navigator.pop(context);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  maquina == null ? 'Máquina creada' : 'Máquina actualizada',
+                ),
+              ),
+            );
+          }
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.listen(extrasProvider, (prev, next) {
@@ -188,7 +224,12 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
                 IconButton(
                   onPressed: _buscarMaquina,
                   icon: const Icon(Icons.search),
-                  tooltip: "Buscar máquina en inventario",
+                  tooltip: "Buscar máquina",
+                ),
+                IconButton(
+                  onPressed: () => _agregarMaquina(context, ref, null),
+                  icon: const Icon(Icons.add),
+                  tooltip: "Agregar máquina",
                 ),
               ],
             ),

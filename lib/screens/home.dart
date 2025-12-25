@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 import 'package:cotizador/screens/catalogo_cotizaciones_screen.dart';
+=======
+>>>>>>> origin
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';

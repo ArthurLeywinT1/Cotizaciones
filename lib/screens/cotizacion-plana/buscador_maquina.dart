@@ -61,10 +61,7 @@ class _DialogoSelectorMaquinaState
                         }
 
                         return ListTile(
-                          leading: const Icon(
-                            Icons.print,
-                            color: Colors.blueGrey,
-                          ),
+                          leading: const Icon(Icons.print),
                           title: Text(
                             maquina.nombre,
                             style: const TextStyle(fontWeight: FontWeight.bold),

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/cliente_provider.dart';
+import '../modals/modal_cliente.dart';
 import 'buscador_cliente.dart';
 
 class PanelClientes extends ConsumerStatefulWidget {
   final TextEditingController razonSocialController;
+  final TextEditingController descripcionController;
 
   final TextEditingController cantidadImpresionController;
   final TextEditingController anchoController;
@@ -20,6 +23,7 @@ class PanelClientes extends ConsumerStatefulWidget {
   const PanelClientes({
     super.key,
     required this.razonSocialController,
+    required this.descripcionController,
     required this.cantidadImpresionController,
     required this.anchoController,
     required this.altoController,
@@ -49,6 +53,26 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
       builder: (_) => DialogoSelectorCliente(
         onSeleccionado: (cliente) {
           widget.razonSocialController.text = cliente.razonSocial;
+        },
+      ),
+    );
+  }
+
+  void _agregarCliente(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => ModalCliente(
+        titulo: 'Nuevo Cliente',
+        onGuardar: (clienteNuevo) async {
+          final success = await ref
+              .read(clientesProvider.notifier)
+              .crearCliente(clienteNuevo);
+          if (success && context.mounted) {
+            Navigator.pop(context);
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Cliente creado')));
+          }
         },
       ),
     );
@@ -98,7 +122,12 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                 IconButton(
                   onPressed: _buscarCliente,
                   icon: const Icon(Icons.search),
-                  tooltip: "Buscar cliente en base de datos",
+                  tooltip: "Buscar cliente",
+                ),
+                IconButton(
+                  onPressed: () => _agregarCliente(context, ref),
+                  icon: const Icon(Icons.add),
+                  tooltip: "Crear cliente",
                 ),
               ],
             ),
@@ -118,6 +147,7 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
 
             /// Descripción
             TextField(
+              controller: widget.descripcionController,
               maxLines: 2,
               decoration: const InputDecoration(
                 labelText: "Descripción del Trabajo",

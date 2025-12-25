@@ -4,7 +4,7 @@ import '../../models/proveedor_model.dart';
 class ModalProveedor extends StatefulWidget {
   final String titulo;
   final Proveedor? proveedorInicial;
-  final Function(Proveedor) onGuardar;
+  final Future<void> Function(Proveedor) onGuardar;
 
   const ModalProveedor({
     super.key,
@@ -20,6 +20,7 @@ class ModalProveedor extends StatefulWidget {
 class _ModalProveedorState extends State<ModalProveedor> {
   final _formKey = GlobalKey<FormState>();
 
+  bool _isSaving = false;
   late TextEditingController razonSocialCtrl;
   late TextEditingController rfcCtrl;
   late TextEditingController direccionCtrl;
@@ -47,8 +48,12 @@ class _ModalProveedorState extends State<ModalProveedor> {
     super.dispose();
   }
 
-  void _guardar() {
+  Future<void> _guardar() async {
+    if (_isSaving) return;
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isSaving = true;
+      });
       final nuevoProveedor = Proveedor(
         id: widget.proveedorInicial?.id ?? '',
         razonSocial: razonSocialCtrl.text,
@@ -65,7 +70,12 @@ class _ModalProveedorState extends State<ModalProveedor> {
         fechaModificacion: DateTime.now(),
       );
 
-      widget.onGuardar(nuevoProveedor);
+      await widget.onGuardar(nuevoProveedor);
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
   }
 
@@ -109,10 +119,22 @@ class _ModalProveedorState extends State<ModalProveedor> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: _isSaving ? null : () => Navigator.pop(context),
           child: const Text('Cancelar'),
         ),
-        ElevatedButton(onPressed: _guardar, child: const Text('Guardar')),
+        ElevatedButton(
+          onPressed: _isSaving ? null : _guardar,
+          child: _isSaving
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Guardar'),
+        ),
       ],
     );
   }
@@ -127,6 +149,7 @@ class _ModalProveedorState extends State<ModalProveedor> {
   }) {
     return TextFormField(
       controller: ctrl,
+      enabled: !_isSaving,
       maxLines: maxLines,
       keyboardType: isPhone
           ? TextInputType.phone

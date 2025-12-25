@@ -4,7 +4,7 @@ import '../../models/usuario_model.dart';
 class ModalUsuario extends StatefulWidget {
   final String titulo;
   final Usuario? usuarioInicial;
-  final Function(
+  final Future<void> Function(
     String usuario,
     String contrasena,
     String tipoUsuario,
@@ -26,6 +26,7 @@ class ModalUsuario extends StatefulWidget {
 }
 
 class _ModalUsuarioState extends State<ModalUsuario> {
+  bool _isSaving = false;
   late TextEditingController usuarioController;
   late TextEditingController contrasenaController;
   late TextEditingController nombreController;
@@ -78,10 +79,14 @@ class _ModalUsuarioState extends State<ModalUsuario> {
     super.dispose();
   }
 
-  void _guardar() {
+  Future<void> _guardar() async {
+    if (_isSaving) return;
     if (usuarioController.text.isEmpty ||
         nombreController.text.isEmpty ||
         apellidoPController.text.isEmpty) {
+      setState(() {
+        _isSaving = true;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Por favor completa los campos requeridos'),
@@ -91,6 +96,9 @@ class _ModalUsuarioState extends State<ModalUsuario> {
     }
 
     if (!esModificacion && contrasenaController.text.isEmpty) {
+      setState(() {
+        _isSaving = true;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('La contraseña es requerida para crear un usuario'),
@@ -101,6 +109,9 @@ class _ModalUsuarioState extends State<ModalUsuario> {
 
     if (contrasenaController.text.isNotEmpty &&
         contrasenaController.text.length < 6) {
+      setState(() {
+        _isSaving = true;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('La contraseña debe tener al menos 6 caracteres'),
@@ -109,7 +120,7 @@ class _ModalUsuarioState extends State<ModalUsuario> {
       return;
     }
 
-    widget.onGuardar(
+    await widget.onGuardar(
       usuarioController.text,
       contrasenaController.text,
       tipoUsuarioSeleccionado,
@@ -117,6 +128,12 @@ class _ModalUsuarioState extends State<ModalUsuario> {
       apellidoPController.text,
       apellidoMController.text.isEmpty ? null : apellidoMController.text,
     );
+
+    if (mounted) {
+      setState(() {
+        _isSaving = false;
+      });
+    }
   }
 
   @override
@@ -214,10 +231,22 @@ class _ModalUsuarioState extends State<ModalUsuario> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: _isSaving ? null : () => Navigator.pop(context),
           child: const Text('Cancelar'),
         ),
-        ElevatedButton(onPressed: _guardar, child: const Text('Guardar')),
+        ElevatedButton(
+          onPressed: _isSaving ? null : _guardar,
+          child: _isSaving
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Guardar'),
+        ),
       ],
     );
   }

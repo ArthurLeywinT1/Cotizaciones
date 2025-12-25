@@ -4,7 +4,7 @@ import '../../models/cliente_model.dart';
 class ModalCliente extends StatefulWidget {
   final String titulo;
   final Cliente? clienteInicial;
-  final Function(Cliente) onGuardar;
+  final Future<void> Function(Cliente) onGuardar;
 
   const ModalCliente({
     super.key,
@@ -20,6 +20,7 @@ class ModalCliente extends StatefulWidget {
 class _ModalClienteState extends State<ModalCliente> {
   final _formKey = GlobalKey<FormState>();
 
+  bool _isSaving = false;
   late TextEditingController razonSocialCtrl;
   late TextEditingController rfcCtrl;
   late TextEditingController calleCtrl;
@@ -70,8 +71,13 @@ class _ModalClienteState extends State<ModalCliente> {
     super.dispose();
   }
 
-  void _guardar() {
+  Future<void> _guardar() async {
+    if (_isSaving) return;
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isSaving = true;
+      });
+
       final nuevoCliente = Cliente(
         id: widget.clienteInicial?.id ?? '',
         razonSocial: razonSocialCtrl.text,
@@ -88,7 +94,13 @@ class _ModalClienteState extends State<ModalCliente> {
         margenUtilidad: double.tryParse(margenCtrl.text) ?? 0.0,
         fechaModificacion: DateTime.now(),
       );
-      widget.onGuardar(nuevoCliente);
+      await widget.onGuardar(nuevoCliente);
+
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
   }
 
@@ -177,10 +189,22 @@ class _ModalClienteState extends State<ModalCliente> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: _isSaving ? null : () => Navigator.pop(context),
           child: const Text('Cancelar'),
         ),
-        ElevatedButton(onPressed: _guardar, child: const Text('Guardar')),
+        ElevatedButton(
+          onPressed: _isSaving ? null : _guardar,
+          child: _isSaving
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Guardar'),
+        ),
       ],
     );
   }
@@ -193,6 +217,7 @@ class _ModalClienteState extends State<ModalCliente> {
   }) {
     return TextFormField(
       controller: ctrl,
+      enabled: !_isSaving,
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
       decoration: InputDecoration(
         labelText: label,

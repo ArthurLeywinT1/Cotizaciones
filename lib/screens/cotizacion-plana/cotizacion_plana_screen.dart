@@ -21,6 +21,7 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   // CONTROLADORES – CLIENTES
   // =============================
   final TextEditingController razonSocialController = TextEditingController();
+  final TextEditingController descripcionController = TextEditingController();
   final TextEditingController anchoController = TextEditingController();
   final TextEditingController altoController = TextEditingController();
   final TextEditingController medianilController = TextEditingController();
@@ -158,6 +159,7 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   @override
   void dispose() {
     razonSocialController.dispose();
+    descripcionController.dispose();
     anchoController.dispose();
     altoController.dispose();
     medianilController.dispose();
@@ -219,6 +221,7 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
           children: [
             PanelClientes(
               razonSocialController: razonSocialController,
+              descripcionController: descripcionController,
               cantidadImpresionController: cantidadImpresionController,
               anchoController: anchoController,
               altoController: altoController,

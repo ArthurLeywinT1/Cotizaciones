@@ -10,7 +10,7 @@ import 'modals/modal_descuento.dart';
 class DescuentoScreen extends ConsumerWidget {
   const DescuentoScreen({super.key});
 
-  void _abrirModal(
+  void _agregarDescuento(
     BuildContext context,
     WidgetRef ref,
     DescuentoPapel? descuento,
@@ -167,14 +167,14 @@ class DescuentoScreen extends ConsumerWidget {
                 Boton(
                   icon: Icons.add,
                   label: "Nuevo Descuento",
-                  onPressed: () => _abrirModal(context, ref, null),
+                  onPressed: () => _agregarDescuento(context, ref, null),
                 ),
                 Boton(
                   icon: Icons.edit,
                   label: "Modificar",
                   onPressed: () {
                     if (seleccionado != null)
-                      _abrirModal(context, ref, seleccionado);
+                      _agregarDescuento(context, ref, seleccionado);
                   },
                 ),
                 Boton(

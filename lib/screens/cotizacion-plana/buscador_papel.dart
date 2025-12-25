@@ -110,7 +110,7 @@ class _DialogoSelectorPapelState extends ConsumerState<DialogoSelectorPapel> {
                         return ListTile(
                           leading: Icon(
                             Icons.description,
-                            color: cabe ? Colors.blue : Colors.grey,
+                            color: cabe ? Colors.black : Colors.grey,
                           ),
                           title: Text(
                             papel.nombre,
