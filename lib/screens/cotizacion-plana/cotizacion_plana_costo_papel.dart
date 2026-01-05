@@ -138,9 +138,6 @@ class _PanelCostoPapelState extends ConsumerState<PanelCostoPapel> {
 
             const SizedBox(height: 20),
 
-            // ===========================================
-            // SECCIÓN "Datos Solo Administrador"
-            // ===========================================
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -151,7 +148,7 @@ class _PanelCostoPapelState extends ConsumerState<PanelCostoPapel> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Datos Solo Administrador",
+                    "Aplicar Descuento:",
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
 

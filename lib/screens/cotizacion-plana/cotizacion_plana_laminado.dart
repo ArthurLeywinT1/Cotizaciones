@@ -2,39 +2,38 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/extra_provider.dart';
 
-class PanelAcabados extends ConsumerStatefulWidget {
-  final bool read_Only;
+class PanelLaminados extends ConsumerStatefulWidget {
+  final bool readOnly;
 
-  final Map<String, Map<String, bool>> acabados;
+  final Map<String, Map<String, bool>> laminados;
   final TextEditingController anchoFinalController;
   final TextEditingController altoFinalController;
   final Map<String, TextEditingController> controllersCostoCm2;
   final Map<String, TextEditingController> controllersCostoTotal;
 
   final void Function(String nombre, String lado, bool valor)
-      onAcabadoChanged;
+      onLaminadoChanged;
 
-  const PanelAcabados({
+  const PanelLaminados({
     super.key,
-    required this.read_Only,
-    required this.acabados,
+    required this.readOnly,
+    required this.laminados,
     required this.anchoFinalController,
     required this.altoFinalController,
     required this.controllersCostoCm2,
     required this.controllersCostoTotal,
-    required this.onAcabadoChanged,
+    required this.onLaminadoChanged,
   });
 
   @override
-  ConsumerState<PanelAcabados> createState() => _PanelAcabadosState();
+  ConsumerState<PanelLaminados> createState() => _PanelLaminadosState();
 }
 
-class _PanelAcabadosState extends ConsumerState<PanelAcabados> {
-  /// 🔒 SOLO BARNICES UV PERMITIDOS
-  final Set<String> barnicesPermitidos = {
-    "Barniz UV a Registro",
-    "Barniz UV Brillante a Plasta",
-    "Barniz UV Mate Plasta",
+class _PanelLaminadosState extends ConsumerState<PanelLaminados> {
+  /// 🔒 SOLO LAMINADOS
+  final Set<String> laminadosPermitidos = {
+    "Plastificado Brillante",
+    "Plastificado Mate",
   };
 
   late Map<String, bool> frente;
@@ -57,35 +56,35 @@ class _PanelAcabadosState extends ConsumerState<PanelAcabados> {
     frente = {};
     vuelta = {};
 
-    for (final nombre in barnicesPermitidos) {
-      final data = widget.acabados[nombre];
+    for (final nombre in laminadosPermitidos) {
+      final data = widget.laminados[nombre];
       frente[nombre] = data?["frente"] ?? false;
       vuelta[nombre] = data?["vuelta"] ?? false;
     }
   }
 
   void _cargarPreciosDeBD() {
-    final extrasState = ref.read(extrasProvider);
+  final extrasState = ref.read(extrasProvider);
 
-    for (final nombre in barnicesPermitidos) {
-      try {
-        final extra = extrasState.extras.firstWhere(
-          (e) =>
-              e.nombre.trim().toLowerCase() ==
-              nombre.trim().toLowerCase(),
-        );
+  for (final nombre in laminadosPermitidos) {
+    try {
+      final extra = extrasState.extras.firstWhere(
+        (e) => e.nombre.trim().toLowerCase() ==
+               nombre.trim().toLowerCase(),
+      );
 
-        if (extra.costoCm2 != null) {
-          widget.controllersCostoCm2[nombre]?.text =
-              extra.costoCm2.toString();
-          _calcularCostoIndividual(nombre);
-        }
-      } catch (_) {}
+      widget.controllersCostoCm2[nombre]?.text =
+          (extra.costoCm2 ?? 0).toString();
+
+      _calcularCostoIndividual(nombre);
+    } catch (e) {
+      debugPrint("No se encontró laminado: $nombre");
     }
   }
+}
 
   void _recalcularTodos() {
-    for (final nombre in barnicesPermitidos) {
+    for (final nombre in laminadosPermitidos) {
       _calcularCostoIndividual(nombre);
     }
   }
@@ -117,20 +116,20 @@ class _PanelAcabadosState extends ConsumerState<PanelAcabados> {
     ref.listen(extrasProvider, (_, __) => _cargarPreciosDeBD());
 
     return Column(
-      children: barnicesPermitidos
-          .map((titulo) => _buildAcabadoBlock(titulo))
+      children: laminadosPermitidos
+          .map((titulo) => _buildLaminadoBlock(titulo))
           .toList(),
     );
   }
 
-  Widget _buildAcabadoBlock(String titulo) {
+  Widget _buildLaminadoBlock(String titulo) {
     final bool activo =
         (frente[titulo] ?? false) || (vuelta[titulo] ?? false);
 
     return Opacity(
-      opacity: widget.read_Only ? 1 : 0.4,
+      opacity: widget.readOnly ? 1 : 0.4,
       child: IgnorePointer(
-        ignoring: !widget.read_Only,
+        ignoring: !widget.readOnly,
         child: Container(
           margin: const EdgeInsets.only(bottom: 20),
           padding: const EdgeInsets.all(12),
@@ -153,9 +152,9 @@ class _PanelAcabadosState extends ConsumerState<PanelAcabados> {
                         frente[titulo] = nuevoValor;
                         vuelta[titulo] = false;
 
-                        widget.onAcabadoChanged(
+                        widget.onLaminadoChanged(
                             titulo, "frente", nuevoValor);
-                        widget.onAcabadoChanged(
+                        widget.onLaminadoChanged(
                             titulo, "vuelta", false);
 
                         _calcularCostoIndividual(titulo);
@@ -185,7 +184,7 @@ class _PanelAcabadosState extends ConsumerState<PanelAcabados> {
                         ? (v) {
                             setState(() {
                               frente[titulo] = v ?? false;
-                              widget.onAcabadoChanged(
+                              widget.onLaminadoChanged(
                                 titulo,
                                 "frente",
                                 v ?? false,
@@ -203,7 +202,7 @@ class _PanelAcabadosState extends ConsumerState<PanelAcabados> {
                         ? (v) {
                             setState(() {
                               vuelta[titulo] = v ?? false;
-                              widget.onAcabadoChanged(
+                              widget.onLaminadoChanged(
                                 titulo,
                                 "vuelta",
                                 v ?? false,
