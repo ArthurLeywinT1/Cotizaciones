@@ -39,24 +39,71 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
     TextEditingController(text: "0");
     
 
-// ===== PORTADA =====
-bool portada = false;
-bool pruebaColorPortada = false;
+  // ===== PORTADA =====
+  bool portada = false;
 
-final TextEditingController anchoPortadaController = TextEditingController();
-final TextEditingController altoPortadaController = TextEditingController();
-final TextEditingController medianilPortadaController = TextEditingController();
-final TextEditingController anchoFinalPortadaController =
-    TextEditingController(text: "0");
-final TextEditingController altoFinalPortadaController =
-    TextEditingController(text: "0");
-final TextEditingController piezasPortadaController =
-    TextEditingController(text: "0");
+  // ===== PRUEBA COLOR PORTADA =====
+  bool pruebaColorPortada = false;
+  bool pruebaColorPortadaCarta = false;
+  bool pruebaColorPortadaTabloide = false;
+  bool pruebaColorPortadaMediaCarta = false;
+  // ===== PRUEBA COLOR PORTADA POR TAMAÑO =====
+  final TextEditingController cantidadPruebaPortadaCartaController =
+      TextEditingController(text: "0");
+  final TextEditingController precioPruebaPortadaCartaController =
+      TextEditingController(text: "0.00");
+  final TextEditingController totalPruebaPortadaCartaController =
+      TextEditingController(text: "0.00");
 
-final TextEditingController porcentajePruebaPortadaController =
-    TextEditingController();
-final TextEditingController costoPruebaPortadaController =
-    TextEditingController();
+  final TextEditingController cantidadPruebaPortadaTabloideController =
+      TextEditingController(text: "0");
+  final TextEditingController precioPruebaPortadaTabloideController =
+      TextEditingController(text: "0.00");
+  final TextEditingController totalPruebaPortadaTabloideController =
+      TextEditingController(text: "0.00");
+
+  final TextEditingController cantidadPruebaPortadaMediaCartaController =
+      TextEditingController(text: "0");
+  final TextEditingController precioPruebaPortadaMediaCartaController =
+      TextEditingController(text: "0.00");
+  final TextEditingController totalPruebaPortadaMediaCartaController =
+      TextEditingController(text: "0.00");
+
+
+  // ===== PRUEBA DE COLOR INTERNAS =====
+  bool pruebaCarta = false;
+  bool pruebaTabloide = false;
+  bool pruebaMediaCarta = false;
+
+  final TextEditingController cantidadCartaController =
+      TextEditingController(text: "0");
+  final TextEditingController precioCartaController =
+      TextEditingController(text: "0.00");
+  final TextEditingController totalCartaController =
+      TextEditingController(text: "0.00");
+  final TextEditingController cantidadTabloideController =
+      TextEditingController(text: "0");
+  final TextEditingController precioTabloideController =
+      TextEditingController(text: "0.00");
+  final TextEditingController totalTabloideController =
+      TextEditingController(text: "0.00");
+  final TextEditingController cantidadMediaCartaController =
+      TextEditingController(text: "0");
+  final TextEditingController precioMediaCartaController =
+      TextEditingController(text: "0.00");
+  final TextEditingController totalMediaCartaController =
+      TextEditingController(text: "0.00");
+  final TextEditingController anchoPortadaController = TextEditingController();
+  final TextEditingController altoPortadaController = TextEditingController();
+  final TextEditingController medianilPortadaController = TextEditingController();
+  final TextEditingController anchoFinalPortadaController =
+      TextEditingController(text: "0");
+  final TextEditingController altoFinalPortadaController =
+      TextEditingController(text: "0");
+  final TextEditingController piezasPortadaController =
+      TextEditingController(text: "0");
+  final TextEditingController costoPruebaPortadaController =
+      TextEditingController();
 
 
   // CONTROLADORES – PLIEGOS
@@ -330,6 +377,17 @@ final TextEditingController costoPruebaPortadaController =
     });
   }
 
+    void calcularPruebaColor({
+    required TextEditingController cantidad,
+    required TextEditingController precio,
+    required TextEditingController total,
+  }) {
+    final c = double.tryParse(cantidad.text) ?? 0;
+    final p = double.tryParse(precio.text) ?? 0;
+    total.text = (c * p).toStringAsFixed(2);
+  }
+
+
   void actualizarAcabado(String nombre, String lado, bool valor) {
     setState(() {
       acabados[nombre]?[lado] = valor;
@@ -432,7 +490,6 @@ final TextEditingController costoPruebaPortadaController =
       anchoFinalPortadaController.dispose();
       altoFinalPortadaController.dispose();
       piezasPortadaController.dispose();
-      porcentajePruebaPortadaController.dispose();
       costoPruebaPortadaController.dispose();
       for (var c in acabadosPortadaCostoCm2Controllers.values) {
       c.dispose();
@@ -440,6 +497,15 @@ final TextEditingController costoPruebaPortadaController =
       for (var c in acabadosPortadaCostoTotalControllers.values) {
         c.dispose();
       }
+      cantidadCartaController.dispose();
+      precioCartaController.dispose();
+      totalCartaController.dispose();
+      cantidadTabloideController.dispose();
+      precioTabloideController.dispose();
+      totalTabloideController.dispose();
+      cantidadMediaCartaController.dispose();
+      precioMediaCartaController.dispose();
+      totalMediaCartaController.dispose();
     super.dispose();
 
   }
@@ -462,6 +528,41 @@ final TextEditingController costoPruebaPortadaController =
               medianilController: medianilController,
               anchoFinalController: anchoFinalController,
               altoFinalController: altoFinalController,
+              cantidadPruebaPortadaCartaController:
+              cantidadPruebaPortadaCartaController,
+              precioPruebaPortadaCartaController:
+                  precioPruebaPortadaCartaController,
+              totalPruebaPortadaCartaController:
+                  totalPruebaPortadaCartaController,
+              
+
+              onPruebaColorPortadaChanged: (v) {
+                setState(() {
+                  pruebaColorPortada = v ?? false;
+                  if (!pruebaColorPortada) {
+                    pruebaColorPortadaCarta = false;
+                    pruebaColorPortadaTabloide = false;
+                    pruebaColorPortadaMediaCarta = false;
+                  }
+                });
+              },
+
+              cantidadPruebaPortadaTabloideController:
+                  cantidadPruebaPortadaTabloideController,
+              precioPruebaPortadaTabloideController:
+                  precioPruebaPortadaTabloideController,
+              totalPruebaPortadaTabloideController:
+                  totalPruebaPortadaTabloideController,
+
+              cantidadPruebaPortadaMediaCartaController:
+                  cantidadPruebaPortadaMediaCartaController,
+              precioPruebaPortadaMediaCartaController:
+                  precioPruebaPortadaMediaCartaController,
+              totalPruebaPortadaMediaCartaController:
+                  totalPruebaPortadaMediaCartaController,
+
+              barnizUV: barnizUV,
+              onBarnizUVChanged: (v) => setState(() => barnizUV = v ?? false),
               suaje: suaje,
               onSuajeChanged: (v) => setState(() => suaje = v),
               offset: offsetActivo,
@@ -471,7 +572,6 @@ final TextEditingController costoPruebaPortadaController =
               onPortadaChanged: (v) {
                 setState(() {
                   portada = v ?? false;
-
                   if (!portada) {
                     barnizUVPortada = false;
                     acabadosPortada.forEach((_, lados) {
@@ -488,36 +588,55 @@ final TextEditingController costoPruebaPortadaController =
               piezasPortadaController: piezasPortadaController,
               onCalcularPortada: calcularMedidasFinalesPortada,
               pruebaColorPortada: pruebaColorPortada,
-              onPruebaColorPortadaChanged: (v) =>
-                  setState(() => pruebaColorPortada = v ?? false),
-              porcentajePruebaPortadaController:
-                  porcentajePruebaPortadaController,
-              costoPruebaPortadaController:
-                  costoPruebaPortadaController,
-              paginasInternasTotalesController:
-                paginasInternasTotalesController,
-              barnizUV: barnizUV,
-              onBarnizUVChanged: (v) {
+              pruebaColorPortadaCarta: pruebaColorPortadaCarta,
+              pruebaColorPortadaTabloide: pruebaColorPortadaTabloide,
+              pruebaColorPortadaMediaCarta: pruebaColorPortadaMediaCarta,
+              paginasInternasTotalesController: paginasInternasTotalesController,
+              onPruebaColorPortadaCartaChanged: (v) {
                 setState(() {
-                  barnizUV = v ?? false;
-                  if (!barnizUV) {
-                    acabados.forEach((_, lados) {
+                  pruebaColorPortadaCarta = v ?? false;
+                  if (!pruebaColorPortadaCarta) {
+                    cantidadPruebaPortadaCartaController.text = "0";
+                    precioPruebaPortadaCartaController.text = "0.00";
+                    totalPruebaPortadaCartaController.text = "0.00";
+                  }
+                });
+              },
+
+              onPruebaColorPortadaTabloideChanged: (v) {
+                setState(() {
+                  pruebaColorPortadaTabloide = v ?? false;
+                  if (!pruebaColorPortadaTabloide) {
+                    cantidadPruebaPortadaTabloideController.text = "0";
+                    precioPruebaPortadaTabloideController.text = "0.00";
+                    totalPruebaPortadaTabloideController.text = "0.00";
+                  }
+                });
+              },
+
+              onPruebaColorPortadaMediaCartaChanged: (v) {
+                setState(() {
+                  pruebaColorPortadaMediaCarta = v ?? false;
+                  if (!pruebaColorPortadaMediaCarta) {
+                    cantidadPruebaPortadaMediaCartaController.text = "0";
+                    precioPruebaPortadaMediaCartaController.text = "0.00";
+                    totalPruebaPortadaMediaCartaController.text = "0.00";
+                  }
+                });
+              },
+
+
+              barnizUVPortada: barnizUVPortada,
+              onBarnizUVPortadaChanged: (v) {
+                setState(() {
+                  barnizUVPortada = v ?? false;
+                  if (!barnizUVPortada) {
+                    acabadosPortada.forEach((_, lados) {
                       lados.updateAll((_, __) => false);
                     });
                   }
                 });
               },
-              barnizUVPortada: barnizUVPortada,
-              onBarnizUVPortadaChanged: (v) {
-                setState(() {
-                  barnizUVPortada = v ?? false;
-                    if (!barnizUVPortada) {
-                      acabadosPortada.forEach((_, lados) {
-                        lados.updateAll((_, __) => false);
-                        });
-                      }
-                    });
-                  },
               laminadosActivo: laminadosActivo,
               onLaminadosChanged: (v) {
                 setState(() {
@@ -530,12 +649,52 @@ final TextEditingController costoPruebaPortadaController =
                 });
               },
               laminadosPortada: laminadosPortada,
-              onLaminadosPortadaChanged: (v) {
-                setState(() => laminadosPortada = v ?? false);
+              onLaminadosPortadaChanged: (v) =>
+                  setState(() => laminadosPortada = v ?? false),
+              pruebaCarta: pruebaCarta,
+              onPruebaCartaChanged: (v) {
+                setState(() {
+                  pruebaCarta = v ?? false;
+                  if (!(v ?? false)) {
+                    cantidadCartaController.text = "0";
+                    precioCartaController.text = "0.00";
+                    totalCartaController.text = "0.00";
+                  }
+                });
               },
-              
-
+              pruebaTabloide: pruebaTabloide,
+              onPruebaTabloideChanged: (v) {
+                setState(() {
+                  pruebaTabloide = v ?? false;
+                  if (!(v ?? false)) {
+                    cantidadTabloideController.text = "0";
+                    precioTabloideController.text = "0.00";
+                    totalTabloideController.text = "0.00";
+                  }
+                });
+              },
+              pruebaMediaCarta: pruebaMediaCarta,
+              onPruebaMediaCartaChanged: (v) {
+                setState(() {
+                  pruebaMediaCarta = v ?? false;
+                  if (!(v ?? false)) {
+                    cantidadMediaCartaController.text = "0";
+                    precioMediaCartaController.text = "0.00";
+                    totalMediaCartaController.text = "0.00";
+                  }
+                });
+              },
+              cantidadCartaController: cantidadCartaController,
+              precioCartaController: precioCartaController,
+              totalCartaController: totalCartaController,
+              cantidadTabloideController: cantidadTabloideController,
+              precioTabloideController: precioTabloideController,
+              totalTabloideController: totalTabloideController,
+              cantidadMediaCartaController: cantidadMediaCartaController,
+              precioMediaCartaController: precioMediaCartaController,
+              totalMediaCartaController: totalMediaCartaController,
             ),
+
 
 
             if (offsetActivo) ...[
@@ -617,8 +776,8 @@ final TextEditingController costoPruebaPortadaController =
                 readOnly: laminadosActivo,
                 laminados: laminados,
                 onLaminadoChanged: actualizarLaminado,
-                anchoFinalController: anchoFinalController,
-                altoFinalController: altoFinalController,
+                pliegoAnchoController: pliegoAnchoController,
+                pliegoAltoController: pliegoAltoController,
                 controllersCostoCm2: laminadosCostoCm2Controllers,
                 controllersCostoTotal: laminadosCostoTotalControllers,
               ),
@@ -718,8 +877,8 @@ final TextEditingController costoPruebaPortadaController =
               readOnly: laminadosPortada,
               laminados: laminadosPortadaMap,
               onLaminadoChanged: actualizarLaminadoPortada,
-              anchoFinalController: anchoFinalPortadaController,
-              altoFinalController: altoFinalPortadaController,
+              pliegoAnchoController: pliegoAnchoPortadaController,
+              pliegoAltoController: pliegoAltoPortadaController,
               controllersCostoCm2: laminadosPortadaCostoCm2Controllers,
               controllersCostoTotal: laminadosPortadaCostoTotalControllers,
             ),

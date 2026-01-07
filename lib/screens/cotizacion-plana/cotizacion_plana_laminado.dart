@@ -6,8 +6,8 @@ class PanelLaminados extends ConsumerStatefulWidget {
   final bool readOnly;
 
   final Map<String, Map<String, bool>> laminados;
-  final TextEditingController anchoFinalController;
-  final TextEditingController altoFinalController;
+  final TextEditingController pliegoAnchoController;
+  final TextEditingController pliegoAltoController;
   final Map<String, TextEditingController> controllersCostoCm2;
   final Map<String, TextEditingController> controllersCostoTotal;
 
@@ -18,8 +18,8 @@ class PanelLaminados extends ConsumerStatefulWidget {
     super.key,
     required this.readOnly,
     required this.laminados,
-    required this.anchoFinalController,
-    required this.altoFinalController,
+    required this.pliegoAnchoController,
+    required this.pliegoAltoController,
     required this.controllersCostoCm2,
     required this.controllersCostoTotal,
     required this.onLaminadoChanged,
@@ -44,8 +44,8 @@ class _PanelLaminadosState extends ConsumerState<PanelLaminados> {
     super.initState();
     _sincronizarEstadoLocal();
 
-    widget.anchoFinalController.addListener(_recalcularTodos);
-    widget.altoFinalController.addListener(_recalcularTodos);
+    widget.pliegoAnchoController.addListener(_recalcularTodos);
+    widget.pliegoAltoController.addListener(_recalcularTodos);
 
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => _cargarPreciosDeBD(),
@@ -91,9 +91,9 @@ class _PanelLaminadosState extends ConsumerState<PanelLaminados> {
 
   void _calcularCostoIndividual(String titulo) {
     final double ancho =
-        double.tryParse(widget.anchoFinalController.text) ?? 0.0;
+        double.tryParse(widget.pliegoAnchoController.text) ?? 0.0;
     final double alto =
-        double.tryParse(widget.altoFinalController.text) ?? 0.0;
+        double.tryParse(widget.pliegoAltoController.text) ?? 0.0;
     final double costoCm2 =
         double.tryParse(
               widget.controllersCostoCm2[titulo]?.text ?? "0",
