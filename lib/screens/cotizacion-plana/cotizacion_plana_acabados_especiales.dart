@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
 class PanelAcabadosEspeciales extends StatefulWidget {
-  const PanelAcabadosEspeciales({super.key});
+  final TextEditingController piezasPorPliegoController;
+
+  const PanelAcabadosEspeciales({
+    super.key,
+    required this.piezasPorPliegoController,
+  });
 
   @override
   State<PanelAcabadosEspeciales> createState() =>
@@ -46,10 +51,23 @@ class _PanelAcabadosEspecialesState extends State<PanelAcabadosEspeciales> {
                 const SizedBox(height: 4),
 
                 // CAMPO DESCRIPCIÓN
-                const Text("Descripción:"),
                 const SizedBox(height: 4),
                 TextField(
                   decoration: const InputDecoration(
+                    labelText: "Descripción",
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                    contentPadding: EdgeInsets.all(10),
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                TextField(
+                  controller: widget.piezasPorPliegoController,
+                  readOnly: true,
+                  decoration: const InputDecoration(
+                    labelText: "Piezas",
                     border: OutlineInputBorder(),
                     isDense: true,
                     contentPadding: EdgeInsets.all(10),
@@ -59,10 +77,10 @@ class _PanelAcabadosEspecialesState extends State<PanelAcabadosEspeciales> {
                 const SizedBox(height: 8),
 
                 // CAMPO COSTO
-                const Text("Costo:"),
                 const SizedBox(height: 4),
                 TextField(
                   decoration: const InputDecoration(
+                    labelText: "Costo Total",
                     border: OutlineInputBorder(),
                     prefixText: "\$ ",
                     isDense: true,

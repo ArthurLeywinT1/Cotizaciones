@@ -307,6 +307,7 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   bool barnizUVPortada = false;
   bool laminadosActivo = false;
   bool laminadosPortada = false;
+  bool acabadosEspeciales = false;
 
   Map<String, Map<String, bool>> acabados = {
     "Barniz UV a Registro": {"frente": false, "vuelta": false},
@@ -657,6 +658,9 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               cantidadMediaCartaController: cantidadMediaCartaController,
               precioMediaCartaController: precioMediaCartaController,
               totalMediaCartaController: totalMediaCartaController,
+              acabadosEspeciales: acabadosEspeciales,
+              onAcabadosEspecialesChanged: (v) =>
+                  setState(() => acabadosEspeciales = v ?? false),
             ),
 
             if (offsetActivo) ...[
@@ -862,7 +866,11 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               ),
             ],
 
-            const PanelAcabadosEspeciales(),
+            if (acabadosEspeciales)
+              PanelAcabadosEspeciales(
+                piezasPorPliegoController: piezasPorPliegoController,
+              ),
+
             const PanelCostoTotal(),
 
             const SizedBox(height: 40),

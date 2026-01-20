@@ -52,7 +52,7 @@ class PanelClientes extends ConsumerStatefulWidget {
   final TextEditingController altoFinalPortadaController;
   final TextEditingController piezasPortadaController;
   final VoidCallback onCalcularPortada;
-    // ===== PRUEBA COLOR PORTADA =====
+  // ===== PRUEBA COLOR PORTADA =====
   final bool pruebaColorPortada;
   final bool pruebaColorPortadaCarta;
   final bool pruebaColorPortadaTabloide;
@@ -71,6 +71,8 @@ class PanelClientes extends ConsumerStatefulWidget {
   final TextEditingController precioPruebaPortadaMediaCartaController;
   final TextEditingController totalPruebaPortadaMediaCartaController;
   final ValueChanged<bool?>? onPruebaColorPortadaCartaChanged;
+  final bool acabadosEspeciales;
+  final ValueChanged<bool?> onAcabadosEspecialesChanged;
 
   const PanelClientes({
     super.key,
@@ -137,9 +139,8 @@ class PanelClientes extends ConsumerStatefulWidget {
     required this.pruebaColorPortadaCarta,
     required this.pruebaColorPortadaTabloide,
     required this.pruebaColorPortadaMediaCarta,
-
-
-
+    required this.acabadosEspeciales,
+    required this.onAcabadosEspecialesChanged,
   });
 
   @override
@@ -152,12 +153,9 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
   bool grabado = false;
   bool acabado = false;
   bool corte = false;
-  
-
 
   final TextEditingController paginasInternasPorPiezaController =
       TextEditingController();
-  
 
   void _buscarCliente() {
     showDialog(
@@ -176,9 +174,7 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
       builder: (_) => ModalCliente(
         titulo: 'Nuevo Cliente',
         onGuardar: (clienteNuevo) async {
-          await ref
-              .read(clientesProvider.notifier)
-              .crearCliente(clienteNuevo);
+          await ref.read(clientesProvider.notifier).crearCliente(clienteNuevo);
           if (context.mounted) Navigator.pop(context);
         },
       ),
@@ -186,14 +182,11 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
   }
 
   void _calcularPaginasInternas() {
-    final piezas =
-        int.tryParse(widget.cantidadImpresionController.text) ?? 0;
-    final paginas =
-        int.tryParse(paginasInternasPorPiezaController.text) ?? 0;
+    final piezas = int.tryParse(widget.cantidadImpresionController.text) ?? 0;
+    final paginas = int.tryParse(paginasInternasPorPiezaController.text) ?? 0;
 
-    widget.paginasInternasTotalesController.text =
-      (piezas * paginas).toString();
-
+    widget.paginasInternasTotalesController.text = (piezas * paginas)
+        .toString();
   }
 
   @override
@@ -308,6 +301,12 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
             ),
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
+              title: const Text("Acabados Especiales"),
+              value: widget.acabadosEspeciales,
+              onChanged: widget.onAcabadosEspecialesChanged,
+            ),
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
               title: const Text("Serigrafía"),
               value: serigrafia,
               onChanged: (v) => setState(() => serigrafia = v ?? false),
@@ -342,8 +341,7 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                     child: TextField(
                       controller: widget.anchoController,
                       keyboardType: TextInputType.number,
-                      decoration:
-                          const InputDecoration(labelText: "Ancho"),
+                      decoration: const InputDecoration(labelText: "Ancho"),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -351,8 +349,7 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                     child: TextField(
                       controller: widget.altoController,
                       keyboardType: TextInputType.number,
-                      decoration:
-                          const InputDecoration(labelText: "Alto"),
+                      decoration: const InputDecoration(labelText: "Alto"),
                     ),
                   ),
                 ],
@@ -367,8 +364,7 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                     child: TextField(
                       controller: widget.medianilController,
                       keyboardType: TextInputType.number,
-                      decoration:
-                          const InputDecoration(labelText: "Medianil"),
+                      decoration: const InputDecoration(labelText: "Medianil"),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -382,186 +378,191 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
               const SizedBox(height: 8),
 
               /// PRUEBA DE COLOR
-            const Divider(),
-            const Text(
-              "Pruebas de Color (Internas)",
-              style: TextStyle(fontWeight: FontWeight.bold),  
-            ),
-
-            /// ===== CARTA =====
-            CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text("Prueba Carta"),
-              value: widget.pruebaCarta,
-              onChanged: widget.onPruebaCartaChanged,
-            ),
-
-            if (widget.pruebaCarta)
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: widget.cantidadCartaController,
-                      keyboardType: TextInputType.number,
-                      decoration:
-                          const InputDecoration(labelText: "Cantidad Carta"),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: TextField(
-                      controller: widget.precioCartaController,
-                      keyboardType: TextInputType.number,
-                      decoration:
-                          const InputDecoration(labelText: "Precio Carta"),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: TextField(
-                      controller: widget.totalCartaController,
-                      readOnly: true,
-                      decoration: const InputDecoration(
-                        labelText: "Total",
-                        filled: true,
-                        fillColor: Color(0xFFEEEEEE),
-                      ),
-                    ),
-                  ),
-                ],
+              const Divider(),
+              const Text(
+                "Pruebas de Color (Internas)",
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
 
-            /// ===== TABLOIDE =====
-            CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text("Prueba Tabloide"),
-              value: widget.pruebaTabloide,
-              onChanged: widget.onPruebaTabloideChanged,
-            ),
-
-            if (widget.pruebaTabloide)
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: widget.cantidadTabloideController,
-                      keyboardType: TextInputType.number,
-                      decoration:
-                          const InputDecoration(labelText: "Cantidad Tabloide"),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: TextField(
-                      controller: widget.precioTabloideController,
-                      keyboardType: TextInputType.number,
-                      decoration:
-                          const InputDecoration(labelText: "Precio Tabloide"),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: TextField(
-                      controller: widget.totalTabloideController,
-                      readOnly: true,
-                      decoration: const InputDecoration(
-                        labelText: "Total",
-                        filled: true,
-                        fillColor: Color(0xFFEEEEEE),
-                      ),
-                    ),
-                  ),
-                ],
+              /// ===== CARTA =====
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text("Prueba Carta"),
+                value: widget.pruebaCarta,
+                onChanged: widget.onPruebaCartaChanged,
               ),
 
-            /// ===== MEDIA CARTA =====
-            CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text("Prueba Media Carta"),
-              value: widget.pruebaMediaCarta,
-              onChanged: widget.onPruebaMediaCartaChanged,
-            ),
-
-            if (widget.pruebaMediaCarta)
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: widget.cantidadMediaCartaController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                          labelText: "Cantidad Media Carta"),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: TextField(
-                      controller: widget.precioMediaCartaController,
-                      keyboardType: TextInputType.number,
-                      decoration:
-                          const InputDecoration(labelText: "Precio Media Carta"),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: TextField(
-                      controller: widget.totalMediaCartaController,
-                      readOnly: true,
-                      decoration: const InputDecoration(
-                        labelText: "Total",
-                        filled: true,
-                        fillColor: Color(0xFFEEEEEE),
+              if (widget.pruebaCarta)
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: widget.cantidadCartaController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: "Cantidad Carta",
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: TextField(
+                        controller: widget.precioCartaController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: "Precio Carta",
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: TextField(
+                        controller: widget.totalCartaController,
+                        readOnly: true,
+                        decoration: const InputDecoration(
+                          labelText: "Total",
+                          filled: true,
+                          fillColor: Color(0xFFEEEEEE),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+              /// ===== TABLOIDE =====
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text("Prueba Tabloide"),
+                value: widget.pruebaTabloide,
+                onChanged: widget.onPruebaTabloideChanged,
               ),
 
+              if (widget.pruebaTabloide)
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: widget.cantidadTabloideController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: "Cantidad Tabloide",
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: TextField(
+                        controller: widget.precioTabloideController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: "Precio Tabloide",
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: TextField(
+                        controller: widget.totalTabloideController,
+                        readOnly: true,
+                        decoration: const InputDecoration(
+                          labelText: "Total",
+                          filled: true,
+                          fillColor: Color(0xFFEEEEEE),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+              /// ===== MEDIA CARTA =====
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text("Prueba Media Carta"),
+                value: widget.pruebaMediaCarta,
+                onChanged: widget.onPruebaMediaCartaChanged,
+              ),
+
+              if (widget.pruebaMediaCarta)
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: widget.cantidadMediaCartaController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: "Cantidad Media Carta",
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: TextField(
+                        controller: widget.precioMediaCartaController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: "Precio Media Carta",
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: TextField(
+                        controller: widget.totalMediaCartaController,
+                        readOnly: true,
+                        decoration: const InputDecoration(
+                          labelText: "Total",
+                          filled: true,
+                          fillColor: Color(0xFFEEEEEE),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
             ],
 
-              const SizedBox(height: 10),
-              const Text("Piezas totales solicitadas"),
+            const SizedBox(height: 10),
+            const Text("Piezas totales solicitadas"),
+
+            SizedBox(
+              width: 180,
+              child: TextField(
+                controller: widget.cantidadImpresionController,
+                keyboardType: TextInputType.number,
+                onChanged: (_) => _calcularPaginasInternas(),
+                decoration: const InputDecoration(labelText: "Piezas"),
+              ),
+            ),
+
+            if (widget.portada) ...[
+              const SizedBox(height: 8),
 
               SizedBox(
-                width: 180,
+                width: 260,
                 child: TextField(
-                  controller: widget.cantidadImpresionController,
+                  controller: paginasInternasPorPiezaController,
                   keyboardType: TextInputType.number,
                   onChanged: (_) => _calcularPaginasInternas(),
-                  decoration: const InputDecoration(labelText: "Piezas"),
+                  decoration: const InputDecoration(
+                    labelText: "Páginas internas por pieza",
+                  ),
                 ),
               ),
 
-              if (widget.portada) ...[
-                const SizedBox(height: 8),
+              const SizedBox(height: 8),
 
-                SizedBox(
-                  width: 260,
-                  child: TextField(
-                    controller: paginasInternasPorPiezaController,
-                    keyboardType: TextInputType.number,
-                    onChanged: (_) => _calcularPaginasInternas(),
-                    decoration: const InputDecoration(
-                      labelText: "Páginas internas por pieza",
-                    ),
+              SizedBox(
+                width: 260,
+                child: TextField(
+                  controller: widget.paginasInternasTotalesController,
+                  readOnly: true,
+                  decoration: const InputDecoration(
+                    labelText: "Páginas internas totales",
+                    filled: true,
+                    fillColor: Color(0xFFEEEEEE),
                   ),
                 ),
-
-                const SizedBox(height: 8),
-
-                SizedBox(
-                  width: 260,
-                  child: TextField(
-                    controller: widget.paginasInternasTotalesController,
-                    readOnly: true,
-                    decoration: const InputDecoration(
-                      labelText: "Páginas internas totales",
-                      filled: true,
-                      fillColor: Color(0xFFEEEEEE),
-                    ),
-                  ),
-                ),
-              ],
+              ),
+            ],
 
             /// =======================
             /// PORTADA
@@ -578,41 +579,39 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                 onChanged: widget.onPortadaChanged,
               ),
               if (widget.portada)
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text("Barniz UV (Portada)"),
-                value: widget.barnizUVPortada,
-                onChanged: widget.onBarnizUVPortadaChanged,
-              ),
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text("Barniz UV (Portada)"),
+                  value: widget.barnizUVPortada,
+                  onChanged: widget.onBarnizUVPortadaChanged,
+                ),
               if (widget.portada)
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text("Laminado (Portada)"),
-                value: widget.laminadosPortada,
-                onChanged: widget.onLaminadosPortadaChanged,
-              ),
-
-
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text("Laminado (Portada)"),
+                  value: widget.laminadosPortada,
+                  onChanged: widget.onLaminadosPortadaChanged,
+                ),
 
               if (widget.portada) ...[
-                const Text("PORTADA – Medidas (cm)",
-                    style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  "PORTADA – Medidas (cm)",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
 
                 Row(
                   children: [
                     Expanded(
                       child: TextField(
                         controller: widget.anchoPortadaController,
-                        decoration:
-                            const InputDecoration(labelText: "Ancho"),
+                        decoration: const InputDecoration(labelText: "Ancho"),
                       ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: TextField(
                         controller: widget.altoPortadaController,
-                        decoration:
-                            const InputDecoration(labelText: "Alto"),
+                        decoration: const InputDecoration(labelText: "Alto"),
                       ),
                     ),
                   ],
@@ -620,8 +619,7 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
 
                 TextField(
                   controller: widget.medianilPortadaController,
-                  decoration:
-                      const InputDecoration(labelText: "Medianil"),
+                  decoration: const InputDecoration(labelText: "Medianil"),
                 ),
 
                 ElevatedButton(
@@ -633,11 +631,11 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                   children: [
                     Expanded(
                       child: TextField(
-                        controller:
-                            widget.anchoFinalPortadaController,
+                        controller: widget.anchoFinalPortadaController,
                         readOnly: true,
                         decoration: const InputDecoration(
-                            labelText: "Ancho Final"),
+                          labelText: "Ancho Final",
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -645,8 +643,9 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                       child: TextField(
                         controller: widget.altoFinalPortadaController,
                         readOnly: true,
-                        decoration:
-                            const InputDecoration(labelText: "Alto Final"),
+                        decoration: const InputDecoration(
+                          labelText: "Alto Final",
+                        ),
                       ),
                     ),
                   ],
@@ -659,156 +658,161 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                 ),
 
                 if (widget.pruebaColorPortada) ...[
-                Padding(
-                  padding: const EdgeInsets.only(left: 24),
-                  child: Column(
-                    children: [
-
-                      /// ===== CARTA =====
-                      CheckboxListTile(
-                        title: const Text("Prueba Carta"),
-                        value: widget.pruebaColorPortadaCarta,
-                        onChanged: widget.onPruebaColorPortadaCartaChanged,
-                      ),
-
-                      if (widget.pruebaColorPortadaCarta)
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller:
-                                    widget.cantidadPruebaPortadaCartaController,
-                                keyboardType: TextInputType.number,
-                                decoration:
-                                    const InputDecoration(labelText: "Cantidad"),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: TextField(
-                                controller:
-                                    widget.precioPruebaPortadaCartaController,
-                                keyboardType: TextInputType.number,
-                                decoration:
-                                    const InputDecoration(labelText: "Costo"),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: TextField(
-                                controller:
-                                    widget.totalPruebaPortadaCartaController,
-                                readOnly: true,
-                                decoration: const InputDecoration(
-                                  labelText: "Total",
-                                  filled: true,
-                                  fillColor: Color(0xFFEEEEEE),
-                                ),
-                              ),
-                            ),
-                          ],
+                  Padding(
+                    padding: const EdgeInsets.only(left: 24),
+                    child: Column(
+                      children: [
+                        /// ===== CARTA =====
+                        CheckboxListTile(
+                          title: const Text("Prueba Carta"),
+                          value: widget.pruebaColorPortadaCarta,
+                          onChanged: widget.onPruebaColorPortadaCartaChanged,
                         ),
 
-                      /// ===== TABLOIDE =====
-                      CheckboxListTile(
-                        title: const Text("Prueba Tabloide"),
-                        value: widget.pruebaColorPortadaTabloide,
-                        onChanged: widget.onPruebaColorPortadaTabloideChanged,
-                      ),
-
-                      if (widget.pruebaColorPortadaTabloide)
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller:
-                                    widget.cantidadPruebaPortadaTabloideController,
-                                keyboardType: TextInputType.number,
-                                decoration:
-                                    const InputDecoration(labelText: "Cantidad"),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: TextField(
-                                controller:
-                                    widget.precioPruebaPortadaTabloideController,
-                                keyboardType: TextInputType.number,
-                                decoration:
-                                    const InputDecoration(labelText: "Costo"),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: TextField(
-                                controller:
-                                    widget.totalPruebaPortadaTabloideController,
-                                readOnly: true,
-                                decoration: const InputDecoration(
-                                  labelText: "Total",
-                                  filled: true,
-                                  fillColor: Color(0xFFEEEEEE),
+                        if (widget.pruebaColorPortadaCarta)
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: widget
+                                      .cantidadPruebaPortadaCartaController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: "Cantidad",
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-
-                      /// ===== MEDIA CARTA =====
-                      CheckboxListTile(
-                        title: const Text("Prueba Media Carta"),
-                        value: widget.pruebaColorPortadaMediaCarta,
-                        onChanged: widget.onPruebaColorPortadaMediaCartaChanged,
-                      ),
-
-                      if (widget.pruebaColorPortadaMediaCarta)
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller:
-                                    widget.cantidadPruebaPortadaMediaCartaController,
-                                keyboardType: TextInputType.number,
-                                decoration:
-                                    const InputDecoration(labelText: "Cantidad"),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: TextField(
-                                controller:
-                                    widget.precioPruebaPortadaMediaCartaController,
-                                keyboardType: TextInputType.number,
-                                decoration:
-                                    const InputDecoration(labelText: "Costo"),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: TextField(
-                                controller:
-                                    widget.totalPruebaPortadaMediaCartaController,
-                                readOnly: true,
-                                decoration: const InputDecoration(
-                                  labelText: "Total",
-                                  filled: true,
-                                  fillColor: Color(0xFFEEEEEE),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: TextField(
+                                  controller:
+                                      widget.precioPruebaPortadaCartaController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: "Costo",
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: TextField(
+                                  controller:
+                                      widget.totalPruebaPortadaCartaController,
+                                  readOnly: true,
+                                  decoration: const InputDecoration(
+                                    labelText: "Total",
+                                    filled: true,
+                                    fillColor: Color(0xFFEEEEEE),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                        /// ===== TABLOIDE =====
+                        CheckboxListTile(
+                          title: const Text("Prueba Tabloide"),
+                          value: widget.pruebaColorPortadaTabloide,
+                          onChanged: widget.onPruebaColorPortadaTabloideChanged,
                         ),
-                    ],
+
+                        if (widget.pruebaColorPortadaTabloide)
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: widget
+                                      .cantidadPruebaPortadaTabloideController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: "Cantidad",
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: TextField(
+                                  controller: widget
+                                      .precioPruebaPortadaTabloideController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: "Costo",
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: TextField(
+                                  controller: widget
+                                      .totalPruebaPortadaTabloideController,
+                                  readOnly: true,
+                                  decoration: const InputDecoration(
+                                    labelText: "Total",
+                                    filled: true,
+                                    fillColor: Color(0xFFEEEEEE),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                        /// ===== MEDIA CARTA =====
+                        CheckboxListTile(
+                          title: const Text("Prueba Media Carta"),
+                          value: widget.pruebaColorPortadaMediaCarta,
+                          onChanged:
+                              widget.onPruebaColorPortadaMediaCartaChanged,
+                        ),
+
+                        if (widget.pruebaColorPortadaMediaCarta)
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: widget
+                                      .cantidadPruebaPortadaMediaCartaController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: "Cantidad",
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: TextField(
+                                  controller: widget
+                                      .precioPruebaPortadaMediaCartaController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: "Costo",
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: TextField(
+                                  controller: widget
+                                      .totalPruebaPortadaMediaCartaController,
+                                  readOnly: true,
+                                  decoration: const InputDecoration(
+                                    labelText: "Total",
+                                    filled: true,
+                                    fillColor: Color(0xFFEEEEEE),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-
-
+                ],
 
                 TextField(
                   controller: widget.piezasPortadaController,
                   decoration: const InputDecoration(
-                      labelText: "Piezas Totales Portada"),
+                    labelText: "Piezas Totales Portada",
+                  ),
                 ),
               ],
             ],
