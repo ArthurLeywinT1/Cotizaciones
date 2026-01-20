@@ -8,11 +8,12 @@ class PanelLaminados extends ConsumerStatefulWidget {
   final Map<String, Map<String, bool>> laminados;
   final TextEditingController pliegoAnchoController;
   final TextEditingController pliegoAltoController;
+  final TextEditingController totalPliegosController;
   final Map<String, TextEditingController> controllersCostoCm2;
   final Map<String, TextEditingController> controllersCostoTotal;
+  final bool isOffset;
 
-  final void Function(String nombre, String lado, bool valor)
-      onLaminadoChanged;
+  final void Function(String nombre, String lado, bool valor) onLaminadoChanged;
 
   const PanelLaminados({
     super.key,
@@ -20,9 +21,11 @@ class PanelLaminados extends ConsumerStatefulWidget {
     required this.laminados,
     required this.pliegoAnchoController,
     required this.pliegoAltoController,
+    required this.totalPliegosController,
     required this.controllersCostoCm2,
     required this.controllersCostoTotal,
     required this.onLaminadoChanged,
+    required this.isOffset,
   });
 
   @override
@@ -39,6 +42,8 @@ class _PanelLaminadosState extends ConsumerState<PanelLaminados> {
   late Map<String, bool> frente;
   late Map<String, bool> vuelta;
 
+  Map<String, double> costosMinimos = {};
+
   @override
   void initState() {
     super.initState();
@@ -46,10 +51,9 @@ class _PanelLaminadosState extends ConsumerState<PanelLaminados> {
 
     widget.pliegoAnchoController.addListener(_recalcularTodos);
     widget.pliegoAltoController.addListener(_recalcularTodos);
+    widget.totalPliegosController.addListener(_recalcularTodos);
 
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => _cargarPreciosDeBD(),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) => _cargarPreciosDeBD());
   }
 
   void _sincronizarEstadoLocal() {
@@ -64,24 +68,27 @@ class _PanelLaminadosState extends ConsumerState<PanelLaminados> {
   }
 
   void _cargarPreciosDeBD() {
-  final extrasState = ref.read(extrasProvider);
+    final extrasState = ref.read(extrasProvider);
 
-  for (final nombre in laminadosPermitidos) {
-    try {
-      final extra = extrasState.extras.firstWhere(
-        (e) => e.nombre.trim().toLowerCase() ==
-               nombre.trim().toLowerCase(),
-      );
+    for (final nombre in laminadosPermitidos) {
+      try {
+        final extra = extrasState.extras.firstWhere(
+          (e) => e.nombre.trim().toLowerCase() == nombre.trim().toLowerCase(),
+        );
 
-      widget.controllersCostoCm2[nombre]?.text =
-          (extra.costoCm2 ?? 0).toString();
+        if (extra.costoCm2 != null) {
+          widget.controllersCostoCm2[nombre]?.text = (extra.costoCm2 ?? 0)
+              .toString();
+        }
 
-      _calcularCostoIndividual(nombre);
-    } catch (e) {
-      debugPrint("No se encontró laminado: $nombre");
+        costosMinimos[nombre] = extra.costoMinimoTotal ?? 0.0;
+        _calcularCostoIndividual(nombre);
+      } catch (e) {
+        costosMinimos[nombre] = 0.0;
+        debugPrint("No se encontró laminado: $nombre");
+      }
     }
   }
-}
 
   void _recalcularTodos() {
     for (final nombre in laminadosPermitidos) {
@@ -94,21 +101,30 @@ class _PanelLaminadosState extends ConsumerState<PanelLaminados> {
         double.tryParse(widget.pliegoAnchoController.text) ?? 0.0;
     final double alto =
         double.tryParse(widget.pliegoAltoController.text) ?? 0.0;
+    final double totalPliegos =
+        double.tryParse(widget.totalPliegosController.text) ?? 0.0;
     final double costoCm2 =
-        double.tryParse(
-              widget.controllersCostoCm2[titulo]?.text ?? "0",
-            ) ??
-            0.0;
+        double.tryParse(widget.controllersCostoCm2[titulo]?.text ?? "0") ?? 0.0;
 
     final int lados =
-        (frente[titulo] == true ? 1 : 0) +
-        (vuelta[titulo] == true ? 1 : 0);
+        (frente[titulo] == true ? 1 : 0) + (vuelta[titulo] == true ? 1 : 0);
 
-    final double areaTotal = (ancho * alto) * lados;
-    final double costoTotal = areaTotal * costoCm2;
+    final double areaUnitariaxLados = (ancho * alto) * lados;
+    final double costoCalculado = areaUnitariaxLados * costoCm2 * totalPliegos;
 
-    widget.controllersCostoTotal[titulo]?.text =
-        costoTotal.toStringAsFixed(2);
+    final double costoMinimo = costosMinimos[titulo] ?? 0.0;
+
+    double costoFinal = 0.0;
+
+    if (lados > 0) {
+      if (costoCalculado < costoMinimo) {
+        costoFinal = costoMinimo;
+      } else {
+        costoFinal = costoCalculado;
+      }
+    }
+
+    widget.controllersCostoTotal[titulo]?.text = costoFinal.toStringAsFixed(2);
   }
 
   @override
@@ -116,15 +132,72 @@ class _PanelLaminadosState extends ConsumerState<PanelLaminados> {
     ref.listen(extrasProvider, (_, __) => _cargarPreciosDeBD());
 
     return Column(
-      children: laminadosPermitidos
-          .map((titulo) => _buildLaminadoBlock(titulo))
-          .toList(),
+      children: [
+        if (!widget.isOffset) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            margin: const EdgeInsets.only(bottom: 20),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade400),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Medidas Manuales para Laminado",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildManualInput(
+                        controller: widget.pliegoAnchoController,
+                        label: "Ancho (cm)",
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _buildManualInput(
+                        controller: widget.pliegoAltoController,
+                        label: "Alto (cm)",
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+        ...laminadosPermitidos
+            .map((titulo) => _buildLaminadoBlock(titulo))
+            .toList(),
+      ],
+    );
+  }
+
+  Widget _buildManualInput({
+    required TextEditingController controller,
+    required String label,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        isDense: true,
+        filled: true,
+        fillColor: Colors.white,
+      ),
+      onChanged: (_) => _recalcularTodos(),
     );
   }
 
   Widget _buildLaminadoBlock(String titulo) {
-    final bool activo =
-        (frente[titulo] ?? false) || (vuelta[titulo] ?? false);
+    final bool activo = (frente[titulo] ?? false) || (vuelta[titulo] ?? false);
 
     return Opacity(
       opacity: widget.readOnly ? 1 : 0.4,
@@ -152,10 +225,8 @@ class _PanelLaminadosState extends ConsumerState<PanelLaminados> {
                         frente[titulo] = nuevoValor;
                         vuelta[titulo] = false;
 
-                        widget.onLaminadoChanged(
-                            titulo, "frente", nuevoValor);
-                        widget.onLaminadoChanged(
-                            titulo, "vuelta", false);
+                        widget.onLaminadoChanged(titulo, "frente", nuevoValor);
+                        widget.onLaminadoChanged(titulo, "vuelta", false);
 
                         _calcularCostoIndividual(titulo);
                       });
@@ -223,12 +294,10 @@ class _PanelLaminadosState extends ConsumerState<PanelLaminados> {
                 children: [
                   Expanded(
                     child: TextField(
-                      controller:
-                          widget.controllersCostoCm2[titulo],
-                      readOnly: !activo,
+                      controller: widget.controllersCostoCm2[titulo],
+                      readOnly: true,
                       keyboardType: TextInputType.number,
-                      onChanged: (_) =>
-                          _calcularCostoIndividual(titulo),
+                      onChanged: (_) => _calcularCostoIndividual(titulo),
                       decoration: const InputDecoration(
                         labelText: "Costo por cm²",
                         border: OutlineInputBorder(),
@@ -241,8 +310,7 @@ class _PanelLaminadosState extends ConsumerState<PanelLaminados> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: TextField(
-                      controller:
-                          widget.controllersCostoTotal[titulo],
+                      controller: widget.controllersCostoTotal[titulo],
                       readOnly: true,
                       decoration: const InputDecoration(
                         labelText: "Costo Total",

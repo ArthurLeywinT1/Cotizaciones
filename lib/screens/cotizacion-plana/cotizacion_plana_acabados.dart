@@ -8,11 +8,11 @@ class PanelAcabados extends ConsumerStatefulWidget {
   final Map<String, Map<String, bool>> acabados;
   final TextEditingController anchoFinalController;
   final TextEditingController altoFinalController;
+  final TextEditingController totalPliegosController;
   final Map<String, TextEditingController> controllersCostoCm2;
   final Map<String, TextEditingController> controllersCostoTotal;
 
-  final void Function(String nombre, String lado, bool valor)
-      onAcabadoChanged;
+  final void Function(String nombre, String lado, bool valor) onAcabadoChanged;
 
   const PanelAcabados({
     super.key,
@@ -20,6 +20,7 @@ class PanelAcabados extends ConsumerStatefulWidget {
     required this.acabados,
     required this.anchoFinalController,
     required this.altoFinalController,
+    required this.totalPliegosController,
     required this.controllersCostoCm2,
     required this.controllersCostoTotal,
     required this.onAcabadoChanged,
@@ -39,6 +40,7 @@ class _PanelAcabadosState extends ConsumerState<PanelAcabados> {
 
   late Map<String, bool> frente;
   late Map<String, bool> vuelta;
+  Map<String, double> costosMinimos = {};
 
   @override
   void initState() {
@@ -47,10 +49,9 @@ class _PanelAcabadosState extends ConsumerState<PanelAcabados> {
 
     widget.anchoFinalController.addListener(_recalcularTodos);
     widget.altoFinalController.addListener(_recalcularTodos);
+    widget.totalPliegosController.addListener(_recalcularTodos);
 
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => _cargarPreciosDeBD(),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) => _cargarPreciosDeBD());
   }
 
   void _sincronizarEstadoLocal() {
@@ -70,17 +71,18 @@ class _PanelAcabadosState extends ConsumerState<PanelAcabados> {
     for (final nombre in barnicesPermitidos) {
       try {
         final extra = extrasState.extras.firstWhere(
-          (e) =>
-              e.nombre.trim().toLowerCase() ==
-              nombre.trim().toLowerCase(),
+          (e) => e.nombre.trim().toLowerCase() == nombre.trim().toLowerCase(),
         );
 
         if (extra.costoCm2 != null) {
-          widget.controllersCostoCm2[nombre]?.text =
-              extra.costoCm2.toString();
-          _calcularCostoIndividual(nombre);
+          widget.controllersCostoCm2[nombre]?.text = extra.costoCm2.toString();
         }
-      } catch (_) {}
+
+        costosMinimos[nombre] = extra.costoMinimoTotal ?? 0.0;
+        _calcularCostoIndividual(nombre);
+      } catch (_) {
+        costosMinimos[nombre] = 0.0;
+      }
     }
   }
 
@@ -93,23 +95,30 @@ class _PanelAcabadosState extends ConsumerState<PanelAcabados> {
   void _calcularCostoIndividual(String titulo) {
     final double ancho =
         double.tryParse(widget.anchoFinalController.text) ?? 0.0;
-    final double alto =
-        double.tryParse(widget.altoFinalController.text) ?? 0.0;
+    final double alto = double.tryParse(widget.altoFinalController.text) ?? 0.0;
+    final double totalPliegos =
+        double.tryParse(widget.totalPliegosController.text) ?? 0.0;
     final double costoCm2 =
-        double.tryParse(
-              widget.controllersCostoCm2[titulo]?.text ?? "0",
-            ) ??
-            0.0;
+        double.tryParse(widget.controllersCostoCm2[titulo]?.text ?? "0") ?? 0.0;
 
     final int lados =
-        (frente[titulo] == true ? 1 : 0) +
-        (vuelta[titulo] == true ? 1 : 0);
+        (frente[titulo] == true ? 1 : 0) + (vuelta[titulo] == true ? 1 : 0);
 
-    final double areaTotal = (ancho * alto) * lados;
-    final double costoTotal = areaTotal * costoCm2;
+    final double areaUnitariaxLados = (ancho * alto) * lados;
+    final double costoCalculado =
+        areaUnitariaxLados * costoCm2 * totalPliegos * .01;
+    final double costoMinimo = costosMinimos[titulo] ?? 0.0;
+    double costoFinal = 0.0;
 
-    widget.controllersCostoTotal[titulo]?.text =
-        costoTotal.toStringAsFixed(2);
+    if (lados > 0) {
+      if (costoCalculado < costoMinimo) {
+        costoFinal = costoMinimo;
+      } else {
+        costoFinal = costoCalculado;
+      }
+    }
+
+    widget.controllersCostoTotal[titulo]?.text = costoFinal.toStringAsFixed(2);
   }
 
   @override
@@ -124,8 +133,7 @@ class _PanelAcabadosState extends ConsumerState<PanelAcabados> {
   }
 
   Widget _buildAcabadoBlock(String titulo) {
-    final bool activo =
-        (frente[titulo] ?? false) || (vuelta[titulo] ?? false);
+    final bool activo = (frente[titulo] ?? false) || (vuelta[titulo] ?? false);
 
     return Opacity(
       opacity: widget.read_Only ? 1 : 0.4,
@@ -153,10 +161,8 @@ class _PanelAcabadosState extends ConsumerState<PanelAcabados> {
                         frente[titulo] = nuevoValor;
                         vuelta[titulo] = false;
 
-                        widget.onAcabadoChanged(
-                            titulo, "frente", nuevoValor);
-                        widget.onAcabadoChanged(
-                            titulo, "vuelta", false);
+                        widget.onAcabadoChanged(titulo, "frente", nuevoValor);
+                        widget.onAcabadoChanged(titulo, "vuelta", false);
 
                         _calcularCostoIndividual(titulo);
                       });
@@ -224,12 +230,10 @@ class _PanelAcabadosState extends ConsumerState<PanelAcabados> {
                 children: [
                   Expanded(
                     child: TextField(
-                      controller:
-                          widget.controllersCostoCm2[titulo],
-                      readOnly: !activo,
+                      controller: widget.controllersCostoCm2[titulo],
+                      readOnly: true,
                       keyboardType: TextInputType.number,
-                      onChanged: (_) =>
-                          _calcularCostoIndividual(titulo),
+                      onChanged: (_) => _calcularCostoIndividual(titulo),
                       decoration: const InputDecoration(
                         labelText: "Costo por cm²",
                         border: OutlineInputBorder(),
@@ -242,8 +246,7 @@ class _PanelAcabadosState extends ConsumerState<PanelAcabados> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: TextField(
-                      controller:
-                          widget.controllersCostoTotal[titulo],
+                      controller: widget.controllersCostoTotal[titulo],
                       readOnly: true,
                       decoration: const InputDecoration(
                         labelText: "Costo Total",

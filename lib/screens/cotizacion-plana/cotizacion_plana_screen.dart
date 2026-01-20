@@ -10,7 +10,6 @@ import 'cotizacion_plana_acabados_especiales.dart';
 import 'cotizacion_plana_costo_total.dart';
 import 'cotizacion_plana_laminado.dart';
 
-
 class CotizacionPlanaScreen extends StatefulWidget {
   const CotizacionPlanaScreen({super.key});
 
@@ -36,8 +35,7 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   final TextEditingController cantidadImpresionController =
       TextEditingController(text: "0");
   final TextEditingController paginasInternasTotalesController =
-    TextEditingController(text: "0");
-    
+      TextEditingController(text: "0");
 
   // ===== PORTADA =====
   bool portada = false;
@@ -69,42 +67,48 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   final TextEditingController totalPruebaPortadaMediaCartaController =
       TextEditingController(text: "0.00");
 
-
   // ===== PRUEBA DE COLOR INTERNAS =====
   bool pruebaCarta = false;
   bool pruebaTabloide = false;
   bool pruebaMediaCarta = false;
 
-  final TextEditingController cantidadCartaController =
-      TextEditingController(text: "0");
-  final TextEditingController precioCartaController =
-      TextEditingController(text: "0.00");
-  final TextEditingController totalCartaController =
-      TextEditingController(text: "0.00");
+  final TextEditingController cantidadCartaController = TextEditingController(
+    text: "0",
+  );
+  final TextEditingController precioCartaController = TextEditingController(
+    text: "0.00",
+  );
+  final TextEditingController totalCartaController = TextEditingController(
+    text: "0.00",
+  );
   final TextEditingController cantidadTabloideController =
       TextEditingController(text: "0");
-  final TextEditingController precioTabloideController =
-      TextEditingController(text: "0.00");
-  final TextEditingController totalTabloideController =
-      TextEditingController(text: "0.00");
+  final TextEditingController precioTabloideController = TextEditingController(
+    text: "0.00",
+  );
+  final TextEditingController totalTabloideController = TextEditingController(
+    text: "0.00",
+  );
   final TextEditingController cantidadMediaCartaController =
       TextEditingController(text: "0");
   final TextEditingController precioMediaCartaController =
       TextEditingController(text: "0.00");
-  final TextEditingController totalMediaCartaController =
-      TextEditingController(text: "0.00");
+  final TextEditingController totalMediaCartaController = TextEditingController(
+    text: "0.00",
+  );
   final TextEditingController anchoPortadaController = TextEditingController();
   final TextEditingController altoPortadaController = TextEditingController();
-  final TextEditingController medianilPortadaController = TextEditingController();
+  final TextEditingController medianilPortadaController =
+      TextEditingController();
   final TextEditingController anchoFinalPortadaController =
       TextEditingController(text: "0");
   final TextEditingController altoFinalPortadaController =
       TextEditingController(text: "0");
-  final TextEditingController piezasPortadaController =
-      TextEditingController(text: "0");
+  final TextEditingController piezasPortadaController = TextEditingController(
+    text: "0",
+  );
   final TextEditingController costoPruebaPortadaController =
       TextEditingController();
-
 
   // CONTROLADORES – PLIEGOS
   final TextEditingController pliegoAnchoController = TextEditingController();
@@ -141,7 +145,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
       TextEditingController();
   final TextEditingController millaresPortadaController =
       TextEditingController();
-
 
   // Controladores papel
   final TextEditingController nombrePapelController = TextEditingController();
@@ -184,7 +187,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   final TextEditingController costoPapelPortadaConIvaController =
       TextEditingController();
 
-
   // Controladores maquina
   final TextEditingController nombreMaquinaController = TextEditingController();
   final TextEditingController costoPlacaController = TextEditingController(
@@ -208,7 +210,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   );
   final TextEditingController costoTotalPlacasController =
       TextEditingController(text: "0.00");
-  
 
   // MAQUINA PORTADA
   final TextEditingController nombreMaquinaPortadaController =
@@ -241,7 +242,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   bool barnizMaquinaPortada = false;
   bool cambiarPrecioPlacaPortada = false;
 
-
   // Contoladores suaje
   final TextEditingController tamanoSuajeController = TextEditingController();
   final TextEditingController costoSuajeCmController = TextEditingController(
@@ -262,14 +262,8 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   // LAMINADOS – ESTADO
 
   final Map<String, Map<String, bool>> laminados = {
-    "Plastificado Brillante": {
-      "frente": false,
-      "vuelta": false,
-    },
-    "Plastificado Mate": {
-      "frente": false,
-      "vuelta": false,
-    },
+    "Plastificado Brillante": {"frente": false, "vuelta": false},
+    "Plastificado Mate": {"frente": false, "vuelta": false},
   };
 
   // =======================
@@ -278,44 +272,27 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
 
   final Map<String, TextEditingController> laminadosCostoCm2Controllers = {};
   final Map<String, TextEditingController> laminadosCostoTotalControllers = {};
+  final Map<String, TextEditingController> laminadosPortadaCostoCm2Controllers =
+      {};
   final Map<String, TextEditingController>
-    laminadosPortadaCostoCm2Controllers = {};
-  final Map<String, TextEditingController>
-      laminadosPortadaCostoTotalControllers = {};
-
+  laminadosPortadaCostoTotalControllers = {};
 
   // ACABADOS PORTADA
   final Map<String, Map<String, bool>> acabadosPortada = {
-    "Barniz UV a Registro": {
-      "frente": false,
-      "vuelta": false,
-    },
-    "Barniz UV Brillante a Plasta": {
-      "frente": false,
-      "vuelta": false,
-    },
-    "Barniz UV Mate Plasta": {
-      "frente": false,
-      "vuelta": false,
-    },
+    "Barniz UV a Registro": {"frente": false, "vuelta": false},
+    "Barniz UV Brillante a Plasta": {"frente": false, "vuelta": false},
+    "Barniz UV Mate Plasta": {"frente": false, "vuelta": false},
   };
 
-
+  final Map<String, TextEditingController> acabadosPortadaCostoCm2Controllers =
+      {};
   final Map<String, TextEditingController>
-      acabadosPortadaCostoCm2Controllers = {};
-  final Map<String, TextEditingController>
-      acabadosPortadaCostoTotalControllers = {};
+  acabadosPortadaCostoTotalControllers = {};
 
   // ACABADOS PORTADA
   final Map<String, Map<String, bool>> laminadosPortadaMap = {
-    "Plastificado Brillante": {
-      "frente": false,
-      "vuelta": false,
-    },
-    "Plastificado Mate": {
-      "frente": false,
-      "vuelta": false,
-    },
+    "Plastificado Brillante": {"frente": false, "vuelta": false},
+    "Plastificado Mate": {"frente": false, "vuelta": false},
   };
 
   // ESTADOS GENERALES
@@ -331,7 +308,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   bool laminadosActivo = false;
   bool laminadosPortada = false;
 
-
   Map<String, Map<String, bool>> acabados = {
     "Barniz UV a Registro": {"frente": false, "vuelta": false},
     "Barniz UV Brillante a Plasta": {"frente": false, "vuelta": false},
@@ -345,26 +321,26 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
       acabadosCostoCm2Controllers[key] = TextEditingController(text: "0.00");
       acabadosCostoTotalControllers[key] = TextEditingController(text: "0.00");
     }
-        for (var key in acabadosPortada.keys) {
-      acabadosPortadaCostoCm2Controllers[key] =
-          TextEditingController(text: "0.00");
-      acabadosPortadaCostoTotalControllers[key] =
-          TextEditingController(text: "0.00");
+    for (var key in acabadosPortada.keys) {
+      acabadosPortadaCostoCm2Controllers[key] = TextEditingController(
+        text: "0.00",
+      );
+      acabadosPortadaCostoTotalControllers[key] = TextEditingController(
+        text: "0.00",
+      );
     }
-        for (var key in laminados.keys) {
-      laminadosCostoCm2Controllers[key] =
-          TextEditingController(text: "0.00");
-      laminadosCostoTotalControllers[key] =
-          TextEditingController(text: "0.00");
+    for (var key in laminados.keys) {
+      laminadosCostoCm2Controllers[key] = TextEditingController(text: "0.00");
+      laminadosCostoTotalControllers[key] = TextEditingController(text: "0.00");
     }
     for (var key in laminadosPortadaMap.keys) {
-    laminadosPortadaCostoCm2Controllers[key] =
-        TextEditingController(text: "0.00");
-    laminadosPortadaCostoTotalControllers[key] =
-        TextEditingController(text: "0.00");
-  }
-
-
+      laminadosPortadaCostoCm2Controllers[key] = TextEditingController(
+        text: "0.00",
+      );
+      laminadosPortadaCostoTotalControllers[key] = TextEditingController(
+        text: "0.00",
+      );
+    }
   }
 
   void calcularMedidasFinales() {
@@ -377,7 +353,7 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
     });
   }
 
-    void calcularPruebaColor({
+  void calcularPruebaColor({
     required TextEditingController cantidad,
     required TextEditingController precio,
     required TextEditingController total,
@@ -386,7 +362,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
     final p = double.tryParse(precio.text) ?? 0;
     total.text = (c * p).toStringAsFixed(2);
   }
-
 
   void actualizarAcabado(String nombre, String lado, bool valor) {
     setState(() {
@@ -400,37 +375,28 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
     });
   }
 
-
   void actualizarAcabadoPortada(String nombre, String lado, bool valor) {
     setState(() {
       acabadosPortada[nombre]?[lado] = valor;
     });
   }
-  void actualizarLaminadoPortada(
-      String nombre, String lado, bool valor) {
+
+  void actualizarLaminadoPortada(String nombre, String lado, bool valor) {
     setState(() {
       laminadosPortadaMap[nombre]?[lado] = valor;
     });
   }
 
-
-
   void calcularMedidasFinalesPortada() {
-  final ancho = double.tryParse(anchoPortadaController.text) ?? 0;
-  final alto = double.tryParse(altoPortadaController.text) ?? 0;
-  final medianil = double.tryParse(medianilPortadaController.text) ?? 0;
+    final ancho = double.tryParse(anchoPortadaController.text) ?? 0;
+    final alto = double.tryParse(altoPortadaController.text) ?? 0;
+    final medianil = double.tryParse(medianilPortadaController.text) ?? 0;
 
     setState(() {
-      anchoFinalPortadaController.text =
-          (ancho + medianil).toStringAsFixed(2);
-      altoFinalPortadaController.text =
-          (alto + medianil).toStringAsFixed(2);
+      anchoFinalPortadaController.text = (ancho + medianil).toStringAsFixed(2);
+      altoFinalPortadaController.text = (alto + medianil).toStringAsFixed(2);
     });
   }
-  
-
-
-
 
   @override
   void dispose() {
@@ -484,30 +450,29 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
       controller.dispose();
     for (var controller in acabadosCostoTotalControllers.values)
       controller.dispose();
-      anchoPortadaController.dispose();
-      altoPortadaController.dispose();
-      medianilPortadaController.dispose();
-      anchoFinalPortadaController.dispose();
-      altoFinalPortadaController.dispose();
-      piezasPortadaController.dispose();
-      costoPruebaPortadaController.dispose();
-      for (var c in acabadosPortadaCostoCm2Controllers.values) {
+    anchoPortadaController.dispose();
+    altoPortadaController.dispose();
+    medianilPortadaController.dispose();
+    anchoFinalPortadaController.dispose();
+    altoFinalPortadaController.dispose();
+    piezasPortadaController.dispose();
+    costoPruebaPortadaController.dispose();
+    for (var c in acabadosPortadaCostoCm2Controllers.values) {
       c.dispose();
-      }
-      for (var c in acabadosPortadaCostoTotalControllers.values) {
-        c.dispose();
-      }
-      cantidadCartaController.dispose();
-      precioCartaController.dispose();
-      totalCartaController.dispose();
-      cantidadTabloideController.dispose();
-      precioTabloideController.dispose();
-      totalTabloideController.dispose();
-      cantidadMediaCartaController.dispose();
-      precioMediaCartaController.dispose();
-      totalMediaCartaController.dispose();
+    }
+    for (var c in acabadosPortadaCostoTotalControllers.values) {
+      c.dispose();
+    }
+    cantidadCartaController.dispose();
+    precioCartaController.dispose();
+    totalCartaController.dispose();
+    cantidadTabloideController.dispose();
+    precioTabloideController.dispose();
+    totalTabloideController.dispose();
+    cantidadMediaCartaController.dispose();
+    precioMediaCartaController.dispose();
+    totalMediaCartaController.dispose();
     super.dispose();
-
   }
 
   @override
@@ -529,12 +494,11 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               anchoFinalController: anchoFinalController,
               altoFinalController: altoFinalController,
               cantidadPruebaPortadaCartaController:
-              cantidadPruebaPortadaCartaController,
+                  cantidadPruebaPortadaCartaController,
               precioPruebaPortadaCartaController:
                   precioPruebaPortadaCartaController,
               totalPruebaPortadaCartaController:
                   totalPruebaPortadaCartaController,
-              
 
               onPruebaColorPortadaChanged: (v) {
                 setState(() {
@@ -591,7 +555,8 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               pruebaColorPortadaCarta: pruebaColorPortadaCarta,
               pruebaColorPortadaTabloide: pruebaColorPortadaTabloide,
               pruebaColorPortadaMediaCarta: pruebaColorPortadaMediaCarta,
-              paginasInternasTotalesController: paginasInternasTotalesController,
+              paginasInternasTotalesController:
+                  paginasInternasTotalesController,
               onPruebaColorPortadaCartaChanged: (v) {
                 setState(() {
                   pruebaColorPortadaCarta = v ?? false;
@@ -624,7 +589,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
                   }
                 });
               },
-
 
               barnizUVPortada: barnizUVPortada,
               onBarnizUVPortadaChanged: (v) {
@@ -695,69 +659,66 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               totalMediaCartaController: totalMediaCartaController,
             ),
 
-
-
             if (offsetActivo) ...[
-            PanelPliegos(
-              anchoFinalController: anchoFinalController,
-              altoFinalController: altoFinalController,
-              pliegoAnchoController: pliegoAnchoController,
-              pliegoAltoController: pliegoAltoController,
-              posicionPiezasController: posicionPiezasController,
-              piezasPorPliegoController: piezasPorPliegoController,
-              tamanoPorPliegoController: tamanoPorPliegoController,
-              cantidadImpresionesController: portada
-              ? paginasInternasTotalesController
-              : cantidadImpresionController,
-              pliegosSobrantesController: pliegosSobrantesController,
-              totalPliegosController: totalPliegosController,
-              millaresController: millaresController,
-               cantidadPliegosController: cantidadPliegosController,
-            ),
+              PanelPliegos(
+                anchoFinalController: anchoFinalController,
+                altoFinalController: altoFinalController,
+                pliegoAnchoController: pliegoAnchoController,
+                pliegoAltoController: pliegoAltoController,
+                posicionPiezasController: posicionPiezasController,
+                piezasPorPliegoController: piezasPorPliegoController,
+                tamanoPorPliegoController: tamanoPorPliegoController,
+                cantidadImpresionesController: portada
+                    ? paginasInternasTotalesController
+                    : cantidadImpresionController,
+                pliegosSobrantesController: pliegosSobrantesController,
+                totalPliegosController: totalPliegosController,
+                millaresController: millaresController,
+                cantidadPliegosController: cantidadPliegosController,
+              ),
 
-            PanelDatosPapel(
-              nombrePapelController: nombrePapelController,
-              tipoPapelController: tipoPapelController,
-              anchoPapelController: anchoPapelController,
-              largoPapelController: largoPapelController,
-              pesoPapelController: pesoPapelController,
-              proveedorPapelController: proveedorPapelController,
-              costoMillarController: costoMillarController,
-              totalPliegosController: totalPliegosController,
-              pliegoAnchoController: pliegoAnchoController,
-              pliegoAltoController: pliegoAltoController,
-            ),
+              PanelDatosPapel(
+                nombrePapelController: nombrePapelController,
+                tipoPapelController: tipoPapelController,
+                anchoPapelController: anchoPapelController,
+                largoPapelController: largoPapelController,
+                pesoPapelController: pesoPapelController,
+                proveedorPapelController: proveedorPapelController,
+                costoMillarController: costoMillarController,
+                totalPliegosController: totalPliegosController,
+                pliegoAnchoController: pliegoAnchoController,
+                pliegoAltoController: pliegoAltoController,
+              ),
 
-            PanelCostoPapel(
-              costoMillarController: costoMillarController,
-              totalPliegosController: totalPliegosController,
-              costoTotalPapelController: costoTotalPapelController,
-              descuentoController: descuentoPapelController,
-              costoConIvaController: costoPapelConIvaController,
-            ),
+              PanelCostoPapel(
+                costoMillarController: costoMillarController,
+                totalPliegosController: totalPliegosController,
+                costoTotalPapelController: costoTotalPapelController,
+                descuentoController: descuentoPapelController,
+                costoConIvaController: costoPapelConIvaController,
+              ),
 
-            PanelMaquina(
-              nombreMaquinaController: nombreMaquinaController,
-              costoPlacaController: costoPlacaController,
-              tintasFteController: tintasFteController,
-              tintasRevController: tintasRevController,
-              cantidadTotalTintasController: cantidadTotalTintasController,
-              costoUnitFteController: costoUnitFteController,
-              costoTotalFteController: costoTotalFteController,
-              costoUnitRevController: costoUnitRevController,
-              costoTotalRevController: costoTotalRevController,
-              costoGranTotalTintasController: costoGranTotalTintasController,
-              cantidadPlacasController: cantidadPlacasController,
-              costoBarnizController: costoBarnizController,
-              costoTotalPlacasController: costoTotalPlacasController,
-              barnizMaquina: barnizMaquina,
-              onBarnizMaquinaChanged: (v) =>
-                  setState(() => barnizMaquina = v ?? false),
-              cambiarPrecioPlaca: cambiarPrecioPlaca,
-              onCambiarPrecioPlacaChanged: (v) =>
-                  setState(() => cambiarPrecioPlaca = v ?? false),
-            ),
-            
+              PanelMaquina(
+                nombreMaquinaController: nombreMaquinaController,
+                costoPlacaController: costoPlacaController,
+                tintasFteController: tintasFteController,
+                tintasRevController: tintasRevController,
+                cantidadTotalTintasController: cantidadTotalTintasController,
+                costoUnitFteController: costoUnitFteController,
+                costoTotalFteController: costoTotalFteController,
+                costoUnitRevController: costoUnitRevController,
+                costoTotalRevController: costoTotalRevController,
+                costoGranTotalTintasController: costoGranTotalTintasController,
+                cantidadPlacasController: cantidadPlacasController,
+                costoBarnizController: costoBarnizController,
+                costoTotalPlacasController: costoTotalPlacasController,
+                barnizMaquina: barnizMaquina,
+                onBarnizMaquinaChanged: (v) =>
+                    setState(() => barnizMaquina = v ?? false),
+                cambiarPrecioPlaca: cambiarPrecioPlaca,
+                onCambiarPrecioPlacaChanged: (v) =>
+                    setState(() => cambiarPrecioPlaca = v ?? false),
+              ),
             ],
 
             if (barnizUV)
@@ -767,9 +728,11 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
                 onAcabadoChanged: actualizarAcabado,
                 anchoFinalController: anchoFinalController,
                 altoFinalController: altoFinalController,
+                totalPliegosController: totalPliegosController,
                 controllersCostoCm2: acabadosCostoCm2Controllers,
                 controllersCostoTotal: acabadosCostoTotalControllers,
               ),
+
             /// LAMINADOS
             if (laminadosActivo)
               PanelLaminados(
@@ -778,87 +741,83 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
                 onLaminadoChanged: actualizarLaminado,
                 pliegoAnchoController: pliegoAnchoController,
                 pliegoAltoController: pliegoAltoController,
+                totalPliegosController: totalPliegosController,
                 controllersCostoCm2: laminadosCostoCm2Controllers,
                 controllersCostoTotal: laminadosCostoTotalControllers,
+                isOffset: offsetActivo,
               ),
 
-
-
-            
             if (offsetActivo && portada) ...[
-            const Divider(thickness: 2),
-            const Text(
-              "PORTADA",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+              const Divider(thickness: 2),
+              const Text(
+                "PORTADA",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
 
-            /// PLIEGOS PORTADA
-            PanelPliegos(
-              cantidadImpresionesController: piezasPortadaController,
-              anchoFinalController: anchoFinalPortadaController,
-              altoFinalController: altoFinalPortadaController,
+              /// PLIEGOS PORTADA
+              PanelPliegos(
+                cantidadImpresionesController: piezasPortadaController,
+                anchoFinalController: anchoFinalPortadaController,
+                altoFinalController: altoFinalPortadaController,
 
-              pliegoAnchoController: pliegoAnchoPortadaController,
-              pliegoAltoController: pliegoAltoPortadaController,
-              posicionPiezasController: posicionPiezasPortadaController,
-              piezasPorPliegoController: piezasPorPliegoPortadaController,
-              tamanoPorPliegoController: tamanoPorPliegoPortadaController,
-              cantidadPliegosController: cantidadPliegosPortadaController,
-              pliegosSobrantesController: pliegosSobrantesPortadaController,
-              totalPliegosController: totalPliegosPortadaController,
-              millaresController: millaresPortadaController,
-            ),
+                pliegoAnchoController: pliegoAnchoPortadaController,
+                pliegoAltoController: pliegoAltoPortadaController,
+                posicionPiezasController: posicionPiezasPortadaController,
+                piezasPorPliegoController: piezasPorPliegoPortadaController,
+                tamanoPorPliegoController: tamanoPorPliegoPortadaController,
+                cantidadPliegosController: cantidadPliegosPortadaController,
+                pliegosSobrantesController: pliegosSobrantesPortadaController,
+                totalPliegosController: totalPliegosPortadaController,
+                millaresController: millaresPortadaController,
+              ),
 
+              /// PAPEL PORTADA
+              PanelDatosPapel(
+                nombrePapelController: nombrePapelPortadaController,
+                tipoPapelController: tipoPapelPortadaController,
+                anchoPapelController: anchoPapelPortadaController,
+                largoPapelController: largoPapelPortadaController,
+                pesoPapelController: pesoPapelPortadaController,
+                proveedorPapelController: proveedorPapelPortadaController,
+                costoMillarController: costoMillarPortadaController,
+                totalPliegosController: totalPliegosPortadaController,
+                pliegoAnchoController: pliegoAnchoPortadaController,
+                pliegoAltoController: pliegoAltoPortadaController,
+              ),
 
-            /// PAPEL PORTADA
-            PanelDatosPapel(
-              nombrePapelController: nombrePapelPortadaController,
-              tipoPapelController: tipoPapelPortadaController,
-              anchoPapelController: anchoPapelPortadaController,
-              largoPapelController: largoPapelPortadaController,
-              pesoPapelController: pesoPapelPortadaController,
-              proveedorPapelController: proveedorPapelPortadaController,
-              costoMillarController: costoMillarPortadaController,
-              totalPliegosController: totalPliegosPortadaController,
-              pliegoAnchoController: pliegoAnchoPortadaController,
-              pliegoAltoController: pliegoAltoPortadaController,
-            ),
+              PanelCostoPapel(
+                costoMillarController: costoMillarPortadaController,
+                totalPliegosController: totalPliegosPortadaController,
+                costoTotalPapelController: costoTotalPapelPortadaController,
+                descuentoController: descuentoPapelPortadaController,
+                costoConIvaController: costoPapelPortadaConIvaController,
+              ),
 
-
-            PanelCostoPapel(
-              costoMillarController: costoMillarPortadaController,
-              totalPliegosController: totalPliegosPortadaController,
-              costoTotalPapelController: costoTotalPapelPortadaController,
-              descuentoController: descuentoPapelPortadaController,
-              costoConIvaController: costoPapelPortadaConIvaController,
-            ),
-
-            /// MAQUINA PORTADA
-            PanelMaquina(
-              nombreMaquinaController: nombreMaquinaPortadaController,
-              costoPlacaController: costoPlacaPortadaController,
-              tintasFteController: tintasFtePortadaController,
-              tintasRevController: tintasRevPortadaController,
-              cantidadTotalTintasController:
-                  cantidadTotalTintasPortadaController,
-              costoUnitFteController: costoUnitFtePortadaController,
-              costoTotalFteController: costoTotalFtePortadaController,
-              costoUnitRevController: costoUnitRevPortadaController,
-              costoTotalRevController: costoTotalRevPortadaController,
-              costoGranTotalTintasController:
-                  costoGranTotalTintasPortadaController,
-              cantidadPlacasController: cantidadPlacasPortadaController,
-              costoBarnizController: costoBarnizPortadaController,
-              costoTotalPlacasController:
-                  costoTotalPlacasPortadaController,
-              barnizMaquina: barnizMaquinaPortada,
-              onBarnizMaquinaChanged: (v) =>
-                  setState(() => barnizMaquinaPortada = v ?? false),
-              cambiarPrecioPlaca: cambiarPrecioPlacaPortada,
-              onCambiarPrecioPlacaChanged: (v) =>
-                  setState(() => cambiarPrecioPlacaPortada = v ?? false),
-            ),
-          ],
+              /// MAQUINA PORTADA
+              PanelMaquina(
+                nombreMaquinaController: nombreMaquinaPortadaController,
+                costoPlacaController: costoPlacaPortadaController,
+                tintasFteController: tintasFtePortadaController,
+                tintasRevController: tintasRevPortadaController,
+                cantidadTotalTintasController:
+                    cantidadTotalTintasPortadaController,
+                costoUnitFteController: costoUnitFtePortadaController,
+                costoTotalFteController: costoTotalFtePortadaController,
+                costoUnitRevController: costoUnitRevPortadaController,
+                costoTotalRevController: costoTotalRevPortadaController,
+                costoGranTotalTintasController:
+                    costoGranTotalTintasPortadaController,
+                cantidadPlacasController: cantidadPlacasPortadaController,
+                costoBarnizController: costoBarnizPortadaController,
+                costoTotalPlacasController: costoTotalPlacasPortadaController,
+                barnizMaquina: barnizMaquinaPortada,
+                onBarnizMaquinaChanged: (v) =>
+                    setState(() => barnizMaquinaPortada = v ?? false),
+                cambiarPrecioPlaca: cambiarPrecioPlacaPortada,
+                onCambiarPrecioPlacaChanged: (v) =>
+                    setState(() => cambiarPrecioPlacaPortada = v ?? false),
+              ),
+            ],
 
             /// ACABADOS PORTADA
             if (offsetActivo && portada && barnizUVPortada)
@@ -868,40 +827,40 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
                 onAcabadoChanged: actualizarAcabadoPortada,
                 anchoFinalController: anchoFinalPortadaController,
                 altoFinalController: altoFinalPortadaController,
+                totalPliegosController: totalPliegosPortadaController,
                 controllersCostoCm2: acabadosPortadaCostoCm2Controllers,
                 controllersCostoTotal: acabadosPortadaCostoTotalControllers,
               ),
 
             if (offsetActivo && portada && laminadosPortada)
-            PanelLaminados(
-              readOnly: laminadosPortada,
-              laminados: laminadosPortadaMap,
-              onLaminadoChanged: actualizarLaminadoPortada,
-              pliegoAnchoController: pliegoAnchoPortadaController,
-              pliegoAltoController: pliegoAltoPortadaController,
-              controllersCostoCm2: laminadosPortadaCostoCm2Controllers,
-              controllersCostoTotal: laminadosPortadaCostoTotalControllers,
-            ),
-
+              PanelLaminados(
+                readOnly: laminadosPortada,
+                laminados: laminadosPortadaMap,
+                onLaminadoChanged: actualizarLaminadoPortada,
+                pliegoAnchoController: pliegoAnchoPortadaController,
+                pliegoAltoController: pliegoAltoPortadaController,
+                totalPliegosController: totalPliegosPortadaController,
+                controllersCostoCm2: laminadosPortadaCostoCm2Controllers,
+                controllersCostoTotal: laminadosPortadaCostoTotalControllers,
+                isOffset: offsetActivo,
+              ),
 
             if (suaje) ...[
-            PanelSuaje(
-              enabled: suaje,
-              tamanoSuajeController: tamanoSuajeController,
-              costoSuajeCmController: costoSuajeCmController,
-              costoTotalSuajeController: costoTotalSuajeController,
-              costoArregloSuajeController: costoArregloSuajeController,
-              costoTotalSuajadoController: costoTotalSuajadoController,
-              gastosEntrega: gastosEntrega,
-              onGastosEntregaChanged: (v) =>
-                  setState(() => gastosEntrega = v ?? false),
-              duplicarCosto: duplicarCostoSuaje,
-              onDuplicarCostoChanged: (v) =>
-                  setState(() => duplicarCostoSuaje = v ?? false),
+              PanelSuaje(
+                enabled: suaje,
+                tamanoSuajeController: tamanoSuajeController,
+                costoSuajeCmController: costoSuajeCmController,
+                costoTotalSuajeController: costoTotalSuajeController,
+                costoArregloSuajeController: costoArregloSuajeController,
+                costoTotalSuajadoController: costoTotalSuajadoController,
+                gastosEntrega: gastosEntrega,
+                onGastosEntregaChanged: (v) =>
+                    setState(() => gastosEntrega = v ?? false),
+                duplicarCosto: duplicarCostoSuaje,
+                onDuplicarCostoChanged: (v) =>
+                    setState(() => duplicarCostoSuaje = v ?? false),
               ),
             ],
-
-            
 
             const PanelAcabadosEspeciales(),
             const PanelCostoTotal(),
