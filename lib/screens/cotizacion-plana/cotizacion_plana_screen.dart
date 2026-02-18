@@ -866,15 +866,15 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               ),
             ],
 
-            if (acabadosEspeciales)
+            if (acabadosEspeciales) ...[
               PanelAcabadosEspeciales(
                 piezasPorPliegoController: piezasPorPliegoController,
               ),
+          ],
 
             const PanelCostoTotal(),
 
             const SizedBox(height: 40),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
