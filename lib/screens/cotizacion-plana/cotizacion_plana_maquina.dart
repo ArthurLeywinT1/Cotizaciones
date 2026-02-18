@@ -9,25 +9,27 @@ import '../../providers/extra_provider.dart';
 class PanelMaquina extends ConsumerStatefulWidget {
   final TextEditingController nombreMaquinaController;
   final TextEditingController costoPlacaController;
-
   final TextEditingController tintasFteController;
   final TextEditingController tintasRevController;
   final TextEditingController cantidadTotalTintasController;
-
   final TextEditingController costoUnitFteController;
   final TextEditingController costoTotalFteController;
   final TextEditingController costoUnitRevController;
   final TextEditingController costoTotalRevController;
   final TextEditingController costoGranTotalTintasController;
-
   final TextEditingController cantidadPlacasController;
   final TextEditingController costoBarnizController;
   final TextEditingController costoTotalPlacasController;
-
   final bool barnizMaquina;
   final ValueChanged<bool?> onBarnizMaquinaChanged;
   final bool cambiarPrecioPlaca;
   final ValueChanged<bool?> onCambiarPrecioPlacaChanged;
+  final bool cambiarPrecioTinta;
+  final ValueChanged<bool?> onCambiarPrecioTintaChanged;
+  final bool cambiarPrecioBarniz;
+  final ValueChanged<bool?> onCambiarPrecioBarnizChanged;
+
+
 
   const PanelMaquina({
     super.key,
@@ -48,6 +50,11 @@ class PanelMaquina extends ConsumerStatefulWidget {
     required this.onBarnizMaquinaChanged,
     required this.cambiarPrecioPlaca,
     required this.onCambiarPrecioPlacaChanged,
+    required this.cambiarPrecioTinta,
+    required this.onCambiarPrecioTintaChanged,
+    required this.cambiarPrecioBarniz,
+    required this.onCambiarPrecioBarnizChanged,
+
   });
 
   @override
@@ -236,9 +243,7 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
 
             const SizedBox(height: 16),
 
-            // ===============================================
             // BLOQUE NUEVO: TINTAS A UTILIZAR
-            // ===============================================
             const Text("Tintas a Utilizar en la Impresión:"),
             const SizedBox(height: 4),
 
@@ -297,6 +302,17 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
               ),
             ),
 
+            Row(
+              children: [
+                Checkbox(
+                  value: widget.cambiarPrecioTinta,
+                  onChanged: widget.onCambiarPrecioTintaChanged,
+                ),
+                const Text("Cambiar precio por tinta"),
+              ],
+            ),
+
+
             const SizedBox(height: 20),
 
             // DOS COLUMNAS (FRONTAL / REVERSO)
@@ -309,11 +325,18 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
                     children: [
                       const Text("Costo por Tinta Frontal:"),
                       const SizedBox(height: 4),
-                      _MonedaInput(readOnly: true),
+                      _MonedaInput(
+                        controller: widget.costoUnitFteController,
+                        readOnly: !widget.cambiarPrecioTinta,
+                      ),
                       const SizedBox(height: 12),
                       const Text("Costo Tintas Frontal:"),
                       const SizedBox(height: 4),
-                      _MonedaInput(readOnly: true),
+                      _MonedaInput(
+                        controller: widget.costoUnitRevController,
+                        readOnly: !widget.cambiarPrecioTinta,
+                      ),
+
                     ],
                   ),
                 ),
@@ -349,7 +372,7 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
             const SizedBox(height: 20),
 
             // CANTIDAD PLACAS
-            const Text("Cantidad Placas:"),
+            const Text("Cantidad Placas 615 X 724:"),
             const SizedBox(height: 4),
             SizedBox(
               width: 80,
@@ -376,6 +399,16 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
             ),
 
             const SizedBox(height: 16),
+            Row(
+              children: [
+                Checkbox(
+                  value: widget.cambiarPrecioBarniz,
+                  onChanged: widget.onCambiarPrecioBarnizChanged,
+                ),
+                const Text("Cambiar precio barniz de máquina"),
+              ],
+            ),
+
 
             // COSTO BARNIZ
             const Text(
@@ -383,7 +416,11 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
-            _MonedaInput(controller: widget.costoBarnizController),
+            _MonedaInput(
+            controller: widget.costoBarnizController,
+            readOnly: !widget.cambiarPrecioBarniz,
+          ),
+
 
             const SizedBox(height: 16),
 
@@ -391,7 +428,7 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
             const SizedBox(height: 4),
             TextField(
               controller: widget.costoPlacaController,
-              readOnly: widget.cambiarPrecioPlaca,
+              readOnly: !widget.cambiarPrecioPlaca,
               decoration: InputDecoration(
                 prefixText: "\$ ",
                 border: const OutlineInputBorder(),
@@ -402,6 +439,7 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
                     : null,
               ),
             ),
+
 
             const SizedBox(height: 16),
 

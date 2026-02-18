@@ -42,6 +42,12 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   // ===== PORTADA =====
   bool portada = false;
 
+  bool cambiarPrecioTinta = false;
+  bool cambiarPrecioTintaPortada = false;
+  bool cambiarPrecioBarniz = false;
+  bool cambiarPrecioBarnizPortada = false;
+
+
   // ===== PRUEBA COLOR PORTADA =====
   bool pruebaColorPortada = false;
   bool pruebaColorPortadaCarta = false;
@@ -254,6 +260,16 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
       TextEditingController(text: "0.00");
   final TextEditingController costoTotalSuajadoController =
       TextEditingController(text: "0.00");
+  final TextEditingController anchoSuajeController =
+    TextEditingController();
+  final TextEditingController largoSuajeController =
+      TextEditingController();
+  final TextEditingController pliegosSuajeController =
+    TextEditingController(text: "0");
+  final TextEditingController costoMillarSuajeController =
+      TextEditingController(text: "0.00");
+
+
 
   // ACABADOS
   final Map<String, TextEditingController> acabadosCostoCm2Controllers = {};
@@ -324,12 +340,13 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   bool barnizMaquina = false;
   bool cambiarPrecioPlaca = false;
   bool gastosEntrega = false;
-  bool duplicarCostoSuaje = false;
   bool offsetActivo = false;
   bool barnizUV = false;
   bool barnizUVPortada = false;
   bool laminadosActivo = false;
   bool laminadosPortada = false;
+  bool seCuentaConSuaje = false;
+
 
 
   Map<String, Map<String, bool>> acabados = {
@@ -341,6 +358,12 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   @override
   void initState() {
     super.initState();
+  pliegoAnchoController.addListener(calcularPliegosSuaje);
+  pliegoAltoController.addListener(calcularPliegosSuaje);
+  anchoSuajeController.addListener(calcularPliegosSuaje);
+  largoSuajeController.addListener(calcularPliegosSuaje);
+  totalPliegosController.addListener(calcularPliegosSuaje);
+  cantidadImpresionController.addListener(calcularPliegosSuaje);
     for (var key in acabados.keys) {
       acabadosCostoCm2Controllers[key] = TextEditingController(text: "0.00");
       acabadosCostoTotalControllers[key] = TextEditingController(text: "0.00");
@@ -427,10 +450,50 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
           (alto + medianil).toStringAsFixed(2);
     });
   }
-  
+  void calcularPliegosSuaje() {
+    if (!suaje) return;
 
+    if (offsetActivo) {
+      final anchoPliego =
+          double.tryParse(pliegoAnchoController.text) ?? 0;
 
+      final altoPliego =
+          double.tryParse(pliegoAltoController.text) ?? 0;
 
+      final anchoSuaje =
+          double.tryParse(anchoSuajeController.text) ?? 0;
+
+      final altoSuaje =
+          double.tryParse(largoSuajeController.text) ?? 0;
+
+      final totalPliegos =
+          int.tryParse(totalPliegosController.text) ?? 0;
+
+      if (anchoPliego > 0 &&
+          altoPliego > 0 &&
+          anchoSuaje > 0 &&
+          altoSuaje > 0) {
+
+        final areaPliego = anchoPliego * altoPliego;
+        final areaSuaje = anchoSuaje * altoSuaje;
+
+        final piezasPorPliego =
+            (areaPliego / areaSuaje).floor();
+
+        final resultado =
+            piezasPorPliego * totalPliegos;
+
+        pliegosSuajeController.text =
+            resultado.toString();
+      }
+    } else {
+      final piezasTotales =
+          int.tryParse(cantidadImpresionController.text) ?? 0;
+
+      pliegosSuajeController.text =
+          piezasTotales.toString();
+    }
+  }
 
   @override
   void dispose() {
@@ -506,6 +569,10 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
       cantidadMediaCartaController.dispose();
       precioMediaCartaController.dispose();
       totalMediaCartaController.dispose();
+      anchoSuajeController.dispose();
+      largoSuajeController.dispose();
+      pliegosSuajeController.dispose();
+      costoMillarSuajeController.dispose();
     super.dispose();
 
   }
@@ -564,9 +631,20 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               barnizUV: barnizUV,
               onBarnizUVChanged: (v) => setState(() => barnizUV = v ?? false),
               suaje: suaje,
-              onSuajeChanged: (v) => setState(() => suaje = v),
+              onSuajeChanged: (v) {
+                setState(() {
+                  suaje = v ?? false;
+                });
+                calcularPliegosSuaje();
+              },
+
               offset: offsetActivo,
-              onOffsetChanged: (v) => setState(() => offsetActivo = v),
+                onOffsetChanged: (v) {
+                  setState(() {
+                    offsetActivo = v ?? false;
+                  });
+                  calcularPliegosSuaje();
+                },
               onCalcular: calcularMedidasFinales,
               portada: portada,
               onPortadaChanged: (v) {
@@ -693,6 +771,7 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               cantidadMediaCartaController: cantidadMediaCartaController,
               precioMediaCartaController: precioMediaCartaController,
               totalMediaCartaController: totalMediaCartaController,
+
             ),
 
 
@@ -756,6 +835,12 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               cambiarPrecioPlaca: cambiarPrecioPlaca,
               onCambiarPrecioPlacaChanged: (v) =>
                   setState(() => cambiarPrecioPlaca = v ?? false),
+              cambiarPrecioTinta: cambiarPrecioTinta,
+              onCambiarPrecioTintaChanged: (v) =>
+                  setState(() => cambiarPrecioTinta = v ?? false),
+              cambiarPrecioBarniz: cambiarPrecioBarniz,
+              onCambiarPrecioBarnizChanged: (v) =>
+                  setState(() => cambiarPrecioBarniz = v ?? false),
             ),
             
             ],
@@ -857,6 +942,13 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               cambiarPrecioPlaca: cambiarPrecioPlacaPortada,
               onCambiarPrecioPlacaChanged: (v) =>
                   setState(() => cambiarPrecioPlacaPortada = v ?? false),
+                  cambiarPrecioTinta: cambiarPrecioTinta,
+              onCambiarPrecioTintaChanged: (v) =>
+                  setState(() => cambiarPrecioTinta = v ?? false),
+              cambiarPrecioBarniz: cambiarPrecioBarniz,
+              onCambiarPrecioBarnizChanged: (v) =>
+                  setState(() => cambiarPrecioBarniz = v ?? false),
+
             ),
           ],
 
@@ -883,25 +975,26 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               controllersCostoTotal: laminadosPortadaCostoTotalControllers,
             ),
 
-
-            if (suaje) ...[
-            PanelSuaje(
-              enabled: suaje,
-              tamanoSuajeController: tamanoSuajeController,
-              costoSuajeCmController: costoSuajeCmController,
-              costoTotalSuajeController: costoTotalSuajeController,
-              costoArregloSuajeController: costoArregloSuajeController,
-              costoTotalSuajadoController: costoTotalSuajadoController,
-              gastosEntrega: gastosEntrega,
-              onGastosEntregaChanged: (v) =>
-                  setState(() => gastosEntrega = v ?? false),
-              duplicarCosto: duplicarCostoSuaje,
-              onDuplicarCostoChanged: (v) =>
-                  setState(() => duplicarCostoSuaje = v ?? false),
+            if (suaje)
+              PanelSuaje(
+                enabled: true,
+                tamanoSuajeController: tamanoSuajeController,
+                anchoSuajeController: anchoSuajeController,
+                largoSuajeController: largoSuajeController,
+                costoSuajeCmController: costoSuajeCmController,
+                costoTotalSuajeController: costoTotalSuajeController,
+                costoArregloSuajeController: costoArregloSuajeController,
+                costoTotalSuajadoController: costoTotalSuajadoController,
+                pliegosSuajeController: pliegosSuajeController,
+                costoMillarSuajeController: costoMillarSuajeController,
+                seCuentaConSuaje: seCuentaConSuaje,
+                onSeCuentaConSuajeChanged: (value) {
+                  setState(() {
+                    seCuentaConSuaje = value ?? false;
+                  });
+                },
               ),
-            ],
 
-            
 
             const PanelAcabadosEspeciales(),
             const PanelCostoTotal(),
