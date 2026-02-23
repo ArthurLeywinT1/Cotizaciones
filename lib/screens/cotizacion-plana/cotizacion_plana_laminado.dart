@@ -109,7 +109,7 @@ class _PanelLaminadosState extends ConsumerState<PanelLaminados> {
     final int lados =
         (frente[titulo] == true ? 1 : 0) + (vuelta[titulo] == true ? 1 : 0);
 
-    final double areaUnitariaxLados = (ancho * alto) * lados;
+    final double areaUnitariaxLados = (ancho * .01 * alto * .01) * lados;
     final double costoCalculado = areaUnitariaxLados * costoCm2 * totalPliegos;
 
     final double costoMinimo = costosMinimos[titulo] ?? 0.0;

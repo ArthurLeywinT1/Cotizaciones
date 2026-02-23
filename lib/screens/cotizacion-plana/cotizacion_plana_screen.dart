@@ -868,9 +868,9 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
 
             if (acabadosEspeciales) ...[
               PanelAcabadosEspeciales(
-                piezasPorPliegoController: piezasPorPliegoController,
+                cantidadImpresionController: cantidadImpresionController,
               ),
-          ],
+            ],
 
             const PanelCostoTotal(),
 

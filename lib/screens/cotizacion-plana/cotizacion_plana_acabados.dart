@@ -104,9 +104,8 @@ class _PanelAcabadosState extends ConsumerState<PanelAcabados> {
     final int lados =
         (frente[titulo] == true ? 1 : 0) + (vuelta[titulo] == true ? 1 : 0);
 
-    final double areaUnitariaxLados = (ancho * alto) * lados;
-    final double costoCalculado =
-        areaUnitariaxLados * costoCm2 * totalPliegos * .01;
+    final double areaUnitariaxLados = (ancho * .01 * alto * .01) * lados;
+    final double costoCalculado = areaUnitariaxLados * costoCm2 * totalPliegos;
     final double costoMinimo = costosMinimos[titulo] ?? 0.0;
     double costoFinal = 0.0;
 

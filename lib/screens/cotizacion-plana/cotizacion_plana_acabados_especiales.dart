@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 class PanelAcabadosEspeciales extends StatefulWidget {
-  final TextEditingController piezasPorPliegoController;
+  final TextEditingController cantidadImpresionController;
 
   const PanelAcabadosEspeciales({
     super.key,
-    required this.piezasPorPliegoController,
+    required this.cantidadImpresionController,
   });
 
   @override
@@ -64,7 +64,7 @@ class _PanelAcabadosEspecialesState extends State<PanelAcabadosEspeciales> {
                 const SizedBox(height: 8),
 
                 TextField(
-                  controller: widget.piezasPorPliegoController,
+                  controller: widget.cantidadImpresionController,
                   readOnly: true,
                   decoration: const InputDecoration(
                     labelText: "Piezas",
