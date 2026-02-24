@@ -11,6 +11,7 @@ class PanelLaminados extends ConsumerStatefulWidget {
   final TextEditingController totalPliegosController;
   final Map<String, TextEditingController> controllersCostoCm2;
   final Map<String, TextEditingController> controllersCostoTotal;
+  final TextEditingController cantidadImpresionController;
   final bool isOffset;
 
   final void Function(String nombre, String lado, bool valor) onLaminadoChanged;
@@ -25,6 +26,7 @@ class PanelLaminados extends ConsumerStatefulWidget {
     required this.controllersCostoCm2,
     required this.controllersCostoTotal,
     required this.onLaminadoChanged,
+    required this.cantidadImpresionController,
     required this.isOffset,
   });
 
@@ -52,6 +54,7 @@ class _PanelLaminadosState extends ConsumerState<PanelLaminados> {
     widget.pliegoAnchoController.addListener(_recalcularTodos);
     widget.pliegoAltoController.addListener(_recalcularTodos);
     widget.totalPliegosController.addListener(_recalcularTodos);
+    widget.cantidadImpresionController.addListener(_recalcularTodos);
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _cargarPreciosDeBD());
   }
@@ -105,15 +108,23 @@ class _PanelLaminadosState extends ConsumerState<PanelLaminados> {
         double.tryParse(widget.totalPliegosController.text) ?? 0.0;
     final double costoCm2 =
         double.tryParse(widget.controllersCostoCm2[titulo]?.text ?? "0") ?? 0.0;
+    final double cantidadImpresion =
+        double.tryParse(widget.cantidadImpresionController.text) ?? 0.0;
 
     final int lados =
         (frente[titulo] == true ? 1 : 0) + (vuelta[titulo] == true ? 1 : 0);
 
-    final double areaUnitariaxLados = (ancho * .01 * alto * .01) * lados;
-    final double costoCalculado = areaUnitariaxLados * costoCm2 * totalPliegos;
+    double costoCalculado = 0.0;
+
+    if (widget.isOffset) {
+      costoCalculado =
+          cantidadImpresion * (ancho * .01) * (alto * .01) * costoCm2 * lados;
+    } else {
+      final double areaUnitariaxLados = (ancho * .01 * alto * .01) * lados;
+      costoCalculado = areaUnitariaxLados * costoCm2 * totalPliegos;
+    }
 
     final double costoMinimo = costosMinimos[titulo] ?? 0.0;
-
     double costoFinal = 0.0;
 
     if (lados > 0) {

@@ -16,6 +16,48 @@ class PanelAcabadosEspeciales extends StatefulWidget {
 class _PanelAcabadosEspecialesState extends State<PanelAcabadosEspeciales> {
   // Estado de los 5 acabados especiales
   final List<bool> activo = [false, false, false, false, false];
+  late List<TextEditingController> costoMillarControllers;
+  late List<TextEditingController> costoTotalControllers;
+
+  @override
+  void initState() {
+    super.initState();
+    costoMillarControllers = List.generate(5, (_) => TextEditingController());
+    costoTotalControllers = List.generate(
+      5,
+      (_) => TextEditingController(text: "0.00"),
+    );
+    widget.cantidadImpresionController.addListener(_onCantidadChanged);
+  }
+
+  void _onCantidadChanged() {
+    for (int i = 0; i < 5; i++) {
+      if (activo[i]) {
+        _calcularCosto(i);
+      }
+    }
+  }
+
+  void _calcularCosto(int index) {
+    final double piezas =
+        double.tryParse(widget.cantidadImpresionController.text) ?? 0.0;
+    final double costoMillar =
+        double.tryParse(costoMillarControllers[index].text) ?? 0.0;
+    final double total = (piezas / 1000) * costoMillar;
+    costoTotalControllers[index].text = total.toStringAsFixed(2);
+  }
+
+  @override
+  void dispose() {
+    widget.cantidadImpresionController.removeListener(_onCantidadChanged);
+    for (var c in costoMillarControllers) {
+      c.dispose();
+    }
+    for (var c in costoTotalControllers) {
+      c.dispose();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +81,15 @@ class _PanelAcabadosEspecialesState extends State<PanelAcabadosEspeciales> {
                   Checkbox(
                     value: activo[i],
                     onChanged: (value) {
-                      setState(() => activo[i] = value!);
+                      setState(() {
+                        activo[i] = value!;
+                        if (activo[i]) {
+                          _calcularCosto(i);
+                        } else {
+                          costoMillarControllers[i].clear();
+                          costoTotalControllers[i].text = "0.00";
+                        }
+                      });
                     },
                   ),
                   Text("Acabado Especial ${i + 1}:"),
@@ -63,28 +113,56 @@ class _PanelAcabadosEspecialesState extends State<PanelAcabadosEspeciales> {
 
                 const SizedBox(height: 8),
 
-                TextField(
-                  controller: widget.cantidadImpresionController,
-                  readOnly: true,
-                  decoration: const InputDecoration(
-                    labelText: "Piezas",
-                    border: OutlineInputBorder(),
-                    isDense: true,
-                    contentPadding: EdgeInsets.all(10),
-                  ),
+                Row(
+                  children: [
+                    // CAMPO PIEZAS
+                    Expanded(
+                      child: TextField(
+                        controller: widget.cantidadImpresionController,
+                        readOnly: true,
+                        decoration: const InputDecoration(
+                          labelText: "Piezas",
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                          contentPadding: EdgeInsets.all(10),
+                          filled: true,
+                          fillColor: Color(0xFFEEEEEE),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    Expanded(
+                      child: TextField(
+                        controller: costoMillarControllers[i],
+                        keyboardType: TextInputType.number,
+                        onChanged: (_) => _calcularCosto(i),
+                        decoration: const InputDecoration(
+                          labelText: "Costo por millar",
+                          border: OutlineInputBorder(),
+                          prefixText: "\$ ",
+                          isDense: true,
+                          contentPadding: EdgeInsets.all(10),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
 
                 const SizedBox(height: 8),
 
                 // CAMPO COSTO
-                const SizedBox(height: 4),
                 TextField(
+                  controller: costoTotalControllers[i],
+                  readOnly: true,
                   decoration: const InputDecoration(
                     labelText: "Costo Total",
                     border: OutlineInputBorder(),
                     prefixText: "\$ ",
                     isDense: true,
                     contentPadding: EdgeInsets.all(10),
+                    filled: true,
+                    fillColor: Color(0xFFEEEEEE),
                   ),
                 ),
               ],

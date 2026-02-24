@@ -473,6 +473,18 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
     cantidadMediaCartaController.dispose();
     precioMediaCartaController.dispose();
     totalMediaCartaController.dispose();
+    for (var c in laminadosCostoCm2Controllers.values) {
+      c.dispose();
+    }
+    for (var c in laminadosCostoTotalControllers.values) {
+      c.dispose();
+    }
+    for (var c in laminadosPortadaCostoCm2Controllers.values) {
+      c.dispose();
+    }
+    for (var c in laminadosPortadaCostoTotalControllers.values) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -748,6 +760,21 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
                 totalPliegosController: totalPliegosController,
                 controllersCostoCm2: laminadosCostoCm2Controllers,
                 controllersCostoTotal: laminadosCostoTotalControllers,
+                cantidadImpresionController: cantidadImpresionController,
+                isOffset: offsetActivo,
+              ),
+
+            if (laminadosActivo && offsetActivo)
+              PanelLaminados(
+                readOnly: laminadosActivo,
+                laminados: laminados,
+                onLaminadoChanged: actualizarLaminado,
+                pliegoAnchoController: pliegoAnchoController,
+                pliegoAltoController: pliegoAltoController,
+                totalPliegosController: totalPliegosController,
+                controllersCostoCm2: laminadosCostoCm2Controllers,
+                controllersCostoTotal: laminadosCostoTotalControllers,
+                cantidadImpresionController: cantidadImpresionController,
                 isOffset: offsetActivo,
               ),
 
@@ -846,6 +873,7 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
                 totalPliegosController: totalPliegosPortadaController,
                 controllersCostoCm2: laminadosPortadaCostoCm2Controllers,
                 controllersCostoTotal: laminadosPortadaCostoTotalControllers,
+                cantidadImpresionController: piezasPortadaController,
                 isOffset: offsetActivo,
               ),
 
