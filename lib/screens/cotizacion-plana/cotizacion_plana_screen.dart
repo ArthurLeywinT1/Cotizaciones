@@ -9,6 +9,9 @@ import 'cotizacion_plana_suaje.dart';
 import 'cotizacion_plana_acabados_especiales.dart';
 import 'cotizacion_plana_costo_total.dart';
 import 'cotizacion_plana_laminado.dart';
+import 'cotizacion_plana_serigrafia.dart';
+import 'embalaje.dart';
+import 'cotizacion_plana_grabado.dart';
 
 
 class CotizacionPlanaScreen extends StatefulWidget {
@@ -41,7 +44,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
 
   // ===== PORTADA =====
   bool portada = false;
-
   bool cambiarPrecioTinta = false;
   bool cambiarPrecioTintaPortada = false;
   bool cambiarPrecioBarniz = false;
@@ -127,7 +129,7 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
       TextEditingController();
   final TextEditingController totalPliegosController = TextEditingController();
   final TextEditingController millaresController = TextEditingController();
-
+  final TextEditingController millaresPortadaController = TextEditingController();
   // PLIEGOS PORTADA
   final TextEditingController pliegoAnchoPortadaController =
       TextEditingController();
@@ -144,8 +146,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   final TextEditingController pliegosSobrantesPortadaController =
       TextEditingController();
   final TextEditingController totalPliegosPortadaController =
-      TextEditingController();
-  final TextEditingController millaresPortadaController =
       TextEditingController();
 
 
@@ -214,7 +214,15 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   );
   final TextEditingController costoTotalPlacasController =
       TextEditingController(text: "0.00");
-  
+  final TextEditingController cantidadPlacas790Controller =
+      TextEditingController(text: "0");
+
+  final TextEditingController costoPlaca790Controller =
+      TextEditingController(text: "0.00");
+
+  final TextEditingController costoTotalPlacas790Controller =
+      TextEditingController(text: "0.00");
+    
 
   // MAQUINA PORTADA
   final TextEditingController nombreMaquinaPortadaController =
@@ -243,6 +251,15 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
       TextEditingController();
   final TextEditingController costoTotalPlacasPortadaController =
       TextEditingController();
+
+  final TextEditingController cantidadPlacas790PortadaController =
+      TextEditingController(text: "0");
+
+  final TextEditingController costoPlaca790PortadaController =
+      TextEditingController(text: "0.00");
+
+  final TextEditingController costoTotalPlacas790PortadaController =
+      TextEditingController(text: "0.00");
 
   bool barnizMaquinaPortada = false;
   bool cambiarPrecioPlacaPortada = false;
@@ -346,6 +363,10 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   bool laminadosActivo = false;
   bool laminadosPortada = false;
   bool seCuentaConSuaje = false;
+  bool serigrafia = false;
+  bool embalaje = false;
+  bool grabado = false;
+
 
 
 
@@ -573,6 +594,12 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
       largoSuajeController.dispose();
       pliegosSuajeController.dispose();
       costoMillarSuajeController.dispose();
+      cantidadPlacas790Controller.dispose();
+      costoPlaca790Controller.dispose();
+      costoTotalPlacas790Controller.dispose();
+      cantidadPlacas790PortadaController.dispose();
+      costoPlaca790PortadaController.dispose();
+      costoTotalPlacas790PortadaController.dispose();
     super.dispose();
 
   }
@@ -636,6 +663,12 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
                   suaje = v ?? false;
                 });
                 calcularPliegosSuaje();
+              },
+              serigrafia: serigrafia,
+              onSerigrafiaChanged: (v) {
+                setState(() {
+                  serigrafia = v ?? false;
+                });
               },
 
               offset: offsetActivo,
@@ -771,6 +804,19 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               cantidadMediaCartaController: cantidadMediaCartaController,
               precioMediaCartaController: precioMediaCartaController,
               totalMediaCartaController: totalMediaCartaController,
+              embalaje: embalaje,
+              onEmbalajeChanged: (v) {
+                setState(() {
+                  embalaje = v;
+                });
+              },
+              grabado: grabado,
+              onGrabadoChanged: (v) {
+                setState(() {
+                  grabado = v ?? false;
+                });
+              },
+              
 
             ),
 
@@ -820,7 +866,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               costoPlacaController: costoPlacaController,
               tintasFteController: tintasFteController,
               tintasRevController: tintasRevController,
-              cantidadTotalTintasController: cantidadTotalTintasController,
               costoUnitFteController: costoUnitFteController,
               costoTotalFteController: costoTotalFteController,
               costoUnitRevController: costoUnitRevController,
@@ -829,7 +874,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               cantidadPlacasController: cantidadPlacasController,
               costoBarnizController: costoBarnizController,
               costoTotalPlacasController: costoTotalPlacasController,
-              barnizMaquina: barnizMaquina,
               onBarnizMaquinaChanged: (v) =>
                   setState(() => barnizMaquina = v ?? false),
               cambiarPrecioPlaca: cambiarPrecioPlaca,
@@ -841,6 +885,10 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               cambiarPrecioBarniz: cambiarPrecioBarniz,
               onCambiarPrecioBarnizChanged: (v) =>
                   setState(() => cambiarPrecioBarniz = v ?? false),
+              cantidadPlacas790Controller: cantidadPlacas790Controller,
+              costoPlaca790Controller: costoPlaca790Controller,
+              costoTotalPlacas790Controller: costoTotalPlacas790Controller,
+              millaresController: millaresController,
             ),
             
             ],
@@ -924,8 +972,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               costoPlacaController: costoPlacaPortadaController,
               tintasFteController: tintasFtePortadaController,
               tintasRevController: tintasRevPortadaController,
-              cantidadTotalTintasController:
-                  cantidadTotalTintasPortadaController,
               costoUnitFteController: costoUnitFtePortadaController,
               costoTotalFteController: costoTotalFtePortadaController,
               costoUnitRevController: costoUnitRevPortadaController,
@@ -936,7 +982,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               costoBarnizController: costoBarnizPortadaController,
               costoTotalPlacasController:
                   costoTotalPlacasPortadaController,
-              barnizMaquina: barnizMaquinaPortada,
               onBarnizMaquinaChanged: (v) =>
                   setState(() => barnizMaquinaPortada = v ?? false),
               cambiarPrecioPlaca: cambiarPrecioPlacaPortada,
@@ -948,7 +993,10 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               cambiarPrecioBarniz: cambiarPrecioBarniz,
               onCambiarPrecioBarnizChanged: (v) =>
                   setState(() => cambiarPrecioBarniz = v ?? false),
-
+              cantidadPlacas790Controller: cantidadPlacas790PortadaController,
+              costoPlaca790Controller: costoPlaca790PortadaController,
+              costoTotalPlacas790Controller: costoTotalPlacas790PortadaController,
+              millaresController: millaresPortadaController,
             ),
           ],
 
@@ -994,6 +1042,21 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
                   });
                 },
               ),
+              if (grabado)
+              PanelGrabado(
+                piezasTotalesController: cantidadImpresionController,
+              ),
+              
+              if (serigrafia)
+                CotizacionPlanaSerigrafia(
+                  piezasTotalesController: cantidadImpresionController,
+                ),
+
+              if (embalaje)
+              PanelEmbalaje(
+
+              ),
+
 
 
             const PanelAcabadosEspeciales(),

@@ -71,6 +71,13 @@ class PanelClientes extends ConsumerStatefulWidget {
   final TextEditingController precioPruebaPortadaMediaCartaController;
   final TextEditingController totalPruebaPortadaMediaCartaController;
   final ValueChanged<bool?>? onPruebaColorPortadaCartaChanged;
+  final bool serigrafia;
+  final ValueChanged<bool> onSerigrafiaChanged;
+  final bool embalaje;
+  final ValueChanged<bool> onEmbalajeChanged;
+  final bool grabado;
+ final ValueChanged<bool> onGrabadoChanged;
+
 
   const PanelClientes({
     super.key,
@@ -137,7 +144,12 @@ class PanelClientes extends ConsumerStatefulWidget {
     required this.pruebaColorPortadaCarta,
     required this.pruebaColorPortadaTabloide,
     required this.pruebaColorPortadaMediaCarta,
-
+    required this.serigrafia,
+    required this.onSerigrafiaChanged,
+    required this.embalaje,
+    required this.onEmbalajeChanged,
+    required this.grabado,
+    required this.onGrabadoChanged,
 
 
   });
@@ -147,12 +159,6 @@ class PanelClientes extends ConsumerStatefulWidget {
 }
 
 class _PanelClientesState extends ConsumerState<PanelClientes> {
-  bool prePrensa = false;
-  bool serigrafia = false;
-  bool grabado = false;
-  bool acabado = false;
-  bool corte = false;
-  
 
 
   final TextEditingController paginasInternasPorPiezaController =
@@ -277,12 +283,6 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
 
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text("Pre Prensa"),
-              value: prePrensa,
-              onChanged: (v) => setState(() => prePrensa = v ?? false),
-            ),
-            CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
               title: const Text("Offset"),
               value: widget.offset,
               onChanged: (v) => widget.onOffsetChanged(v ?? false),
@@ -309,26 +309,20 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
               title: const Text("Serigrafía"),
-              value: serigrafia,
-              onChanged: (v) => setState(() => serigrafia = v ?? false),
+              value: widget.serigrafia,
+              onChanged: (v) => widget.onSerigrafiaChanged(v ?? false),
             ),
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
               title: const Text("Grabado"),
-              value: grabado,
-              onChanged: (v) => setState(() => grabado = v ?? false),
+              value: widget.grabado,
+              onChanged: (v) => widget.onGrabadoChanged(v ?? false),
             ),
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text("Acabado"),
-              value: acabado,
-              onChanged: (v) => setState(() => acabado = v ?? false),
-            ),
-            CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text("Corte"),
-              value: corte,
-              onChanged: (v) => setState(() => corte = v ?? false),
+              title: const Text("Embalaje"),
+              value: widget.embalaje,
+              onChanged: (v) => widget.onEmbalajeChanged(v ?? false),
             ),
 
             /// MEDIDAS OFFSET
