@@ -18,6 +18,7 @@ class CotizacionPlanaScreen extends StatefulWidget {
 }
 
 class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
+  final int a = 0;
   // =============================
   // CONTROLADORES – CLIENTES
   // =============================
