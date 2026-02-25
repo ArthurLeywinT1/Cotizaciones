@@ -39,8 +39,25 @@ class PanelPliegos extends StatefulWidget {
 }
 
 class _PanelPliegosState extends State<PanelPliegos> {
-  /// Pliegos extra seleccionados
+  /// 👉 Pliegos extra seleccionados
   int pliegosExtraSeleccionados = 0;
+
+  @override
+void initState() {
+  super.initState();
+
+  widget.cantidadImpresionesController.addListener(_calcularPliegos);
+  widget.piezasPorPliegoController.addListener(_calcularPliegos);
+}
+
+@override
+void dispose() {
+  widget.cantidadImpresionesController.removeListener(_calcularPliegos);
+  widget.piezasPorPliegoController.removeListener(_calcularPliegos);
+  super.dispose();
+}
+
+
 
   /// ===============================
   /// CÁLCULO DE PLIEGOS
@@ -70,7 +87,8 @@ class _PanelPliegosState extends State<PanelPliegos> {
     widget.cantidadPliegosController.text = pliegosEnteros.toString();
     widget.pliegosSobrantesController.text = sobrante.toString();
     widget.totalPliegosController.text = totalPliegos.toString();
-    widget.millaresController.text = (totalPliegos / 1000).toStringAsFixed(2);
+    widget.millaresController.text =
+        (totalPliegos / 1000).toStringAsFixed(2);
   }
 
   @override
@@ -83,10 +101,8 @@ class _PanelPliegosState extends State<PanelPliegos> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Datos del Pliego",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+            const Text("Datos del Pliego",
+                style: TextStyle(fontWeight: FontWeight.bold)),
 
             const SizedBox(height: 12),
 
@@ -97,10 +113,9 @@ class _PanelPliegosState extends State<PanelPliegos> {
                   child: TextField(
                     controller: widget.pliegoAnchoController,
                     decoration: const InputDecoration(
-                      labelText: "Ancho pliego",
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                    ),
+                        labelText: "Ancho pliego",
+                        border: OutlineInputBorder(),
+                        isDense: true),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -108,10 +123,9 @@ class _PanelPliegosState extends State<PanelPliegos> {
                   child: TextField(
                     controller: widget.pliegoAltoController,
                     decoration: const InputDecoration(
-                      labelText: "Alto pliego",
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                    ),
+                        labelText: "Alto pliego",
+                        border: OutlineInputBorder(),
+                        isDense: true),
                   ),
                 ),
                 IconButton(
@@ -123,27 +137,22 @@ class _PanelPliegosState extends State<PanelPliegos> {
                       MaterialPageRoute(
                         builder: (_) => SegmentacionPliegosScreen(
                           anchoTrabajo:
-                              double.tryParse(
-                                widget.anchoFinalController.text,
-                              ) ??
-                              0,
+                              double.tryParse(widget.anchoFinalController.text) ?? 0,
                           altoTrabajo:
-                              double.tryParse(
-                                widget.altoFinalController.text,
-                              ) ??
-                              0,
+                              double.tryParse(widget.altoFinalController.text) ?? 0,
                         ),
                       ),
                     );
 
                     if (result != null) {
-                      widget.pliegoAnchoController.text = result["ancho"]
-                          .toString();
-                      widget.pliegoAltoController.text = result["alto"]
-                          .toString();
+                      widget.pliegoAnchoController.text =
+                          result["ancho"].toString();
+                      widget.pliegoAltoController.text =
+                          result["alto"].toString();
                       widget.piezasPorPliegoController.text =
                           result["piezasPorPliego"].toString();
-                      widget.posicionPiezasController.text = result["posicion"];
+                      widget.posicionPiezasController.text =
+                          result["posicion"];
                       widget.tamanoPorPliegoController.text =
                           "${widget.anchoFinalController.text} x ${widget.altoFinalController.text}";
 
@@ -161,27 +170,22 @@ class _PanelPliegosState extends State<PanelPliegos> {
                 Expanded(
                   child: TextField(
                     controller: widget.posicionPiezasController,
-                    readOnly: true,
+                    enabled: false,
                     decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                      filled: true,
-                      fillColor: Color(0xFFEEEEEE),
-                    ),
+                        labelText: "Posición",
+                        border: OutlineInputBorder(),
+                        isDense: true),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: TextField(
                     controller: widget.piezasPorPliegoController,
-                    readOnly: true,
+                    enabled: false,
                     decoration: const InputDecoration(
-                      labelText: "Piezas por pliego",
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                      filled: true,
-                      fillColor: Color(0xFFEEEEEE),
-                    ),
+                        labelText: "Piezas por pliego",
+                        border: OutlineInputBorder(),
+                        isDense: true),
                   ),
                 ),
               ],
@@ -191,23 +195,18 @@ class _PanelPliegosState extends State<PanelPliegos> {
 
             TextField(
               controller: widget.tamanoPorPliegoController,
-              readOnly: true,
+              enabled: false,
               decoration: const InputDecoration(
-                labelText: "Tamaño del trabajo",
-                border: OutlineInputBorder(),
-                isDense: true,
-                filled: true,
-                fillColor: Color(0xFFEEEEEE),
-              ),
+                  labelText: "Tamaño del trabajo",
+                  border: OutlineInputBorder(),
+                  isDense: true),
             ),
 
             const Divider(height: 30),
 
-            /// PLIEGOS EXTRA
-            const Text(
-              "Pliegos Extra por Producción",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+            ///  PLIEGOS EXTRA
+            const Text("Pliegos Extra por Producción",
+                style: TextStyle(fontWeight: FontWeight.bold)),
 
             const SizedBox(height: 8),
 
@@ -243,28 +242,22 @@ class _PanelPliegosState extends State<PanelPliegos> {
                 Expanded(
                   child: TextField(
                     controller: widget.cantidadPliegosController,
-                    readOnly: true,
+                    enabled: false,
                     decoration: const InputDecoration(
-                      labelText: "Cantidad de Pliegos",
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                      filled: true,
-                      fillColor: Color(0xFFEEEEEE),
-                    ),
+                        labelText: "Cantidad de Pliegos",
+                        border: OutlineInputBorder(),
+                        isDense: true),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: TextField(
                     controller: widget.pliegosSobrantesController,
-                    readOnly: true,
+                    enabled: false,
                     decoration: const InputDecoration(
-                      labelText: "Pliegos Sobrantes",
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                      filled: true,
-                      fillColor: Color(0xFFEEEEEE),
-                    ),
+                        labelText: "Pliegos Sobrantes",
+                        border: OutlineInputBorder(),
+                        isDense: true),
                   ),
                 ),
               ],
@@ -274,28 +267,22 @@ class _PanelPliegosState extends State<PanelPliegos> {
 
             TextField(
               controller: widget.totalPliegosController,
-              readOnly: true,
+              enabled: false,
               decoration: const InputDecoration(
-                labelText: "Total de Pliegos a Utilizar",
-                border: OutlineInputBorder(),
-                isDense: true,
-                filled: true,
-                fillColor: Color(0xFFEEEEEE),
-              ),
+                  labelText: "Total de Pliegos a Utilizar",
+                  border: OutlineInputBorder(),
+                  isDense: true),
             ),
 
             const SizedBox(height: 10),
 
             TextField(
               controller: widget.millaresController,
-              readOnly: true,
+              enabled: false,
               decoration: const InputDecoration(
-                labelText: "Millares a Imprimir",
-                border: OutlineInputBorder(),
-                isDense: true,
-                filled: true,
-                fillColor: Color(0xFFEEEEEE),
-              ),
+                  labelText: "Millares a Imprimir",
+                  border: OutlineInputBorder(),
+                  isDense: true),
             ),
           ],
         ),
