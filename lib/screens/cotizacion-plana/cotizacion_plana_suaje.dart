@@ -82,8 +82,17 @@ class _PanelSuajeState extends ConsumerState<PanelSuaje> {
   void _calcularTotales() {
     if (!widget.enabled) return;
 
-    final double tamano =
-        double.tryParse(widget.tamanoSuajeController.text) ?? 0.0;
+    // 🔹 Converti 20 → 2.0
+    final double ancho =
+        (double.tryParse(widget.anchoSuajeController.text) ?? 0.0) / 10;
+
+    final double alto =
+        (double.tryParse(widget.largoSuajeController.text) ?? 0.0) / 10;
+
+    // 🔹 Guardamos el tamaño (área) en tamanoSuajeController
+    final double tamano = ancho * alto;
+    widget.tamanoSuajeController.text = tamano.toStringAsFixed(2);
+
     final double costoCm =
         double.tryParse(widget.costoSuajeCmController.text) ?? 0.0;
 

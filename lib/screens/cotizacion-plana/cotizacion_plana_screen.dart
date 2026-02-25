@@ -9,7 +9,11 @@ import 'cotizacion_plana_suaje.dart';
 import 'cotizacion_plana_acabados_especiales.dart';
 import 'cotizacion_plana_costo_total.dart';
 import 'cotizacion_plana_laminado.dart';
+import 'cotizacion_plana_serigrafia.dart';
+import 'embalaje.dart';
+import 'cotizacion_plana_grabado.dart';
 
+// Pantalla principal de cotización plana
 class CotizacionPlanaScreen extends StatefulWidget {
   const CotizacionPlanaScreen({super.key});
 

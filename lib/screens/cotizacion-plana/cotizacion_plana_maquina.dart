@@ -56,6 +56,11 @@ class PanelMaquina extends ConsumerStatefulWidget {
 
 class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
   @override
+  String? _opcionFrente;
+  String? _opcionVuelta;
+  
+
+  @override
   void initState() {
     super.initState();
     widget.tintasFteController.addListener(_calcularCostosTintas);
@@ -83,24 +88,102 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
       costoFijoTinta = 0.0;
     }
 
-    final double cantFte =
-        double.tryParse(widget.tintasFteController.text) ?? 0.0;
-    final double cantRev =
-        double.tryParse(widget.tintasRevController.text) ?? 0.0;
+  final int cantFteInt =
+      int.tryParse(widget.tintasFteController.text) ?? 0;
 
-    widget.costoUnitFteController.text = costoFijoTinta.toStringAsFixed(2);
-    final double totalFte = cantFte * costoFijoTinta;
-    widget.costoTotalFteController.text = totalFte.toStringAsFixed(2);
+  final int cantRevInt =
+      int.tryParse(widget.tintasRevController.text) ?? 0;
 
-    widget.costoUnitRevController.text = costoFijoTinta.toStringAsFixed(2);
-    final double totalRev = cantRev * costoFijoTinta;
-    widget.costoTotalRevController.text = totalRev.toStringAsFixed(2);
+  final double millaresDouble =
+      double.tryParse(widget.millaresController.text) ?? 0;
 
-    widget.cantidadTotalTintasController.text = (cantFte + cantRev)
-        .toStringAsFixed(0);
-    widget.costoGranTotalTintasController.text = (totalFte + totalRev)
-        .toStringAsFixed(2);
+  int millares = millaresDouble.floor();
+
+  if (millares <= 0 && millaresDouble > 0) {
+    millares = 1;
   }
+
+  double precioFte = 0.0;
+  double precioRev = 0.0;
+
+// ==============================
+// FRENTE
+// ==============================
+if (cantFteInt > 0 &&
+    cantFteInt <= 4 &&
+    _opcionFrente != null &&
+    millares > 0) {
+
+  precioFte = _calcularPrecioPorOpcion(_opcionFrente!, millares);
+
+} else {
+  precioFte = costoFijoTinta;
+}
+
+widget.costoUnitFteController.text =
+    precioFte.toStringAsFixed(2);
+
+// ==============================
+// REVERSO
+// ==============================
+if (cantRevInt > 0 &&
+    cantRevInt <= 4 &&
+    _opcionVuelta != null &&
+    millares > 0) {
+
+  precioRev = _calcularPrecioPorOpcion(_opcionVuelta!, millares);
+
+} else {
+  precioRev = costoFijoTinta;
+}
+
+widget.costoUnitRevController.text =
+    precioRev.toStringAsFixed(2);
+  
+  widget.costoTotalFteController.text = "0.00";
+  widget.costoTotalRevController.text = "0.00";
+  widget.costoGranTotalTintasController.text = "0.00";
+
+  setState(() {
+    widget.opcionesFrente.clear();
+    widget.opcionesFrente.addAll(_generarOpciones(cantFteInt));
+
+    widget.opcionesVuelta.clear();
+    widget.opcionesVuelta.addAll(_generarOpciones(cantRevInt));
+
+    if (!widget.opcionesFrente.contains(_opcionFrente)) {
+      _opcionFrente = null;
+    }
+
+    if (!widget.opcionesVuelta.contains(_opcionVuelta)) {
+      _opcionVuelta = null;
+    }
+  });
+// ================= BARNIZ =================
+// ================= BARNIZ =================
+double precioBarnizFte = 0;
+double precioBarnizRev = 0;
+
+if (widget.barnizFte && millares > 0 && _opcionFrente != null) {
+  bool es20Pts = _opcionFrente!.toUpperCase().contains("20");
+  precioBarnizFte = _calcularPrecioBarniz(es20Pts, millares);
+}
+
+if (widget.barnizRev && millares > 0 && _opcionVuelta != null) {
+  bool es20Pts = _opcionVuelta!.toUpperCase().contains("20");
+  precioBarnizRev = _calcularPrecioBarniz(es20Pts, millares);
+}
+
+double totalBarniz = precioBarnizFte + precioBarnizRev;
+
+// 🔥 ESTE ES EL PUNTO 
+if (!widget.barnizFte && !widget.barnizRev) {
+  totalBarniz = 0;
+}
+
+widget.costoBarnizController.text =
+    totalBarniz.toStringAsFixed(2);
+}
 
   void _cargarCostoPlacaDefault() {
     if (widget.costoPlacaController.text.isNotEmpty &&

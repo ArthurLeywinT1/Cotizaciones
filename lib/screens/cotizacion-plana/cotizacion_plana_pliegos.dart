@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../segmentacion_pliegos_screen.dart';
-
+// Panel específico para el cálculo de pliegos
 class PanelPliegos extends StatefulWidget {
   final TextEditingController anchoFinalController;
   final TextEditingController altoFinalController;
