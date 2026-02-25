@@ -190,7 +190,7 @@ class _SegmentacionPliegosScreenState
                     true);
 
                 return InkWell(
-                  onTap: () async {
+                  onTap: () {
                     if (!widget.desdeCotizacion) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -209,38 +209,28 @@ class _SegmentacionPliegosScreenState
                       return;
                     }
 
-                    final opcion = await showDialog<String>(
-                      context: context,
-                      builder: (_) => AlertDialog(
-                        title: const Text("Seleccionar orientación"),
-                        content: const Text("¿Cómo deseas acomodar las piezas?"),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, "Normal"),
-                            child: Text("Normal ($piezasNormal piezas)"),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, "Invertido"),
-                            child: Text("Invertido ($piezasInvertido piezas)"),
-                          ),
-                        ],
-                      ),
-                    );
+                    // ============================
+                    // NUEVO: calcular mejor opción
+                    // ============================
+                    final int piezasPorPliego =
+                    piezasNormal >= piezasInvertido ? piezasNormal : piezasInvertido;
 
-                    if (opcion == null) return;
+                    final String orientacion =
+                    piezasNormal >= piezasInvertido ? "Normal" : "Invertido";
 
-                    final piezasSeleccionadas =
-                        opcion == "Normal" ? piezasNormal : piezasInvertido;
-
+                    // ============================
+                    // REGRESAR DATOS COMPLETOS
+                    // ============================
                     Navigator.pop(context, {
                       "nombre": p["titulo"],
                       "ancho": p["ancho"],
                       "alto": p["alto"],
-                      "piezasPorPliego": piezasSeleccionadas,
-                      "posicion": opcion,
+                      "piezasNormal": piezasNormal,
+                      "piezasInvertido": piezasInvertido,
+                      "piezasPorPliego": piezasPorPliego,
+                      "posicion": orientacion,
                     });
                   },
-
                   child: Card(
                     elevation: 2,
                     child: Padding(
