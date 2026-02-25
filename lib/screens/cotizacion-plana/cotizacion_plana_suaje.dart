@@ -262,7 +262,7 @@ class _PanelSuajeState extends ConsumerState<PanelSuaje> {
                     const Text("Costo por Millar:"),
                     const SizedBox(height: 4),
                     TextField(
-                      controller: widget.costoMillarSuajeController,
+                      controller: widget.costoMillarSuajeController,   // costo por millar esta en extras 
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),

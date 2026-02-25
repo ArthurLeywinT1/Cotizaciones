@@ -707,7 +707,7 @@ double _calcularPrecioBarniz(bool es20Pts, int millares) {
             // COSTO TOTAL TINTAS
             const Text(
               "Costo Total Tintas:",
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(fontWeight: FontWeight.bold), 
             ),
             const SizedBox(height: 4),
             _MonedaInput(readOnly: true),
@@ -737,7 +737,7 @@ double _calcularPrecioBarniz(bool es20Pts, int millares) {
             const Text("Costo por Placa 615 X 724:"),
             const SizedBox(height: 4),
             _MonedaInput(
-              controller: widget.costoPlacaController,
+              controller: widget.costoPlacaController, // traer precio de extras y revisar por que cuando seleccionas maquina pone un precio de 5 
               readOnly: !widget.cambiarPrecioPlaca,
             ),
 
@@ -778,7 +778,7 @@ double _calcularPrecioBarniz(bool es20Pts, int millares) {
             const Text("Costo por Placa 790 X 1030:"),
             const SizedBox(height: 4),
             _MonedaInput(
-              controller: widget.costoPlaca790Controller,
+              controller: widget.costoPlaca790Controller, //traer precio de extras
               readOnly: !widget.cambiarPrecioPlaca,
             ),
 
@@ -832,24 +832,6 @@ double _calcularPrecioBarniz(bool es20Pts, int millares) {
 
             const SizedBox(height: 16),
 
-            const Text("Costo por Placa:"),
-            const SizedBox(height: 4),
-            TextField(
-              controller: widget.costoPlacaController,
-              readOnly: !widget.cambiarPrecioPlaca,
-              decoration: InputDecoration(
-                prefixText: "\$ ",
-                border: const OutlineInputBorder(),
-                isDense: true,
-                filled: !widget.cambiarPrecioPlaca,
-                fillColor: !widget.cambiarPrecioPlaca
-                    ? const Color(0xFFEEEEEE)
-                    : null,
-              ),
-            ),
-
-
-            const SizedBox(height: 16),
 
             const Text(
               "Costo Total Placas:",
