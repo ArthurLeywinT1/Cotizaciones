@@ -10,6 +10,7 @@ import 'cotizacion_plana_acabados_especiales.dart';
 import 'cotizacion_plana_costo_total.dart';
 import 'cotizacion_plana_laminado.dart';
 
+
 class CotizacionPlanaScreen extends StatefulWidget {
   const CotizacionPlanaScreen({super.key});
 
@@ -18,9 +19,8 @@ class CotizacionPlanaScreen extends StatefulWidget {
 }
 
 class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
-  // =============================
+
   // CONTROLADORES – CLIENTES
-  // =============================
   final TextEditingController razonSocialController = TextEditingController();
   final TextEditingController descripcionController = TextEditingController();
   final TextEditingController anchoController = TextEditingController();
@@ -39,6 +39,11 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
 
   // ===== PORTADA =====
   bool portada = false;
+  bool cambiarPrecioTinta = false;
+  bool cambiarPrecioTintaPortada = false;
+  bool cambiarPrecioBarniz = false;
+  bool cambiarPrecioBarnizPortada = false;
+
 
   // ===== PRUEBA COLOR PORTADA =====
   bool pruebaColorPortada = false;
@@ -125,7 +130,7 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
       TextEditingController();
   final TextEditingController totalPliegosController = TextEditingController();
   final TextEditingController millaresController = TextEditingController();
-
+  final TextEditingController millaresPortadaController = TextEditingController();
   // PLIEGOS PORTADA
   final TextEditingController pliegoAnchoPortadaController =
       TextEditingController();
@@ -142,8 +147,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   final TextEditingController pliegosSobrantesPortadaController =
       TextEditingController();
   final TextEditingController totalPliegosPortadaController =
-      TextEditingController();
-  final TextEditingController millaresPortadaController =
       TextEditingController();
 
   // Controladores papel
@@ -210,6 +213,7 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   );
   final TextEditingController costoTotalPlacasController =
       TextEditingController(text: "0.00");
+  
 
   // MAQUINA PORTADA
   final TextEditingController nombreMaquinaPortadaController =
@@ -239,8 +243,18 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   final TextEditingController costoTotalPlacasPortadaController =
       TextEditingController();
 
+  final TextEditingController cantidadPlacas790PortadaController =
+      TextEditingController(text: "0");
+
+  final TextEditingController costoPlaca790PortadaController =
+      TextEditingController(text: "0.00");
+
+  final TextEditingController costoTotalPlacas790PortadaController =
+      TextEditingController(text: "0.00");
+
   bool barnizMaquinaPortada = false;
   bool cambiarPrecioPlacaPortada = false;
+
 
   // Contoladores suaje
   final TextEditingController tamanoSuajeController = TextEditingController();
@@ -254,6 +268,16 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
       TextEditingController(text: "0.00");
   final TextEditingController costoTotalSuajadoController =
       TextEditingController(text: "0.00");
+  final TextEditingController anchoSuajeController =
+    TextEditingController();
+  final TextEditingController largoSuajeController =
+      TextEditingController();
+  final TextEditingController pliegosSuajeController =
+    TextEditingController(text: "0");
+  final TextEditingController costoMillarSuajeController =
+      TextEditingController(text: "0.00");
+
+
 
   // ACABADOS
   final Map<String, TextEditingController> acabadosCostoCm2Controllers = {};
@@ -266,9 +290,8 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
     "Plastificado Mate": {"frente": false, "vuelta": false},
   };
 
-  // =======================
+
   // CONTROLADORES DE COSTO
-  // =======================
 
   final Map<String, TextEditingController> laminadosCostoCm2Controllers = {};
   final Map<String, TextEditingController> laminadosCostoTotalControllers = {};
@@ -295,19 +318,71 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
     "Plastificado Mate": {"frente": false, "vuelta": false},
   };
 
+
+
+  // MARCOS
+final cantidadMarcosController = TextEditingController();
+final totalMarcosController = TextEditingController();
+List<TextEditingController> anchoMarcos = [];
+List<TextEditingController> altoMarcos = [];
+List<TextEditingController> precioMarcos = [];
+
+// NEGATIVOS
+final cantidadNegativosController = TextEditingController();
+final precioNegativoController = TextEditingController();
+
+// TINTAS
+final cantidadTintasController = TextEditingController();
+final costoTintasController = TextEditingController();
+final totalTintasController = TextEditingController();
+
+// ENTRADAS
+final numeroEntradasController = TextEditingController();
+final TextEditingController costoMillarSerigrafiaController = TextEditingController();
+final totalEntradaController = TextEditingController();
+
+
+// GRABADO
+final cantidadPlacasGrabadoController = TextEditingController(text: "0");
+final costoPlacaGrabadoController = TextEditingController(text: "0.00");
+final costoTotalPlacasGrabadoController = TextEditingController(text: "0.00");
+
+final costoEntradaGrabadoController = TextEditingController(text: "0.00");
+final costoTotalEntradaGrabadoController = TextEditingController(text: "0.00");
+
+final costoTotalGrabadoController = TextEditingController(text: "0.00");
+
+
+  // EMBALAJE
+
+  final List<String> embalajeItems = [
+    "Cajas",
+    "Envoltura",
+    "Cinta canela",
+    "Ligas",
+    "Celofán",
+    "Cinta diurex",
+    "Otro",
+  ];
+
+  List<bool> embalajeActivoItems = List.generate(7, (_) => false);
+
+  late final List<TextEditingController> embalajeCostoControllers;
+  late final List<TextEditingController> embalajeCantidadControllers;
+  late final List<TextEditingController> embalajeTotalControllers;
+
   // ESTADOS GENERALES
   bool suaje = false;
   bool panelAcabadosActivo = true;
   bool barnizMaquina = false;
   bool cambiarPrecioPlaca = false;
   bool gastosEntrega = false;
-  bool duplicarCostoSuaje = false;
   bool offsetActivo = false;
   bool barnizUV = false;
   bool barnizUVPortada = false;
   bool laminadosActivo = false;
   bool laminadosPortada = false;
-  bool acabadosEspeciales = false;
+
 
   Map<String, Map<String, bool>> acabados = {
     "Barniz UV a Registro": {"frente": false, "vuelta": false},
@@ -318,6 +393,12 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
   @override
   void initState() {
     super.initState();
+  pliegoAnchoController.addListener(calcularPliegosSuaje);
+  pliegoAltoController.addListener(calcularPliegosSuaje);
+  anchoSuajeController.addListener(calcularPliegosSuaje);
+  largoSuajeController.addListener(calcularPliegosSuaje);
+  totalPliegosController.addListener(calcularPliegosSuaje);
+  cantidadImpresionController.addListener(calcularPliegosSuaje);
     for (var key in acabados.keys) {
       acabadosCostoCm2Controllers[key] = TextEditingController(text: "0.00");
       acabadosCostoTotalControllers[key] = TextEditingController(text: "0.00");
@@ -335,13 +416,13 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
       laminadosCostoTotalControllers[key] = TextEditingController(text: "0.00");
     }
     for (var key in laminadosPortadaMap.keys) {
-      laminadosPortadaCostoCm2Controllers[key] = TextEditingController(
-        text: "0.00",
-      );
-      laminadosPortadaCostoTotalControllers[key] = TextEditingController(
-        text: "0.00",
-      );
-    }
+    laminadosPortadaCostoCm2Controllers[key] =
+        TextEditingController(text: "0.00");
+    laminadosPortadaCostoTotalControllers[key] =
+        TextEditingController(text: "0.00");
+  }
+
+
   }
 
   void calcularMedidasFinales() {
@@ -388,6 +469,8 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
     });
   }
 
+
+
   void calcularMedidasFinalesPortada() {
     final ancho = double.tryParse(anchoPortadaController.text) ?? 0;
     final alto = double.tryParse(altoPortadaController.text) ?? 0;
@@ -398,6 +481,10 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
       altoFinalPortadaController.text = (alto + medianil).toStringAsFixed(2);
     });
   }
+  
+
+
+
 
   @override
   void dispose() {
@@ -460,31 +547,19 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
     costoPruebaPortadaController.dispose();
     for (var c in acabadosPortadaCostoCm2Controllers.values) {
       c.dispose();
-    }
-    for (var c in acabadosPortadaCostoTotalControllers.values) {
-      c.dispose();
-    }
-    cantidadCartaController.dispose();
-    precioCartaController.dispose();
-    totalCartaController.dispose();
-    cantidadTabloideController.dispose();
-    precioTabloideController.dispose();
-    totalTabloideController.dispose();
-    cantidadMediaCartaController.dispose();
-    precioMediaCartaController.dispose();
-    totalMediaCartaController.dispose();
-    for (var c in laminadosCostoCm2Controllers.values) {
-      c.dispose();
-    }
-    for (var c in laminadosCostoTotalControllers.values) {
-      c.dispose();
-    }
-    for (var c in laminadosPortadaCostoCm2Controllers.values) {
-      c.dispose();
-    }
-    for (var c in laminadosPortadaCostoTotalControllers.values) {
-      c.dispose();
-    }
+      }
+      for (var c in acabadosPortadaCostoTotalControllers.values) {
+        c.dispose();
+      }
+      cantidadCartaController.dispose();
+      precioCartaController.dispose();
+      totalCartaController.dispose();
+      cantidadTabloideController.dispose();
+      precioTabloideController.dispose();
+      totalTabloideController.dispose();
+      cantidadMediaCartaController.dispose();
+      precioMediaCartaController.dispose();
+      totalMediaCartaController.dispose();
     super.dispose();
   }
 
@@ -541,9 +616,26 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               barnizUV: barnizUV,
               onBarnizUVChanged: (v) => setState(() => barnizUV = v ?? false),
               suaje: suaje,
-              onSuajeChanged: (v) => setState(() => suaje = v),
+              onSuajeChanged: (v) {
+                setState(() {
+                  suaje = v ;
+                });
+                calcularPliegosSuaje();
+              },
+              serigrafia: serigrafia,
+              onSerigrafiaChanged: (v) {
+                setState(() {
+                  serigrafia = v ;
+                });
+              },
+
               offset: offsetActivo,
-              onOffsetChanged: (v) => setState(() => offsetActivo = v),
+                onOffsetChanged: (v) {
+                  setState(() {
+                    offsetActivo = v ;
+                  });
+                  calcularPliegosSuaje();
+                },
               onCalcular: calcularMedidasFinales,
               portada: portada,
               onPortadaChanged: (v) {
@@ -670,9 +762,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               cantidadMediaCartaController: cantidadMediaCartaController,
               precioMediaCartaController: precioMediaCartaController,
               totalMediaCartaController: totalMediaCartaController,
-              acabadosEspeciales: acabadosEspeciales,
-              onAcabadosEspecialesChanged: (v) =>
-                  setState(() => acabadosEspeciales = v ?? false),
             ),
 
             if (offsetActivo) ...[
@@ -714,27 +803,28 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
                 costoConIvaController: costoPapelConIvaController,
               ),
 
-              PanelMaquina(
-                nombreMaquinaController: nombreMaquinaController,
-                costoPlacaController: costoPlacaController,
-                tintasFteController: tintasFteController,
-                tintasRevController: tintasRevController,
-                cantidadTotalTintasController: cantidadTotalTintasController,
-                costoUnitFteController: costoUnitFteController,
-                costoTotalFteController: costoTotalFteController,
-                costoUnitRevController: costoUnitRevController,
-                costoTotalRevController: costoTotalRevController,
-                costoGranTotalTintasController: costoGranTotalTintasController,
-                cantidadPlacasController: cantidadPlacasController,
-                costoBarnizController: costoBarnizController,
-                costoTotalPlacasController: costoTotalPlacasController,
-                barnizMaquina: barnizMaquina,
-                onBarnizMaquinaChanged: (v) =>
-                    setState(() => barnizMaquina = v ?? false),
-                cambiarPrecioPlaca: cambiarPrecioPlaca,
-                onCambiarPrecioPlacaChanged: (v) =>
-                    setState(() => cambiarPrecioPlaca = v ?? false),
-              ),
+            PanelMaquina(
+              nombreMaquinaController: nombreMaquinaController,
+              costoPlacaController: costoPlacaController,
+              tintasFteController: tintasFteController,
+              tintasRevController: tintasRevController,
+              cantidadTotalTintasController: cantidadTotalTintasController,
+              costoUnitFteController: costoUnitFteController,
+              costoTotalFteController: costoTotalFteController,
+              costoUnitRevController: costoUnitRevController,
+              costoTotalRevController: costoTotalRevController,
+              costoGranTotalTintasController: costoGranTotalTintasController,
+              cantidadPlacasController: cantidadPlacasController,
+              costoBarnizController: costoBarnizController,
+              costoTotalPlacasController: costoTotalPlacasController,
+              barnizMaquina: barnizMaquina,
+              onBarnizMaquinaChanged: (v) =>
+                  setState(() => barnizMaquina = v ?? false),
+              cambiarPrecioPlaca: cambiarPrecioPlaca,
+              onCambiarPrecioPlacaChanged: (v) =>
+                  setState(() => cambiarPrecioPlaca = v ?? false),
+            ),
+            
             ],
 
             if (barnizUV)
@@ -811,31 +901,32 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
                 costoConIvaController: costoPapelPortadaConIvaController,
               ),
 
-              /// MAQUINA PORTADA
-              PanelMaquina(
-                nombreMaquinaController: nombreMaquinaPortadaController,
-                costoPlacaController: costoPlacaPortadaController,
-                tintasFteController: tintasFtePortadaController,
-                tintasRevController: tintasRevPortadaController,
-                cantidadTotalTintasController:
-                    cantidadTotalTintasPortadaController,
-                costoUnitFteController: costoUnitFtePortadaController,
-                costoTotalFteController: costoTotalFtePortadaController,
-                costoUnitRevController: costoUnitRevPortadaController,
-                costoTotalRevController: costoTotalRevPortadaController,
-                costoGranTotalTintasController:
-                    costoGranTotalTintasPortadaController,
-                cantidadPlacasController: cantidadPlacasPortadaController,
-                costoBarnizController: costoBarnizPortadaController,
-                costoTotalPlacasController: costoTotalPlacasPortadaController,
-                barnizMaquina: barnizMaquinaPortada,
-                onBarnizMaquinaChanged: (v) =>
-                    setState(() => barnizMaquinaPortada = v ?? false),
-                cambiarPrecioPlaca: cambiarPrecioPlacaPortada,
-                onCambiarPrecioPlacaChanged: (v) =>
-                    setState(() => cambiarPrecioPlacaPortada = v ?? false),
-              ),
-            ],
+            /// MAQUINA PORTADA
+            PanelMaquina(
+              nombreMaquinaController: nombreMaquinaPortadaController,
+              costoPlacaController: costoPlacaPortadaController,
+              tintasFteController: tintasFtePortadaController,
+              tintasRevController: tintasRevPortadaController,
+              cantidadTotalTintasController:
+                  cantidadTotalTintasPortadaController,
+              costoUnitFteController: costoUnitFtePortadaController,
+              costoTotalFteController: costoTotalFtePortadaController,
+              costoUnitRevController: costoUnitRevPortadaController,
+              costoTotalRevController: costoTotalRevPortadaController,
+              costoGranTotalTintasController:
+                  costoGranTotalTintasPortadaController,
+              cantidadPlacasController: cantidadPlacasPortadaController,
+              costoBarnizController: costoBarnizPortadaController,
+              costoTotalPlacasController:
+                  costoTotalPlacasPortadaController,
+              barnizMaquina: barnizMaquinaPortada,
+              onBarnizMaquinaChanged: (v) =>
+                  setState(() => barnizMaquinaPortada = v ?? false),
+              cambiarPrecioPlaca: cambiarPrecioPlacaPortada,
+              onCambiarPrecioPlacaChanged: (v) =>
+                  setState(() => cambiarPrecioPlacaPortada = v ?? false),
+            ),
+          ],
 
             /// ACABADOS PORTADA
             if (offsetActivo && portada && barnizUVPortada)
@@ -864,29 +955,27 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
                 isOffset: offsetActivo,
               ),
 
+
             if (suaje) ...[
-              PanelSuaje(
-                enabled: suaje,
-                tamanoSuajeController: tamanoSuajeController,
-                costoSuajeCmController: costoSuajeCmController,
-                costoTotalSuajeController: costoTotalSuajeController,
-                costoArregloSuajeController: costoArregloSuajeController,
-                costoTotalSuajadoController: costoTotalSuajadoController,
-                gastosEntrega: gastosEntrega,
-                onGastosEntregaChanged: (v) =>
-                    setState(() => gastosEntrega = v ?? false),
-                duplicarCosto: duplicarCostoSuaje,
-                onDuplicarCostoChanged: (v) =>
-                    setState(() => duplicarCostoSuaje = v ?? false),
+            PanelSuaje(
+              enabled: suaje,
+              tamanoSuajeController: tamanoSuajeController,
+              costoSuajeCmController: costoSuajeCmController,
+              costoTotalSuajeController: costoTotalSuajeController,
+              costoArregloSuajeController: costoArregloSuajeController,
+              costoTotalSuajadoController: costoTotalSuajadoController,
+              gastosEntrega: gastosEntrega,
+              onGastosEntregaChanged: (v) =>
+                  setState(() => gastosEntrega = v ?? false),
+              duplicarCosto: duplicarCostoSuaje,
+              onDuplicarCostoChanged: (v) =>
+                  setState(() => duplicarCostoSuaje = v ?? false),
               ),
             ],
 
-            if (acabadosEspeciales) ...[
-              PanelAcabadosEspeciales(
-                cantidadImpresionController: cantidadImpresionController,
-              ),
-            ],
+            
 
+            const PanelAcabadosEspeciales(),
             const PanelCostoTotal(),
 
             const SizedBox(height: 40),
