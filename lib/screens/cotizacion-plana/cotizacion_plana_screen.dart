@@ -1127,6 +1127,19 @@ final costoTotalGrabadoController = TextEditingController(text: "0.00");
                   });
                 },
               ),
+              if (grabado)
+              PanelGrabado(
+                piezasTotalesController: cantidadImpresionController,
+
+                cantidadPlacasController: cantidadPlacasGrabadoController,
+                costoPlacaController: costoPlacaGrabadoController,
+                costoTotalPlacasController: costoTotalPlacasGrabadoController,
+
+                costoEntradaController: costoEntradaGrabadoController,
+                costoTotalEntradaController: costoTotalEntradaGrabadoController,
+
+                costoTotalGrabadoController: costoTotalGrabadoController,
+              ),
               
               if (serigrafia)
                 CotizacionPlanaSerigrafia(
