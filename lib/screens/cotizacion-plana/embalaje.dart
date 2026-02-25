@@ -1,43 +1,24 @@
 import 'package:flutter/material.dart';
 
-class PanelEmbalaje extends StatefulWidget {
-  const PanelEmbalaje({super.key});
+class PanelEmbalaje extends StatelessWidget {
+  final List<String> items;
+  final List<bool> activo;
+  final List<TextEditingController> costoControllers;
+  final List<TextEditingController> cantidadControllers;
+  final List<TextEditingController> totalControllers;
+  final Function(int) onCalcular;
+  final Function(int, bool) onItemChanged;
 
-  @override
-  State<PanelEmbalaje> createState() => _PanelEmbalajeState();
-}
-
-class _PanelEmbalajeState extends State<PanelEmbalaje> {
-  bool embalajeActivo = false;
-
-  final List<String> items = [
-    "Cajas",
-    "Envoltura",
-    "Cinta canela",
-    "Ligas",
-    "Celofán",
-    "Cinta diurex",
-    "Otro",
-  ];
-
-  final List<bool> activo = List.generate(7, (_) => false);
-  final List<TextEditingController> costoControllers =
-      List.generate(7, (_) => TextEditingController());
-  final List<TextEditingController> cantidadControllers =
-      List.generate(7, (_) => TextEditingController());
-  final List<TextEditingController> totalControllers =
-      List.generate(7, (_) => TextEditingController());
-
-  void calcularTotal(int index) {
-    final costo =
-        double.tryParse(costoControllers[index].text) ?? 0.0;
-    final cantidad =
-        double.tryParse(cantidadControllers[index].text) ?? 0.0;
-
-    final total = costo * cantidad;
-
-    totalControllers[index].text = total.toStringAsFixed(2);
-  }
+  const PanelEmbalaje({
+    super.key,
+    required this.items,
+    required this.activo,
+    required this.costoControllers,
+    required this.cantidadControllers,
+    required this.totalControllers,
+    required this.onCalcular,
+    required this.onItemChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -54,100 +35,74 @@ class _PanelEmbalajeState extends State<PanelEmbalaje> {
             ),
             const SizedBox(height: 10),
 
-            /// CHECKBOX PRINCIPAL
-            Row(
-              children: [
-                Checkbox(
-                  value: embalajeActivo,
-                  onChanged: (value) {
-                    setState(() {
-                      embalajeActivo = value!;
-                    });
-                  },
-                ),
-                const Text("Embalaje"),
-              ],
-            ),
+            for (int i = 0; i < items.length; i++) ...[
+              Row(
+                children: [
+                  Checkbox(
+                    value: activo[i],
+                    onChanged: (value) {
+                      onItemChanged(i, value ?? false);
+                    },
+                  ),
+                  Text(items[i]),
+                ],
+              ),
 
-            /// SI SE ACTIVA EMBALAJE
-            if (embalajeActivo) ...[
-              const SizedBox(height: 10),
+              if (activo[i]) ...[
+                const SizedBox(height: 5),
 
-              for (int i = 0; i < items.length; i++) ...[
                 Row(
                   children: [
-                    Checkbox(
-                      value: activo[i],
-                      onChanged: (value) {
-                        setState(() {
-                          activo[i] = value!;
-                        });
-                      },
+                    Expanded(
+                      child: TextField(
+                        controller: costoControllers[i],
+                        keyboardType:
+                            const TextInputType.numberWithOptions(decimal: true),
+                        decoration: const InputDecoration(
+                          labelText: "Costo Unitario",
+                          prefixText: "\$ ",
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                        onChanged: (_) => onCalcular(i),
+                      ),
                     ),
-                    Text(items[i]),
+
+                    const SizedBox(width: 8),
+
+                    Expanded(
+                      child: TextField(
+                        controller: cantidadControllers[i],
+                        keyboardType:
+                            const TextInputType.numberWithOptions(decimal: true),
+                        decoration: const InputDecoration(
+                          labelText: "Cantidad",
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                        onChanged: (_) => onCalcular(i),
+                      ),
+                    ),
+
+                    const SizedBox(width: 8),
+
+                    Expanded(
+                      child: TextField(
+                        controller: totalControllers[i],
+                        readOnly: true,
+                        decoration: const InputDecoration(
+                          labelText: "Total",
+                          prefixText: "\$ ",
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-
-                /// SI SE ACTIVA EL ITEM
-                if (activo[i]) ...[
-                  const SizedBox(height: 5),
-
-                  Row(
-                    children: [
-                      /// COSTO UNITARIO
-                      Expanded(
-                        child: TextField(
-                          controller: costoControllers[i],
-                          keyboardType:
-                              const TextInputType.numberWithOptions(decimal: true),
-                          decoration: const InputDecoration(
-                            labelText: "Costo Unitario",
-                            prefixText: "\$ ",
-                            border: OutlineInputBorder(),
-                            isDense: true,
-                          ),
-                          onChanged: (_) => calcularTotal(i),
-                        ),
-                      ),
-
-                      const SizedBox(width: 8),
-
-                      /// CANTIDAD
-                      Expanded(
-                        child: TextField(
-                          controller: cantidadControllers[i],
-                          keyboardType:
-                              const TextInputType.numberWithOptions(decimal: true),
-                          decoration: const InputDecoration(
-                            labelText: "Cantidad",
-                            border: OutlineInputBorder(),
-                            isDense: true,
-                          ),
-                          onChanged: (_) => calcularTotal(i),
-                        ),
-                      ),
-
-                      const SizedBox(width: 8),
-
-                      /// TOTAL
-                      Expanded(
-                        child: TextField(
-                          controller: totalControllers[i],
-                          readOnly: true,
-                          decoration: const InputDecoration(
-                            labelText: "Total",
-                            prefixText: "\$ ",
-                            border: OutlineInputBorder(),
-                            isDense: true,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-
-                const SizedBox(height: 15),
               ],
+
+              const SizedBox(height: 15),
             ],
           ],
         ),

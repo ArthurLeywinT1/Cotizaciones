@@ -22,9 +22,8 @@ class CotizacionPlanaScreen extends StatefulWidget {
 }
 
 class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
-  // =============================
+
   // CONTROLADORES – CLIENTES
-  // =============================
   final TextEditingController razonSocialController = TextEditingController();
   final TextEditingController descripcionController = TextEditingController();
   final TextEditingController anchoController = TextEditingController();
@@ -222,6 +221,17 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
 
   final TextEditingController costoTotalPlacas790Controller =
       TextEditingController(text: "0.00");
+  List<String> opcionesFrente = [];
+  List<String> opcionesVuelta = [];
+
+  bool barnizFte = false;
+  bool barnizRev = false;
+
+  late final TextEditingController barnizFteController;
+  late final TextEditingController barnizRevController;
+
+  late final TextEditingController costoUnitBarnizFteController;
+  late final TextEditingController costoUnitBarnizRevController;
     
 
   // MAQUINA PORTADA
@@ -263,6 +273,17 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
 
   bool barnizMaquinaPortada = false;
   bool cambiarPrecioPlacaPortada = false;
+  List<String> opcionesFrentePortada = [];
+  List<String> opcionesVueltaPortada = [];
+
+  bool barnizFtePortada = false;
+  bool barnizRevPortada = false;
+
+  late final TextEditingController barnizFtePortadaController;
+  late final TextEditingController barnizRevPortadaController;
+
+  late final TextEditingController costoUnitBarnizFtePortadaController;
+  late final TextEditingController costoUnitBarnizRevPortadaController;
 
 
   // Contoladores suaje
@@ -305,9 +326,8 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
     },
   };
 
-  // =======================
+
   // CONTROLADORES DE COSTO
-  // =======================
 
   final Map<String, TextEditingController> laminadosCostoCm2Controllers = {};
   final Map<String, TextEditingController> laminadosCostoTotalControllers = {};
@@ -350,6 +370,59 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
       "vuelta": false,
     },
   };
+
+
+
+  // MARCOS
+final cantidadMarcosController = TextEditingController();
+final totalMarcosController = TextEditingController();
+List<TextEditingController> anchoMarcos = [];
+List<TextEditingController> altoMarcos = [];
+List<TextEditingController> precioMarcos = [];
+
+// NEGATIVOS
+final cantidadNegativosController = TextEditingController();
+final precioNegativoController = TextEditingController();
+
+// TINTAS
+final cantidadTintasController = TextEditingController();
+final costoTintasController = TextEditingController();
+final totalTintasController = TextEditingController();
+
+// ENTRADAS
+final numeroEntradasController = TextEditingController();
+final TextEditingController costoMillarSerigrafiaController = TextEditingController();
+final totalEntradaController = TextEditingController();
+
+
+// GRABADO
+final cantidadPlacasGrabadoController = TextEditingController(text: "0");
+final costoPlacaGrabadoController = TextEditingController(text: "0.00");
+final costoTotalPlacasGrabadoController = TextEditingController(text: "0.00");
+
+final costoEntradaGrabadoController = TextEditingController(text: "0.00");
+final costoTotalEntradaGrabadoController = TextEditingController(text: "0.00");
+
+final costoTotalGrabadoController = TextEditingController(text: "0.00");
+
+
+  // EMBALAJE
+
+  final List<String> embalajeItems = [
+    "Cajas",
+    "Envoltura",
+    "Cinta canela",
+    "Ligas",
+    "Celofán",
+    "Cinta diurex",
+    "Otro",
+  ];
+
+  List<bool> embalajeActivoItems = List.generate(7, (_) => false);
+
+  late final List<TextEditingController> embalajeCostoControllers;
+  late final List<TextEditingController> embalajeCantidadControllers;
+  late final List<TextEditingController> embalajeTotalControllers;
 
   // ESTADOS GENERALES
   bool suaje = false;
@@ -407,7 +480,23 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
     laminadosPortadaCostoTotalControllers[key] =
         TextEditingController(text: "0.00");
   }
+    barnizFteController = TextEditingController(text: "0");
+    barnizRevController = TextEditingController(text: "0");
+    costoUnitBarnizFteController = TextEditingController(text: "0.00");
+    costoUnitBarnizRevController = TextEditingController(text: "0.00");
 
+    barnizFtePortadaController = TextEditingController(text: "0");
+    barnizRevPortadaController = TextEditingController(text: "0");
+    costoUnitBarnizFtePortadaController = TextEditingController(text: "0.00");
+    costoUnitBarnizRevPortadaController = TextEditingController(text: "0.00");
+      embalajeCostoControllers =
+        List.generate(7, (_) => TextEditingController());
+
+    embalajeCantidadControllers =
+        List.generate(7, (_) => TextEditingController());
+
+    embalajeTotalControllers =
+        List.generate(7, (_) => TextEditingController());
 
   }
 
@@ -456,6 +545,18 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
       laminadosPortadaMap[nombre]?[lado] = valor;
     });
   }
+  void calcularTotalEmbalaje(int index) {
+  final costo =
+      double.tryParse(embalajeCostoControllers[index].text) ?? 0.0;
+
+  final cantidad =
+      double.tryParse(embalajeCantidadControllers[index].text) ?? 0.0;
+
+  final total = costo * cantidad;
+
+  embalajeTotalControllers[index].text =
+      total.toStringAsFixed(2);
+  } 
 
 
 
@@ -600,6 +701,25 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
       cantidadPlacas790PortadaController.dispose();
       costoPlaca790PortadaController.dispose();
       costoTotalPlacas790PortadaController.dispose();
+      barnizFteController.dispose();
+      barnizRevController.dispose();
+      costoUnitBarnizFteController.dispose();
+      costoUnitBarnizRevController.dispose();
+
+      barnizFtePortadaController.dispose();
+      barnizRevPortadaController.dispose();
+      costoUnitBarnizFtePortadaController.dispose();
+      costoUnitBarnizRevPortadaController.dispose();
+      for (var c in embalajeCostoControllers) {
+        c.dispose();
+      }
+      for (var c in embalajeCantidadControllers) {
+        c.dispose();
+      }
+      for (var c in embalajeTotalControllers) {
+        c.dispose();
+      }
+      
     super.dispose();
 
   }
@@ -660,21 +780,21 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               suaje: suaje,
               onSuajeChanged: (v) {
                 setState(() {
-                  suaje = v ?? false;
+                  suaje = v ;
                 });
                 calcularPliegosSuaje();
               },
               serigrafia: serigrafia,
               onSerigrafiaChanged: (v) {
                 setState(() {
-                  serigrafia = v ?? false;
+                  serigrafia = v ;
                 });
               },
 
               offset: offsetActivo,
                 onOffsetChanged: (v) {
                   setState(() {
-                    offsetActivo = v ?? false;
+                    offsetActivo = v ;
                   });
                   calcularPliegosSuaje();
                 },
@@ -813,7 +933,7 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               grabado: grabado,
               onGrabadoChanged: (v) {
                 setState(() {
-                  grabado = v ?? false;
+                  grabado = v ;
                 });
               },
               
@@ -889,6 +1009,16 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               costoPlaca790Controller: costoPlaca790Controller,
               costoTotalPlacas790Controller: costoTotalPlacas790Controller,
               millaresController: millaresController,
+                opcionesFrente: opcionesFrente,
+              opcionesVuelta: opcionesVuelta,
+              barnizFte: barnizFte,
+              barnizRev: barnizRev,
+              barnizFteController: barnizFteController,
+              barnizRevController: barnizRevController,
+              costoUnitBarnizFteController: costoUnitBarnizFteController,
+              costoUnitBarnizRevController: costoUnitBarnizRevController,
+              onBarnizFteChanged: (v) => setState(() => barnizFte = v),
+              onBarnizRevChanged: (v) => setState(() => barnizRev = v),
             ),
             
             ],
@@ -997,6 +1127,16 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               costoPlaca790Controller: costoPlaca790PortadaController,
               costoTotalPlacas790Controller: costoTotalPlacas790PortadaController,
               millaresController: millaresPortadaController,
+              opcionesFrente: opcionesFrentePortada,
+              opcionesVuelta: opcionesVueltaPortada,
+              barnizFte: barnizFtePortada,
+              barnizRev: barnizRevPortada,
+              barnizFteController: barnizFtePortadaController,
+              barnizRevController: barnizRevPortadaController,
+              costoUnitBarnizFteController: costoUnitBarnizFtePortadaController,
+              costoUnitBarnizRevController: costoUnitBarnizRevPortadaController,
+              onBarnizFteChanged: (v) => setState(() => barnizFtePortada = v),
+              onBarnizRevChanged: (v) => setState(() => barnizRevPortada = v),
             ),
           ],
 
@@ -1045,17 +1185,53 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               if (grabado)
               PanelGrabado(
                 piezasTotalesController: cantidadImpresionController,
+
+                cantidadPlacasController: cantidadPlacasGrabadoController,
+                costoPlacaController: costoPlacaGrabadoController,
+                costoTotalPlacasController: costoTotalPlacasGrabadoController,
+
+                costoEntradaController: costoEntradaGrabadoController,
+                costoTotalEntradaController: costoTotalEntradaGrabadoController,
+
+                costoTotalGrabadoController: costoTotalGrabadoController,
               ),
               
               if (serigrafia)
                 CotizacionPlanaSerigrafia(
-                  piezasTotalesController: cantidadImpresionController,
-                ),
+                piezasTotalesController: cantidadImpresionController,
+
+                cantidadMarcosController: cantidadMarcosController,
+                totalMarcosController: totalMarcosController,
+                anchoMarcos: anchoMarcos,
+                altoMarcos: altoMarcos,
+                precioMarcos: precioMarcos,
+
+                cantidadNegativosController: cantidadNegativosController,
+                precioNegativoController: precioNegativoController,
+
+                cantidadTintasController: cantidadTintasController,
+                costoTintasController: costoTintasController,
+                totalTintasController: totalTintasController,
+
+                numeroEntradasController: numeroEntradasController,
+                costoMillarController: costoMillarSerigrafiaController,
+                totalEntradaController: totalEntradaController,
+              ),
 
               if (embalaje)
-              PanelEmbalaje(
-
-              ),
+                PanelEmbalaje(
+                  items: embalajeItems,
+                  activo: embalajeActivoItems,
+                  costoControllers: embalajeCostoControllers,
+                  cantidadControllers: embalajeCantidadControllers,
+                  totalControllers: embalajeTotalControllers,
+                  onCalcular: calcularTotalEmbalaje,
+                  onItemChanged: (index, value) {
+                    setState(() {
+                      embalajeActivoItems[index] = value;
+                    });
+                  },
+                ),
 
 
 

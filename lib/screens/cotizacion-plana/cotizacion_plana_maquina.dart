@@ -30,6 +30,20 @@ class PanelMaquina extends ConsumerStatefulWidget {
   final TextEditingController costoPlaca790Controller;
   final TextEditingController costoTotalPlacas790Controller;
   final TextEditingController millaresController;
+  final List<String> opcionesFrente;
+  final List<String> opcionesVuelta;
+
+  final bool barnizFte;
+  final bool barnizRev;
+
+  final TextEditingController barnizFteController;
+  final TextEditingController barnizRevController;
+
+  final TextEditingController costoUnitBarnizFteController;
+  final TextEditingController costoUnitBarnizRevController;
+
+  final Function(bool) onBarnizFteChanged;
+  final Function(bool) onBarnizRevChanged;
 
 
 
@@ -58,6 +72,16 @@ class PanelMaquina extends ConsumerStatefulWidget {
     required this.costoPlaca790Controller,
     required this.costoTotalPlacas790Controller,
     required this.millaresController,
+    required this.opcionesFrente,
+    required this.opcionesVuelta,
+    required this.barnizFte,
+    required this.barnizRev,
+    required this.onBarnizFteChanged,
+    required this.onBarnizRevChanged,
+    required this.barnizFteController,
+    required this.barnizRevController,
+    required this.costoUnitBarnizFteController,
+    required this.costoUnitBarnizRevController,
 
   });
 
@@ -70,24 +94,9 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
   String? _opcionFrente;
   String? _opcionVuelta;
 
-  List<String> _opcionesFrente = [];
-  List<String> _opcionesVuelta = [];
-  bool _barnizFte = false;
-  bool _barnizRev = false;
-  late final TextEditingController barnizFteController;
-  late final TextEditingController barnizRevController;
-
-  late final TextEditingController costoUnitBarnizFteController;
-  late final TextEditingController costoUnitBarnizRevController;
   @override
   void initState() {
     super.initState();
-
-    // 🔥 Inicializar controllers internos
-    barnizFteController = TextEditingController();
-    barnizRevController = TextEditingController();
-    costoUnitBarnizFteController = TextEditingController();
-    costoUnitBarnizRevController = TextEditingController();
 
     // Listeners existentes
     widget.tintasFteController.addListener(_calcularCostosTintas);
@@ -219,32 +228,41 @@ widget.costoUnitRevController.text =
   widget.costoGranTotalTintasController.text = "0.00";
 
   setState(() {
-    _opcionesFrente = _generarOpciones(cantFteInt);
-    _opcionesVuelta = _generarOpciones(cantRevInt);
+    widget.opcionesFrente.clear();
+    widget.opcionesFrente.addAll(_generarOpciones(cantFteInt));
 
-    if (!_opcionesFrente.contains(_opcionFrente)) {
+    widget.opcionesVuelta.clear();
+    widget.opcionesVuelta.addAll(_generarOpciones(cantRevInt));
+
+    if (!widget.opcionesFrente.contains(_opcionFrente)) {
       _opcionFrente = null;
     }
 
-    if (!_opcionesVuelta.contains(_opcionVuelta)) {
+    if (!widget.opcionesVuelta.contains(_opcionVuelta)) {
       _opcionVuelta = null;
     }
   });
 // ================= BARNIZ =================
+// ================= BARNIZ =================
 double precioBarnizFte = 0;
 double precioBarnizRev = 0;
 
-if (_barnizFte && millares > 0) {
-  bool es20Pts = _opcionFrente?.toUpperCase().contains("20") ?? false;
+if (widget.barnizFte && millares > 0 && _opcionFrente != null) {
+  bool es20Pts = _opcionFrente!.toUpperCase().contains("20");
   precioBarnizFte = _calcularPrecioBarniz(es20Pts, millares);
 }
 
-if (_barnizRev && millares > 0) {
-  bool es20Pts = _opcionVuelta?.toUpperCase().contains("20") ?? false;
+if (widget.barnizRev && millares > 0 && _opcionVuelta != null) {
+  bool es20Pts = _opcionVuelta!.toUpperCase().contains("20");
   precioBarnizRev = _calcularPrecioBarniz(es20Pts, millares);
 }
 
 double totalBarniz = precioBarnizFte + precioBarnizRev;
+
+// 🔥 ESTE ES EL PUNTO CLAVE
+if (!widget.barnizFte && !widget.barnizRev) {
+  totalBarniz = 0;
+}
 
 widget.costoBarnizController.text =
     totalBarniz.toStringAsFixed(2);
@@ -462,14 +480,6 @@ double _calcularPrecioBarniz(bool es20Pts, int millares) {
       ),
     );
   }
-  @override
-void dispose() {
-  barnizFteController.dispose();
-  barnizRevController.dispose();
-  costoUnitBarnizFteController.dispose();
-  costoUnitBarnizRevController.dispose();
-  super.dispose();
-}
 
   @override
   Widget build(BuildContext context) {
@@ -556,27 +566,29 @@ void dispose() {
                   ),
                 ),
                 Checkbox(
-                  value: _barnizFte,
-                  onChanged: (value) {
-                    setState(() {
-                      _barnizFte = value ?? false;
-                    });
+                  value: widget.barnizFte,
+                onChanged: (value) {
+                  widget.onBarnizFteChanged(value ?? false);
+
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
                     _calcularCostosTintas();
-                  },
+                  });
+                },
                 ),
                 const Text("Barniz Máquina Frente"),
 
                 const SizedBox(width: 15),
 
-                Checkbox(
-                  value: _barnizRev,
-                  onChanged: (value) {
-                    setState(() {
-                      _barnizRev = value ?? false;
-                    });
+              Checkbox(
+                value: widget.barnizRev,
+                onChanged: (value) {
+                  widget.onBarnizRevChanged(value ?? false);
+
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
                     _calcularCostosTintas();
-                  },
-                ),
+                  });
+},
+              ),
                 const Text("Barniz Máquina Vuelta"),
               ],
             ),
@@ -586,12 +598,12 @@ void dispose() {
             // =====================
             // CONFIGURACIÓN FRENTE
             // =====================
-            if (_opcionesFrente.isNotEmpty) ...[
+            if (widget.opcionesFrente.isNotEmpty) ...[
               const Text("Configuración Frente:"),
               const SizedBox(height: 4),
               DropdownButtonFormField<String>(
                 value: _opcionFrente,
-                items: _opcionesFrente
+                items: widget.opcionesFrente
                     .map((op) => DropdownMenuItem(
                           value: op,
                           child: Text(op),
@@ -615,12 +627,12 @@ void dispose() {
             // =====================
             // CONFIGURACIÓN VUELTA
             // =====================
-            if (_opcionesVuelta.isNotEmpty) ...[
+            if (widget.opcionesVuelta.isNotEmpty) ...[
               const Text("Configuración Vuelta:"),
               const SizedBox(height: 4),
               DropdownButtonFormField<String>(
                 value: _opcionVuelta,
-                items: _opcionesVuelta
+                items: widget.opcionesVuelta
                     .map((op) => DropdownMenuItem(
                           value: op,
                           child: Text(op),

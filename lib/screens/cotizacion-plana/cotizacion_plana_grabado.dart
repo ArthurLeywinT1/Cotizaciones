@@ -3,9 +3,27 @@ import 'package:flutter/material.dart';
 class PanelGrabado extends StatefulWidget {
   final TextEditingController piezasTotalesController;
 
+  final TextEditingController cantidadPlacasController;
+  final TextEditingController costoPlacaController;
+  final TextEditingController costoTotalPlacasController;
+
+  final TextEditingController costoEntradaController;
+  final TextEditingController costoTotalEntradaController;
+
+  final TextEditingController costoTotalGrabadoController;
+
   const PanelGrabado({
     super.key,
     required this.piezasTotalesController,
+
+    required this.cantidadPlacasController,
+    required this.costoPlacaController,
+    required this.costoTotalPlacasController,
+
+    required this.costoEntradaController,
+    required this.costoTotalEntradaController,
+
+    required this.costoTotalGrabadoController,
   });
 
   @override
@@ -14,72 +32,49 @@ class PanelGrabado extends StatefulWidget {
 
 class _PanelGrabadoState extends State<PanelGrabado> {
 
-  final TextEditingController cantidadPlacasController =
-      TextEditingController(text: "0");
-
-  final TextEditingController costoPlacaController =
-      TextEditingController(text: "0.00");
-
-  final TextEditingController costoTotalPlacasController =
-      TextEditingController(text: "0.00");
-
-  final TextEditingController costoEntradaController =
-      TextEditingController(text: "0.00");
-
-  final TextEditingController costoTotalEntradaController =
-      TextEditingController(text: "0.00");
-
-  final TextEditingController costoTotalGrabadoController =
-      TextEditingController(text: "0.00");
-
   @override
   void initState() {
     super.initState();
 
-    cantidadPlacasController.addListener(calcular);
-    costoPlacaController.addListener(calcular);
-    costoEntradaController.addListener(calcular);
+    widget.cantidadPlacasController.addListener(calcular);
+    widget.costoPlacaController.addListener(calcular);
+    widget.costoEntradaController.addListener(calcular);
     widget.piezasTotalesController.addListener(calcular);
   }
 
   void calcular() {
-  final piezas =
-      double.tryParse(widget.piezasTotalesController.text) ?? 0;
+    final piezas =
+        double.tryParse(widget.piezasTotalesController.text) ?? 0;
 
-  final cantidadPlacas =
-      double.tryParse(cantidadPlacasController.text) ?? 0;
+    final cantidadPlacas =
+        double.tryParse(widget.cantidadPlacasController.text) ?? 0;
 
-  final costoPlaca =
-      double.tryParse(costoPlacaController.text) ?? 0;
+    final costoPlaca =
+        double.tryParse(widget.costoPlacaController.text) ?? 0;
 
-  final costoEntrada =
-      double.tryParse(costoEntradaController.text) ?? 0;
+    final costoEntrada =
+        double.tryParse(widget.costoEntradaController.text) ?? 0;
 
-  final totalPlacas = cantidadPlacas * costoPlaca;
+    final totalPlacas = cantidadPlacas * costoPlaca;
+    final totalEntrada = (piezas / 1000) * costoEntrada;
+    final totalGrabado = totalPlacas + totalEntrada;
 
-  // 🔥 Ahora es por millar
-  final totalEntrada = (piezas / 1000) * costoEntrada;
+    widget.costoTotalPlacasController.text =
+        totalPlacas.toStringAsFixed(2);
 
-  final totalGrabado = totalPlacas + totalEntrada;
+    widget.costoTotalEntradaController.text =
+        totalEntrada.toStringAsFixed(2);
 
-  costoTotalPlacasController.text =
-      totalPlacas.toStringAsFixed(2);
-
-  costoTotalEntradaController.text =
-      totalEntrada.toStringAsFixed(2);
-
-  costoTotalGrabadoController.text =
-      totalGrabado.toStringAsFixed(2);
-}
+    widget.costoTotalGrabadoController.text =
+        totalGrabado.toStringAsFixed(2);
+  }
 
   @override
   void dispose() {
-    cantidadPlacasController.dispose();
-    costoPlacaController.dispose();
-    costoTotalPlacasController.dispose();
-    costoEntradaController.dispose();
-    costoTotalEntradaController.dispose();
-    costoTotalGrabadoController.dispose();
+    widget.cantidadPlacasController.removeListener(calcular);
+    widget.costoPlacaController.removeListener(calcular);
+    widget.costoEntradaController.removeListener(calcular);
+    widget.piezasTotalesController.removeListener(calcular);
     super.dispose();
   }
 
@@ -103,15 +98,11 @@ class _PanelGrabadoState extends State<PanelGrabado> {
 
             const SizedBox(height: 12),
 
-            /// ========================
-            /// PLACAS
-            /// ========================
-
             Row(
               children: [
                 Expanded(
                   child: TextField(
-                    controller: cantidadPlacasController,
+                    controller: widget.cantidadPlacasController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       labelText: "Cantidad de Placas",
@@ -121,7 +112,7 @@ class _PanelGrabadoState extends State<PanelGrabado> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
-                    controller: costoPlacaController,
+                    controller: widget.costoPlacaController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       labelText: "Costo por Placa",
@@ -134,7 +125,7 @@ class _PanelGrabadoState extends State<PanelGrabado> {
             const SizedBox(height: 8),
 
             TextField(
-              controller: costoTotalPlacasController,
+              controller: widget.costoTotalPlacasController,
               readOnly: true,
               decoration: const InputDecoration(
                 labelText: "Costo Total Placas",
@@ -145,12 +136,8 @@ class _PanelGrabadoState extends State<PanelGrabado> {
 
             const Divider(height: 24),
 
-            /// ========================
-            /// ENTRADA
-            /// ========================
-
             TextField(
-              controller: costoEntradaController,
+              controller: widget.costoEntradaController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 labelText: "Costo de Entrada (por millar)",
@@ -160,7 +147,7 @@ class _PanelGrabadoState extends State<PanelGrabado> {
             const SizedBox(height: 8),
 
             TextField(
-              controller: costoTotalEntradaController,
+              controller: widget.costoTotalEntradaController,
               readOnly: true,
               decoration: const InputDecoration(
                 labelText: "Costo Total Entrada",
@@ -171,12 +158,8 @@ class _PanelGrabadoState extends State<PanelGrabado> {
 
             const Divider(height: 24),
 
-            /// ========================
-            /// TOTAL GRABADO
-            /// ========================
-
             TextField(
-              controller: costoTotalGrabadoController,
+              controller: widget.costoTotalGrabadoController,
               readOnly: true,
               decoration: const InputDecoration(
                 labelText: "Costo Total Grabado",
