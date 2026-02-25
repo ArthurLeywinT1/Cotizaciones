@@ -786,6 +786,7 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
               ),
 
               /// PLIEGOS PORTADA
+              /// Pliegos
               PanelPliegos(
                 cantidadImpresionesController: piezasPortadaController,
                 anchoFinalController: anchoFinalPortadaController,
