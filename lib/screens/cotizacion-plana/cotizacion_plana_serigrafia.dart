@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class CotizacionPlanaSerigrafia extends StatefulWidget {
   final TextEditingController piezasTotalesController;
+  
 
   // =============================
   // MARCOS
@@ -12,9 +13,9 @@ class CotizacionPlanaSerigrafia extends StatefulWidget {
   final List<TextEditingController> altoMarcos;
   final List<TextEditingController> precioMarcos;
 
-  // =============================
+
   // NEGATIVOS
-  // =============================
+
   final TextEditingController cantidadNegativosController;
   final TextEditingController precioNegativoController;
 

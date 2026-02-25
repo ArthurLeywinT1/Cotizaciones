@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/cliente_provider.dart';
 import '../modals/modal_cliente.dart';
 import 'buscador_cliente.dart';
-
+// Panel específico para el ingreso de datos del cliente y detalles del trabajo solicitado en la cotización plana
 class PanelClientes extends ConsumerStatefulWidget {
   final TextEditingController razonSocialController;
   final TextEditingController descripcionController;

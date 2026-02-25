@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+// Panel específico para el cálculo de grabado
 class PanelGrabado extends StatefulWidget {
   final TextEditingController piezasTotalesController;
 

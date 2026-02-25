@@ -90,7 +90,7 @@ class _PanelSuajeState extends ConsumerState<PanelSuaje> {
     void _calcularTotales() {
     if (!widget.enabled) return;
 
-    // 🔹 Convertir 20 → 2.0
+    // 🔹 Converti 20 → 2.0
     final double ancho =
         (double.tryParse(widget.anchoSuajeController.text) ?? 0.0) / 10;
 

@@ -8,6 +8,7 @@ class PanelEmbalaje extends StatelessWidget {
   final List<TextEditingController> totalControllers;
   final Function(int) onCalcular;
   final Function(int, bool) onItemChanged;
+  // 🔒 SOLO EMBALAJE
 
   const PanelEmbalaje({
     super.key,

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
+// Panel específico para el cálculo de costos totales y administración de márgenes, descuentos y días de entrega
 class PanelCostoTotal extends StatefulWidget {
   const PanelCostoTotal({super.key});
 

@@ -13,7 +13,7 @@ import 'cotizacion_plana_serigrafia.dart';
 import 'embalaje.dart';
 import 'cotizacion_plana_grabado.dart';
 
-
+// Pantalla principal de cotización plana
 class CotizacionPlanaScreen extends StatefulWidget {
   const CotizacionPlanaScreen({super.key});
 

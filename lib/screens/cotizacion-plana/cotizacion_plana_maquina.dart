@@ -93,6 +93,7 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
   @override
   String? _opcionFrente;
   String? _opcionVuelta;
+  
 
   @override
   void initState() {
@@ -259,7 +260,7 @@ if (widget.barnizRev && millares > 0 && _opcionVuelta != null) {
 
 double totalBarniz = precioBarnizFte + precioBarnizRev;
 
-// 🔥 ESTE ES EL PUNTO CLAVE
+// 🔥 ESTE ES EL PUNTO 
 if (!widget.barnizFte && !widget.barnizRev) {
   totalBarniz = 0;
 }
