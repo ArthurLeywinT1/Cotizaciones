@@ -90,7 +90,7 @@ class PanelMaquina extends ConsumerStatefulWidget {
 }
 
 class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
-  @override
+ 
   String? _opcionFrente;
   String? _opcionVuelta;
   
