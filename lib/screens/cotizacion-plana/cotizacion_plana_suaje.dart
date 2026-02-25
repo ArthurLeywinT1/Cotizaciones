@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/extra_provider.dart';
@@ -9,12 +10,16 @@ class PanelSuaje extends ConsumerStatefulWidget {
   final TextEditingController costoTotalSuajeController;
   final TextEditingController costoArregloSuajeController;
   final TextEditingController costoTotalSuajadoController;
+  final TextEditingController anchoSuajeController;
+  final TextEditingController largoSuajeController;
+  final bool seCuentaConSuaje;
+  final ValueChanged<bool?> onSeCuentaConSuajeChanged;
+  final TextEditingController pliegosSuajeController;
+  final TextEditingController costoMillarSuajeController;
 
-  final bool gastosEntrega;
-  final ValueChanged<bool?> onGastosEntregaChanged;
 
-  final bool duplicarCosto;
-  final ValueChanged<bool?> onDuplicarCostoChanged;
+
+
 
   const PanelSuaje({
     super.key,
@@ -24,10 +29,13 @@ class PanelSuaje extends ConsumerStatefulWidget {
     required this.costoTotalSuajeController,
     required this.costoArregloSuajeController,
     required this.costoTotalSuajadoController,
-    required this.gastosEntrega,
-    required this.onGastosEntregaChanged,
-    required this.duplicarCosto,
-    required this.onDuplicarCostoChanged,
+    required this.anchoSuajeController,
+    required this.largoSuajeController,
+    required this.seCuentaConSuaje,
+    required this.onSeCuentaConSuajeChanged,
+    required this.pliegosSuajeController,
+    required this.costoMillarSuajeController,
+
   });
 
   @override
@@ -41,6 +49,8 @@ class _PanelSuajeState extends ConsumerState<PanelSuaje> {
     widget.tamanoSuajeController.addListener(_calcularTotales);
     widget.costoSuajeCmController.addListener(_calcularTotales);
     widget.costoArregloSuajeController.addListener(_calcularTotales);
+    widget.anchoSuajeController.addListener(_calcularTotales);
+    widget.largoSuajeController.addListener(_calcularTotales);
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _cargarCostosBD());
   }
@@ -79,7 +89,7 @@ class _PanelSuajeState extends ConsumerState<PanelSuaje> {
     _calcularTotales();
   }
 
-  void _calcularTotales() {
+    void _calcularTotales() {
     if (!widget.enabled) return;
 
     // 🔹 Converti 20 → 2.0
@@ -97,18 +107,16 @@ class _PanelSuajeState extends ConsumerState<PanelSuaje> {
         double.tryParse(widget.costoSuajeCmController.text) ?? 0.0;
 
     final double costoTotalSuaje = tamano * costoCm;
-    widget.costoTotalSuajeController.text = costoTotalSuaje.toStringAsFixed(2);
+    widget.costoTotalSuajeController.text =
+        costoTotalSuaje.toStringAsFixed(2);
 
     final double costoArreglo =
         double.tryParse(widget.costoArregloSuajeController.text) ?? 0.0;
 
-    double granTotal = costoTotalSuaje + costoArreglo;
+    final double granTotal = costoTotalSuaje + costoArreglo;
 
-    if (widget.duplicarCosto) {
-      granTotal = granTotal * 2;
-    }
-
-    widget.costoTotalSuajadoController.text = granTotal.toStringAsFixed(2);
+    widget.costoTotalSuajadoController.text =
+        granTotal.toStringAsFixed(2);
   }
 
   @override
@@ -122,9 +130,7 @@ class _PanelSuajeState extends ConsumerState<PanelSuaje> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ======================================================
             //     SECCIÓN SÚAJE (esta sí depende de enabled)
-            // ======================================================
             Opacity(
               opacity: widget.enabled ? 1.0 : 0.4,
               child: IgnorePointer(
@@ -143,53 +149,86 @@ class _PanelSuajeState extends ConsumerState<PanelSuaje> {
 
                     const Text("Tamaño Suaje por Pieza (cm):"),
                     const SizedBox(height: 4),
-                    TextField(
-                      controller: widget.tamanoSuajeController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        isDense: true,
-                        contentPadding: EdgeInsets.all(10),
-                      ),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: widget.anchoSuajeController,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            decoration: const InputDecoration(
+                              labelText: "Ancho",
+                              border: OutlineInputBorder(),
+                              isDense: true,
+                              contentPadding: EdgeInsets.all(10),
+                            ),
+                          ),
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          child: Text("x"),
+                        ),
+                        Expanded(
+                          child: TextField(
+                            controller: widget.largoSuajeController,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            decoration: const InputDecoration(
+                              labelText: "Alto",
+                              border: OutlineInputBorder(),
+                              isDense: true,
+                              contentPadding: EdgeInsets.all(10),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      dense: true,
+                      title: const Text("Se cuenta con suaje"),
+                      value: widget.seCuentaConSuaje,
+                      onChanged: widget.onSeCuentaConSuajeChanged,
                     ),
 
-                    const SizedBox(height: 10),
-                    const Text("Costo del Suaje por cm:"),
-                    const SizedBox(height: 4),
-                    TextField(
-                      readOnly: true,
-                      controller: widget.costoSuajeCmController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
+                      const SizedBox(height: 10),
+                      const Text("Costo del Suaje por cm:"),
+                      const SizedBox(height: 4),
+                      TextField(
+                        controller: widget.costoSuajeCmController,
+                        readOnly: true,
+                        enabled: !widget.seCuentaConSuaje,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          prefixText: "\$ ",
+                          isDense: true,
+                          contentPadding: EdgeInsets.all(10),
+                        ),
                       ),
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        prefixText: "\$ ",
-                        isDense: true,
-                        contentPadding: EdgeInsets.all(10),
-                      ),
-                    ),
 
-                    const SizedBox(height: 15),
-                    const Text(
-                      "Costo Total Suaje:",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 4),
-                    TextField(
-                      controller: widget.costoTotalSuajeController,
-                      readOnly: true,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        prefixText: "\$ ",
-                        isDense: true,
-                        filled: true,
-                        fillColor: Color(0xFFEEEEEE),
-                        contentPadding: EdgeInsets.all(10),
+
+                      const SizedBox(height: 15),
+                      const Text(
+                        "Costo Total Suaje:",
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                    ),
+                      const SizedBox(height: 4),
+                      TextField(
+                        controller: widget.costoTotalSuajeController,
+                        readOnly: true,
+                        enabled: !widget.seCuentaConSuaje,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          prefixText: "\$ ",
+                          isDense: true,
+                          filled: true,
+                          fillColor: Color(0xFFEEEEEE),
+                          contentPadding: EdgeInsets.all(10),
+                        ),
+                      ),
+
 
                     const SizedBox(height: 15),
                     const Text("Costo Arreglo Suajado:"),
@@ -208,19 +247,35 @@ class _PanelSuajeState extends ConsumerState<PanelSuaje> {
                       ),
                     ),
 
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: widget.duplicarCosto,
-                          onChanged: (v) {
-                            widget.onDuplicarCostoChanged(v);
-                            Future.delayed(Duration.zero, _calcularTotales);
-                          },
-                        ),
-                        const Text("Duplicar Costo Suajado"),
-                      ],
+                    const SizedBox(height: 12),
+                    const Text("# de Pliegos:"),
+                    const SizedBox(height: 4),
+                    TextField(
+                      controller: widget.pliegosSuajeController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                        contentPadding: EdgeInsets.all(10),
+                      ),
                     ),
+
+                    const SizedBox(height: 12),
+                    const Text("Costo por Millar:"),
+                    const SizedBox(height: 4),
+                    TextField(
+                      controller: widget.costoMillarSuajeController,   // costo por millar esta en extras 
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        prefixText: "\$ ",
+                        isDense: true,
+                        contentPadding: EdgeInsets.all(10),
+                      ),
+                    ),
+
+
+
 
                     const SizedBox(height: 8),
                     const Text(
@@ -244,58 +299,6 @@ class _PanelSuajeState extends ConsumerState<PanelSuaje> {
                     const SizedBox(height: 25),
                   ],
                 ),
-              ),
-            ),
-
-            // ======================================================
-            //       LOGÍSTICA (siempre activa)
-            // ======================================================
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.black45),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Logística",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: widget.gastosEntrega,
-                        onChanged: widget.onGastosEntregaChanged,
-                      ),
-                      const Text("Gastos de Entrega:"),
-                    ],
-                  ),
-
-                  const SizedBox(height: 4),
-                  const Text("Costo:"),
-                  const SizedBox(height: 4),
-
-                  // Campo de costo: activado / desactivado dinámicamente
-                  Opacity(
-                    opacity: widget.gastosEntrega ? 1.0 : 0.4,
-                    child: IgnorePointer(
-                      ignoring: !widget.gastosEntrega,
-                      child: const TextField(
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          prefixText: "\$ ",
-                          isDense: true,
-                          contentPadding: EdgeInsets.all(10),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
               ),
             ),
           ],
