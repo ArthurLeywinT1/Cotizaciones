@@ -765,19 +765,6 @@ class _CotizacionPlanaScreenState extends State<CotizacionPlanaScreen> {
                 isOffset: offsetActivo,
               ),
 
-            if (laminadosActivo && offsetActivo)
-              PanelLaminados(
-                readOnly: laminadosActivo,
-                laminados: laminados,
-                onLaminadoChanged: actualizarLaminado,
-                pliegoAnchoController: pliegoAnchoController,
-                pliegoAltoController: pliegoAltoController,
-                totalPliegosController: totalPliegosController,
-                controllersCostoCm2: laminadosCostoCm2Controllers,
-                controllersCostoTotal: laminadosCostoTotalControllers,
-                cantidadImpresionController: cantidadImpresionController,
-                isOffset: offsetActivo,
-              ),
 
             if (offsetActivo && portada) ...[
               const Divider(thickness: 2),
