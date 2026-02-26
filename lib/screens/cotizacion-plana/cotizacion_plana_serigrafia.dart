@@ -264,7 +264,7 @@ class _CotizacionPlanaSerigrafiaState
                     Expanded(
                       child: campo(
                         "Precio ${index + 1}",
-                        widget.precioMarcos[index],
+                        widget.precioMarcos[index], //precio en extras
                       ),
                     ),
                   ],
@@ -292,7 +292,7 @@ class _CotizacionPlanaSerigrafiaState
                 Expanded(
                   child: campo(
                     "Precio Negativo",
-                    widget.precioNegativoController,
+                    widget.precioNegativoController, //precio en extras y multiplicarlo por la cantidad de negativos
                   ),
                 ),
               ],
@@ -312,7 +312,7 @@ class _CotizacionPlanaSerigrafiaState
                 Expanded(
                   child: campo(
                     "Costo por Tinta",
-                    widget.costoTintasController,
+                    widget.costoTintasController, //precio en extras
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -341,7 +341,7 @@ class _CotizacionPlanaSerigrafiaState
                 Expanded(
                   child: campo(
                     "Costo por Millar",
-                    widget.costoMillarController,
+                    widget.costoMillarController, //precio en extras
                   ),
                 ),
                 const SizedBox(width: 10),

@@ -896,8 +896,9 @@ final costoTotalGrabadoController = TextEditingController(text: "0.00");
               cantidadMediaCartaController: cantidadMediaCartaController,
               precioMediaCartaController: precioMediaCartaController,
               totalMediaCartaController: totalMediaCartaController,
+              acabadosEspeciales: acabadosEspeciales,
               onAcabadosEspecialesChanged: (v) =>
-                setState(() => acabadosEspeciales = v ?? false),
+                  setState(() => acabadosEspeciales = v ?? false),
               embalaje: embalaje,
               onEmbalajeChanged: (v) {
                 setState(() {

@@ -112,7 +112,7 @@ class _PanelGrabadoState extends State<PanelGrabado> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
-                    controller: widget.costoPlacaController,
+                    controller: widget.costoPlacaController, //precio en extras
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       labelText: "Costo por Placa",
@@ -137,7 +137,7 @@ class _PanelGrabadoState extends State<PanelGrabado> {
             const Divider(height: 24),
 
             TextField(
-              controller: widget.costoEntradaController,
+              controller: widget.costoEntradaController, //precio en extras 
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 labelText: "Costo de Entrada (por millar)",

@@ -212,9 +212,16 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
 
     widget.costoUnitRevController.text = precioRev.toStringAsFixed(2);
 
-    widget.costoTotalFteController.text = "0.00";
-    widget.costoTotalRevController.text = "0.00";
-    widget.costoGranTotalTintasController.text = "0.00";
+    double totalFte = precioFte;
+    double totalRev = precioRev;
+
+    widget.costoTotalFteController.text = totalFte.toStringAsFixed(2);
+    widget.costoTotalRevController.text = totalRev.toStringAsFixed(2);
+
+    double granTotal = totalFte + totalRev;
+
+    widget.costoGranTotalTintasController.text =
+        granTotal.toStringAsFixed(2);
 
     setState(() {
       widget.opcionesFrente.clear();
@@ -696,8 +703,10 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
-            _MonedaInput(readOnly: true),
-
+            _MonedaInput(
+              controller: widget.costoGranTotalTintasController,
+              readOnly: true,
+            ),
             const SizedBox(height: 20),
 
             // ==============================
