@@ -715,11 +715,12 @@ final costoTotalGrabadoController = TextEditingController(text: "0.00");
               anchoFinalController: anchoFinalController,
               altoFinalController: altoFinalController,
               cantidadPruebaPortadaCartaController:
-                  cantidadPruebaPortadaCartaController,
+              cantidadPruebaPortadaCartaController,
               precioPruebaPortadaCartaController:
                   precioPruebaPortadaCartaController,
               totalPruebaPortadaCartaController:
                   totalPruebaPortadaCartaController,
+              
 
               onPruebaColorPortadaChanged: (v) {
                 setState(() {
@@ -749,9 +750,26 @@ final costoTotalGrabadoController = TextEditingController(text: "0.00");
               barnizUV: barnizUV,
               onBarnizUVChanged: (v) => setState(() => barnizUV = v ?? false),
               suaje: suaje,
-              onSuajeChanged: (v) => setState(() => suaje = v),
+              onSuajeChanged: (v) {
+                setState(() {
+                  suaje = v ;
+                });
+                calcularPliegosSuaje();
+              },
+              serigrafia: serigrafia,
+              onSerigrafiaChanged: (v) {
+                setState(() {
+                  serigrafia = v ;
+                });
+              },
+
               offset: offsetActivo,
-              onOffsetChanged: (v) => setState(() => offsetActivo = v),
+                onOffsetChanged: (v) {
+                  setState(() {
+                    offsetActivo = v ;
+                  });
+                  calcularPliegosSuaje();
+                },
               onCalcular: calcularMedidasFinales,
               portada: portada,
               onPortadaChanged: (v) {
@@ -776,8 +794,7 @@ final costoTotalGrabadoController = TextEditingController(text: "0.00");
               pruebaColorPortadaCarta: pruebaColorPortadaCarta,
               pruebaColorPortadaTabloide: pruebaColorPortadaTabloide,
               pruebaColorPortadaMediaCarta: pruebaColorPortadaMediaCarta,
-              paginasInternasTotalesController:
-                  paginasInternasTotalesController,
+              paginasInternasTotalesController: paginasInternasTotalesController,
               onPruebaColorPortadaCartaChanged: (v) {
                 setState(() {
                   pruebaColorPortadaCarta = v ?? false;
@@ -810,6 +827,7 @@ final costoTotalGrabadoController = TextEditingController(text: "0.00");
                   }
                 });
               },
+
 
               barnizUVPortada: barnizUVPortada,
               onBarnizUVPortadaChanged: (v) {
@@ -878,9 +896,22 @@ final costoTotalGrabadoController = TextEditingController(text: "0.00");
               cantidadMediaCartaController: cantidadMediaCartaController,
               precioMediaCartaController: precioMediaCartaController,
               totalMediaCartaController: totalMediaCartaController,
-              acabadosEspeciales: acabadosEspeciales,
               onAcabadosEspecialesChanged: (v) =>
-                  setState(() => acabadosEspeciales = v ?? false),
+                setState(() => acabadosEspeciales = v ?? false),
+              embalaje: embalaje,
+              onEmbalajeChanged: (v) {
+                setState(() {
+                  embalaje = v;
+                });
+              },
+              grabado: grabado,
+              onGrabadoChanged: (v) {
+                setState(() {
+                  grabado = v ;
+                });
+              },
+              
+
             ),
 
             if (offsetActivo) ...[
