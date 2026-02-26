@@ -69,12 +69,27 @@ class _DialogoSelectorMaquinaState
                           subtitle: Text(
                             "Tintas: ${maquina.cantidadTintas ?? '-'}",
                           ),
-                          trailing: Text(
-                            "\$${maquina.costoPorPlaca}",
-                            style: const TextStyle(
-                              color: Colors.green,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          trailing: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                "615x724: \$${maquina.costoPlaca615x724.toStringAsFixed(2)}",
+                                style: const TextStyle(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              Text(
+                                "790x1030: \$${maquina.costoPlaca790x1030.toStringAsFixed(2)}",
+                                style: const TextStyle(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
                           ),
                           onTap: () {
                             widget.onSeleccionado(maquina);

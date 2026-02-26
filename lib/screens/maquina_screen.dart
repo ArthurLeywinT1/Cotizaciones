@@ -102,7 +102,8 @@ class MaquinaScreen extends ConsumerWidget {
                       DataColumn(label: Text('Tintas')),
                       DataColumn(label: Text('Tamaños')),
                       DataColumn(label: Text('Formato Max.')),
-                      DataColumn(label: Text('Costo Placa')),
+                      DataColumn(label: Text('Costo 615x724')),
+                      DataColumn(label: Text('Costo 790x1030')),
                       DataColumn(label: Text('Fecha Modificación')),
                     ],
                     rows: maquinasState.maquinas.map((m) {
@@ -126,7 +127,12 @@ class MaquinaScreen extends ConsumerWidget {
                           DataCell(Text(m.cantidadTamanos?.toString() ?? '-')),
                           DataCell(Text(m.tamanoMaximo)),
                           DataCell(
-                            Text('\$${m.costoPorPlaca.toStringAsFixed(2)}'),
+                            Text('\$${m.costoPlaca615x724.toStringAsFixed(2)}'),
+                          ),
+                          DataCell(
+                            Text(
+                              '\$${m.costoPlaca790x1030.toStringAsFixed(2)}',
+                            ),
                           ),
                           DataCell(
                             Text(
@@ -155,8 +161,9 @@ class MaquinaScreen extends ConsumerWidget {
                   icon: Icons.edit,
                   label: "Modificar",
                   onPressed: () {
-                    if (seleccionado != null)
+                    if (seleccionado != null) {
                       _agregarMaquina(context, ref, seleccionado);
+                    }
                   },
                 ),
                 Boton(
@@ -164,8 +171,9 @@ class MaquinaScreen extends ConsumerWidget {
                   label: "Eliminar",
                   isDestructive: true,
                   onPressed: () {
-                    if (seleccionado != null)
+                    if (seleccionado != null) {
                       _eliminar(context, ref, seleccionado);
+                    }
                   },
                 ),
                 Boton(

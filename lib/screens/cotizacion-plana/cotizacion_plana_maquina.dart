@@ -45,8 +45,6 @@ class PanelMaquina extends ConsumerStatefulWidget {
   final Function(bool) onBarnizFteChanged;
   final Function(bool) onBarnizRevChanged;
 
-
-
   const PanelMaquina({
     super.key,
     required this.nombreMaquinaController,
@@ -82,7 +80,6 @@ class PanelMaquina extends ConsumerStatefulWidget {
     required this.barnizRevController,
     required this.costoUnitBarnizFteController,
     required this.costoUnitBarnizRevController,
-
   });
 
   @override
@@ -90,10 +87,8 @@ class PanelMaquina extends ConsumerStatefulWidget {
 }
 
 class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
- 
   String? _opcionFrente;
   String? _opcionVuelta;
-  
 
   @override
   void initState() {
@@ -114,160 +109,152 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
       _cargarCostoPlacaDefault();
     });
   }
+
   List<String> _generarOpciones(int cantidad) {
-  if (cantidad <= 0) return [];
+    if (cantidad <= 0) return [];
 
-  if (cantidad == 1) {
-    return [
-      "8 OFICIOS TINTA CMYK",
-      "8 OFICIOS PLASTA PANTONE CMYK",
-      "4 CARTAS POR SELECCIÓN",
-      "4 CARTAS PANTONE LINEA",
-      "4 CARTAS PANTONE PLASTA",
-      "8 OFICIOS DE 20 pts PANTONE LINEA",
-      "OTRO",
-    ];
-  }
-
-  if (cantidad == 2) {
-    return [
-      "8 OFICIO 2 COLORES",
-      "8 OFICIO 1 COLOR 1 PLASTA",
-      "4 CARTA 2 COLORES",
-      "OTRO",
-    ];
-  }
-
-  if (cantidad == 3) {
-    return [
-      "8 OFICIO 3 COLORES",
-      "8 OFICIO 2 COLORES 1 PLASTA",
-      "4 CARTA 3 COLORES",
-      "OTRO",
-    ];
-  }
-
-  if (cantidad == 4) {
-    return [
-      "8 OFICIO 4 COLORES",
-      "4 CARTA 4 COLORES",
-      "8 OFICIO 20 PTS 4 COLORES",
-      "OTRO",
-    ];
-  }
-
-  return ["OTRO"];
-}
-
-void _calcularCostosTintas() {
-  final extrasState = ref.read(extrasProvider);
-  double costoFijoTinta = 0.0;
-
-  try {
-    final extraTintas = extrasState.extras.firstWhere(
-      (e) => e.nombre.trim().toLowerCase() == 'tintas',
-    );
-    costoFijoTinta = extraTintas.costoFijo ?? 0.0;
-  } catch (e) {
-    costoFijoTinta = 0.0;
-  }
-
-  final int cantFteInt =
-      int.tryParse(widget.tintasFteController.text) ?? 0;
-
-  final int cantRevInt =
-      int.tryParse(widget.tintasRevController.text) ?? 0;
-
-  final double millaresDouble =
-      double.tryParse(widget.millaresController.text) ?? 0;
-
-  int millares = millaresDouble.floor();
-
-  if (millares <= 0 && millaresDouble > 0) {
-    millares = 1;
-  }
-
-  double precioFte = 0.0;
-  double precioRev = 0.0;
-
-// ==============================
-// FRENTE
-// ==============================
-if (cantFteInt > 0 &&
-    cantFteInt <= 4 &&
-    _opcionFrente != null &&
-    millares > 0) {
-
-  precioFte = _calcularPrecioPorOpcion(_opcionFrente!, millares);
-
-} else {
-  precioFte = costoFijoTinta;
-}
-
-widget.costoUnitFteController.text =
-    precioFte.toStringAsFixed(2);
-
-// ==============================
-// REVERSO
-// ==============================
-if (cantRevInt > 0 &&
-    cantRevInt <= 4 &&
-    _opcionVuelta != null &&
-    millares > 0) {
-
-  precioRev = _calcularPrecioPorOpcion(_opcionVuelta!, millares);
-
-} else {
-  precioRev = costoFijoTinta;
-}
-
-widget.costoUnitRevController.text =
-    precioRev.toStringAsFixed(2);
-  
-  widget.costoTotalFteController.text = "0.00";
-  widget.costoTotalRevController.text = "0.00";
-  widget.costoGranTotalTintasController.text = "0.00";
-
-  setState(() {
-    widget.opcionesFrente.clear();
-    widget.opcionesFrente.addAll(_generarOpciones(cantFteInt));
-
-    widget.opcionesVuelta.clear();
-    widget.opcionesVuelta.addAll(_generarOpciones(cantRevInt));
-
-    if (!widget.opcionesFrente.contains(_opcionFrente)) {
-      _opcionFrente = null;
+    if (cantidad == 1) {
+      return [
+        "8 OFICIOS TINTA CMYK",
+        "8 OFICIOS PLASTA PANTONE CMYK",
+        "4 CARTAS POR SELECCIÓN",
+        "4 CARTAS PANTONE LINEA",
+        "4 CARTAS PANTONE PLASTA",
+        "8 OFICIOS DE 20 pts PANTONE LINEA",
+        "OTRO",
+      ];
     }
 
-    if (!widget.opcionesVuelta.contains(_opcionVuelta)) {
-      _opcionVuelta = null;
+    if (cantidad == 2) {
+      return [
+        "8 OFICIO 2 COLORES",
+        "8 OFICIO 1 COLOR 1 PLASTA",
+        "4 CARTA 2 COLORES",
+        "OTRO",
+      ];
     }
-  });
-// ================= BARNIZ =================
-// ================= BARNIZ =================
-double precioBarnizFte = 0;
-double precioBarnizRev = 0;
 
-if (widget.barnizFte && millares > 0 && _opcionFrente != null) {
-  bool es20Pts = _opcionFrente!.toUpperCase().contains("20");
-  precioBarnizFte = _calcularPrecioBarniz(es20Pts, millares);
-}
+    if (cantidad == 3) {
+      return [
+        "8 OFICIO 3 COLORES",
+        "8 OFICIO 2 COLORES 1 PLASTA",
+        "4 CARTA 3 COLORES",
+        "OTRO",
+      ];
+    }
 
-if (widget.barnizRev && millares > 0 && _opcionVuelta != null) {
-  bool es20Pts = _opcionVuelta!.toUpperCase().contains("20");
-  precioBarnizRev = _calcularPrecioBarniz(es20Pts, millares);
-}
+    if (cantidad == 4) {
+      return [
+        "8 OFICIO 4 COLORES",
+        "4 CARTA 4 COLORES",
+        "8 OFICIO 20 PTS 4 COLORES",
+        "OTRO",
+      ];
+    }
 
-double totalBarniz = precioBarnizFte + precioBarnizRev;
+    return ["OTRO"];
+  }
 
-// 🔥 ESTE ES EL PUNTO 
-if (!widget.barnizFte && !widget.barnizRev) {
-  totalBarniz = 0;
-}
+  void _calcularCostosTintas() {
+    final extrasState = ref.read(extrasProvider);
+    double costoFijoTinta = 0.0;
 
-widget.costoBarnizController.text =
-    totalBarniz.toStringAsFixed(2);
-}
+    try {
+      final extraTintas = extrasState.extras.firstWhere(
+        (e) => e.nombre.trim().toLowerCase() == 'tintas',
+      );
+      costoFijoTinta = extraTintas.costoFijo ?? 0.0;
+    } catch (e) {
+      costoFijoTinta = 0.0;
+    }
+
+    final int cantFteInt = int.tryParse(widget.tintasFteController.text) ?? 0;
+
+    final int cantRevInt = int.tryParse(widget.tintasRevController.text) ?? 0;
+
+    final double millaresDouble =
+        double.tryParse(widget.millaresController.text) ?? 0;
+
+    int millares = millaresDouble.floor();
+
+    if (millares <= 0 && millaresDouble > 0) {
+      millares = 1;
+    }
+
+    double precioFte = 0.0;
+    double precioRev = 0.0;
+
+    // ==============================
+    // FRENTE
+    // ==============================
+    if (cantFteInt > 0 &&
+        cantFteInt <= 4 &&
+        _opcionFrente != null &&
+        millares > 0) {
+      precioFte = _calcularPrecioPorOpcion(_opcionFrente!, millares);
+    } else {
+      precioFte = costoFijoTinta;
+    }
+
+    widget.costoUnitFteController.text = precioFte.toStringAsFixed(2);
+
+    // ==============================
+    // REVERSO
+    // ==============================
+    if (cantRevInt > 0 &&
+        cantRevInt <= 4 &&
+        _opcionVuelta != null &&
+        millares > 0) {
+      precioRev = _calcularPrecioPorOpcion(_opcionVuelta!, millares);
+    } else {
+      precioRev = costoFijoTinta;
+    }
+
+    widget.costoUnitRevController.text = precioRev.toStringAsFixed(2);
+
+    widget.costoTotalFteController.text = "0.00";
+    widget.costoTotalRevController.text = "0.00";
+    widget.costoGranTotalTintasController.text = "0.00";
+
+    setState(() {
+      widget.opcionesFrente.clear();
+      widget.opcionesFrente.addAll(_generarOpciones(cantFteInt));
+
+      widget.opcionesVuelta.clear();
+      widget.opcionesVuelta.addAll(_generarOpciones(cantRevInt));
+
+      if (!widget.opcionesFrente.contains(_opcionFrente)) {
+        _opcionFrente = null;
+      }
+
+      if (!widget.opcionesVuelta.contains(_opcionVuelta)) {
+        _opcionVuelta = null;
+      }
+    });
+    // ================= BARNIZ =================
+    // ================= BARNIZ =================
+    double precioBarnizFte = 0;
+    double precioBarnizRev = 0;
+
+    if (widget.barnizFte && millares > 0 && _opcionFrente != null) {
+      bool es20Pts = _opcionFrente!.toUpperCase().contains("20");
+      precioBarnizFte = _calcularPrecioBarniz(es20Pts, millares);
+    }
+
+    if (widget.barnizRev && millares > 0 && _opcionVuelta != null) {
+      bool es20Pts = _opcionVuelta!.toUpperCase().contains("20");
+      precioBarnizRev = _calcularPrecioBarniz(es20Pts, millares);
+    }
+
+    double totalBarniz = precioBarnizFte + precioBarnizRev;
+
+    // 🔥 ESTE ES EL PUNTO
+    if (!widget.barnizFte && !widget.barnizRev) {
+      totalBarniz = 0;
+    }
+
+    widget.costoBarnizController.text = totalBarniz.toStringAsFixed(2);
+  }
 
   void _cargarCostoPlacaDefault() {
     if (widget.costoPlacaController.text.isNotEmpty &&
@@ -293,129 +280,127 @@ widget.costoBarnizController.text =
       _calcularTotalPlacas();
     }
   }
-double _calcularPrecioPorOpcion(String opcion, int millares) {
-  switch (opcion) {
 
-    case "8 OFICIOS TINTA CMYK":
-      if (millares <= 1) return 700;
-      if (millares == 2) return 600;
-      if (millares >= 3 && millares <= 4) return 525;
-      if (millares >= 5 && millares <= 6) return 500;
-      if (millares >= 7 && millares <= 10) return 460;
-      if (millares >= 11 && millares <= 15) return 425;
-      if (millares >= 16 && millares <= 20) return 390;
-      if (millares >= 21 && millares <= 30) return 380;
-      if (millares >= 31 && millares <= 50) return 350;
-      return 330;
+  double _calcularPrecioPorOpcion(String opcion, int millares) {
+    switch (opcion) {
+      case "8 OFICIOS TINTA CMYK":
+        if (millares <= 1) return 700;
+        if (millares == 2) return 600;
+        if (millares >= 3 && millares <= 4) return 525;
+        if (millares >= 5 && millares <= 6) return 500;
+        if (millares >= 7 && millares <= 10) return 460;
+        if (millares >= 11 && millares <= 15) return 425;
+        if (millares >= 16 && millares <= 20) return 390;
+        if (millares >= 21 && millares <= 30) return 380;
+        if (millares >= 31 && millares <= 50) return 350;
+        return 330;
 
-    case "8 OFICIOS PLASTA PANTONE CMYK":
-      if (millares <= 1) return 1800;
-      if (millares <= 4) return 1400;
-      if (millares <= 30) return 1100;
-      return 1000;
+      case "8 OFICIOS PLASTA PANTONE CMYK":
+        if (millares <= 1) return 1800;
+        if (millares <= 4) return 1400;
+        if (millares <= 30) return 1100;
+        return 1000;
 
-    case "4 CARTAS POR SELECCIÓN":
-      return 450;
+      case "4 CARTAS POR SELECCIÓN":
+        return 450;
 
-    case "4 CARTAS PANTONE LINEA":
-      return 600;
+      case "4 CARTAS PANTONE LINEA":
+        return 600;
 
-    case "4 CARTAS PANTONE PLASTA":
-      return 800;
+      case "4 CARTAS PANTONE PLASTA":
+        return 800;
 
-    case "8 OFICIOS DE 20 pts PANTONE LINEA":
-      if (millares == 1) return 3000;
-      if (millares == 2) return 2000;
-      return 1800;
+      case "8 OFICIOS DE 20 pts PANTONE LINEA":
+        if (millares == 1) return 3000;
+        if (millares == 2) return 2000;
+        return 1800;
 
-    case "8 OFICIO 2 COLORES":
-      if (millares <= 1) return 1050;
-      if (millares == 2) return 900;
-      if (millares >= 3 && millares <= 4) return 780;
-      if (millares >= 5 && millares <= 6) return 750;
-      if (millares >= 7 && millares <= 10) return 690;
-      if (millares >= 11 && millares <= 15) return 640;
-      if (millares >= 16 && millares <= 20) return 585;
-      if (millares >= 21 && millares <= 30) return 570;
-      if (millares >= 31 && millares <= 50) return 525;
-      return 495;
-    
-    case "8 OFICIO 1 COLOR 1 PLASTA":
-      if (millares <= 1) return 2500;
-      if (millares == 2) return 2000;
-      if (millares >= 3 && millares <= 4) return 1925;
-      if (millares >= 5 && millares <= 6) return 1600;
-      if (millares >= 7 && millares <= 10) return 1560;
-      if (millares >= 11 && millares <= 15) return 1525;
-      if (millares >= 16 && millares <= 20) return 1490;
-      if (millares >= 21 && millares <= 30) return 1380;
-      if (millares >= 31 && millares <= 50) return 1350;
-      return 1330;
-    case "4 CARTA 2 COLORES":
-      return 700;
-    case "8 OFICIO 3 COLORES":
-      if (millares <= 1) return 1200;
-      if (millares == 2) return 1035;
-      if (millares >= 3 && millares <= 4) return 910;
-      if (millares >= 5 && millares <= 6) return 860;
-      if (millares >= 7 && millares <= 10) return 795;
-      if (millares >= 11 && millares <= 15) return 735;
-      if (millares >= 16 && millares <= 20) return 675;
-      if (millares >= 21 && millares <= 30) return 660;
-      if (millares >= 31 && millares <= 50) return 610;
-      return 570;
-    case "8 OFICIO 2 COLORES 1 PLASTA":
-      if (millares <= 1) return 2850;
-      if (millares == 2) return 2300;
-      if (millares >= 3 && millares <= 4) return 2180;
-      if (millares >= 5 && millares <= 6) return 1850;
-      if (millares >= 7 && millares <= 10) return 1790;
-      if (millares >= 11 && millares <= 15) return 1740;
-      if (millares >= 16 && millares <= 20) return 1685;
-      if (millares >= 21 && millares <= 30) return 1670;
-      if (millares >= 31 && millares <= 50) return 1525;
-      return 1495;
-    case "4 CARTA 3 COLORES":
-      return 800;
-    case "8 OFICIO 4 COLORES":
-      if (millares <= 1) return 1400;
-      if (millares == 2) return 1200;
-      if (millares >= 3 && millares <= 4) return 1050;
-      if (millares >= 5 && millares <= 6) return 1000;
-      if (millares >= 7 && millares <= 10) return 920;
-      if (millares >= 11 && millares <= 15) return 850;
-      if (millares >= 16 && millares <= 20) return 780;
-      if (millares >= 21 && millares <= 30) return 760;
-      if (millares >= 31 && millares <= 50) return 700;
-      return 660;
-    case "4 CARTA 4 COLORES":
-      return 900; 
-    case "8 OFICIO 20 PTS 4 COLORES":
-      if (millares == 1) return 4800;
-      if (millares == 2) return 4400;
-      return 3800;
+      case "8 OFICIO 2 COLORES":
+        if (millares <= 1) return 1050;
+        if (millares == 2) return 900;
+        if (millares >= 3 && millares <= 4) return 780;
+        if (millares >= 5 && millares <= 6) return 750;
+        if (millares >= 7 && millares <= 10) return 690;
+        if (millares >= 11 && millares <= 15) return 640;
+        if (millares >= 16 && millares <= 20) return 585;
+        if (millares >= 21 && millares <= 30) return 570;
+        if (millares >= 31 && millares <= 50) return 525;
+        return 495;
 
-      
+      case "8 OFICIO 1 COLOR 1 PLASTA":
+        if (millares <= 1) return 2500;
+        if (millares == 2) return 2000;
+        if (millares >= 3 && millares <= 4) return 1925;
+        if (millares >= 5 && millares <= 6) return 1600;
+        if (millares >= 7 && millares <= 10) return 1560;
+        if (millares >= 11 && millares <= 15) return 1525;
+        if (millares >= 16 && millares <= 20) return 1490;
+        if (millares >= 21 && millares <= 30) return 1380;
+        if (millares >= 31 && millares <= 50) return 1350;
+        return 1330;
+      case "4 CARTA 2 COLORES":
+        return 700;
+      case "8 OFICIO 3 COLORES":
+        if (millares <= 1) return 1200;
+        if (millares == 2) return 1035;
+        if (millares >= 3 && millares <= 4) return 910;
+        if (millares >= 5 && millares <= 6) return 860;
+        if (millares >= 7 && millares <= 10) return 795;
+        if (millares >= 11 && millares <= 15) return 735;
+        if (millares >= 16 && millares <= 20) return 675;
+        if (millares >= 21 && millares <= 30) return 660;
+        if (millares >= 31 && millares <= 50) return 610;
+        return 570;
+      case "8 OFICIO 2 COLORES 1 PLASTA":
+        if (millares <= 1) return 2850;
+        if (millares == 2) return 2300;
+        if (millares >= 3 && millares <= 4) return 2180;
+        if (millares >= 5 && millares <= 6) return 1850;
+        if (millares >= 7 && millares <= 10) return 1790;
+        if (millares >= 11 && millares <= 15) return 1740;
+        if (millares >= 16 && millares <= 20) return 1685;
+        if (millares >= 21 && millares <= 30) return 1670;
+        if (millares >= 31 && millares <= 50) return 1525;
+        return 1495;
+      case "4 CARTA 3 COLORES":
+        return 800;
+      case "8 OFICIO 4 COLORES":
+        if (millares <= 1) return 1400;
+        if (millares == 2) return 1200;
+        if (millares >= 3 && millares <= 4) return 1050;
+        if (millares >= 5 && millares <= 6) return 1000;
+        if (millares >= 7 && millares <= 10) return 920;
+        if (millares >= 11 && millares <= 15) return 850;
+        if (millares >= 16 && millares <= 20) return 780;
+        if (millares >= 21 && millares <= 30) return 760;
+        if (millares >= 31 && millares <= 50) return 700;
+        return 660;
+      case "4 CARTA 4 COLORES":
+        return 900;
+      case "8 OFICIO 20 PTS 4 COLORES":
+        if (millares == 1) return 4800;
+        if (millares == 2) return 4400;
+        return 3800;
 
-    default:
-      return 0;
-  }
-}
-double _calcularPrecioBarniz(bool es20Pts, int millares) {
-
-  if (es20Pts) {
-    if (millares <= 1) return 2000;
-    if (millares <= 2) return 1500;
-    return 1300;
+      default:
+        return 0;
+    }
   }
 
-  // Precio normal
-  if (millares <= 1) return 1000;
-  if (millares == 2) return 750;
-  if (millares >= 3 && millares <= 4) return 750;
-  if (millares >= 5 && millares <= 31) return 700;
-  return 650;
-}
+  double _calcularPrecioBarniz(bool es20Pts, int millares) {
+    if (es20Pts) {
+      if (millares <= 1) return 2000;
+      if (millares <= 2) return 1500;
+      return 1300;
+    }
+
+    // Precio normal
+    if (millares <= 1) return 1000;
+    if (millares == 2) return 750;
+    if (millares >= 3 && millares <= 4) return 750;
+    if (millares >= 5 && millares <= 31) return 700;
+    return 650;
+  }
 
   void _calcularTotalPlacas() {
     final double cantidad =
@@ -426,15 +411,16 @@ double _calcularPrecioBarniz(bool es20Pts, int millares) {
     final double total = cantidad * costoUnitario;
     widget.costoTotalPlacasController.text = total.toStringAsFixed(2);
   }
-  void _calcularTotalPlacas790() {
-  final double cantidad =
-      double.tryParse(widget.cantidadPlacas790Controller.text) ?? 0.0;
-  final double costoUnitario =
-      double.tryParse(widget.costoPlaca790Controller.text) ?? 0.0;
 
-  final double total = cantidad * costoUnitario;
-  widget.costoTotalPlacas790Controller.text = total.toStringAsFixed(2);
-}
+  void _calcularTotalPlacas790() {
+    final double cantidad =
+        double.tryParse(widget.cantidadPlacas790Controller.text) ?? 0.0;
+    final double costoUnitario =
+        double.tryParse(widget.costoPlaca790Controller.text) ?? 0.0;
+
+    final double total = cantidad * costoUnitario;
+    widget.costoTotalPlacas790Controller.text = total.toStringAsFixed(2);
+  }
 
   void _buscarMaquina() {
     showDialog(
@@ -442,8 +428,14 @@ double _calcularPrecioBarniz(bool es20Pts, int millares) {
       builder: (_) => DialogoSelectorMaquina(
         onSeleccionado: (maquina) {
           widget.nombreMaquinaController.text = maquina.nombre;
-          widget.costoPlacaController.text = maquina.costoPorPlaca.toString();
+
+          widget.costoPlacaController.text = maquina.costoPlaca615x724
+              .toStringAsFixed(2);
+          widget.costoPlaca790Controller.text = maquina.costoPlaca790x1030
+              .toStringAsFixed(2);
+
           _calcularTotalPlacas();
+          _calcularTotalPlacas790();
         },
       ),
     );
@@ -568,28 +560,28 @@ double _calcularPrecioBarniz(bool es20Pts, int millares) {
                 ),
                 Checkbox(
                   value: widget.barnizFte,
-                onChanged: (value) {
-                  widget.onBarnizFteChanged(value ?? false);
+                  onChanged: (value) {
+                    widget.onBarnizFteChanged(value ?? false);
 
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    _calcularCostosTintas();
-                  });
-                },
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      _calcularCostosTintas();
+                    });
+                  },
                 ),
                 const Text("Barniz Máquina Frente"),
 
                 const SizedBox(width: 15),
 
-              Checkbox(
-                value: widget.barnizRev,
-                onChanged: (value) {
-                  widget.onBarnizRevChanged(value ?? false);
+                Checkbox(
+                  value: widget.barnizRev,
+                  onChanged: (value) {
+                    widget.onBarnizRevChanged(value ?? false);
 
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    _calcularCostosTintas();
-                  });
-},
-              ),
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      _calcularCostosTintas();
+                    });
+                  },
+                ),
                 const Text("Barniz Máquina Vuelta"),
               ],
             ),
@@ -605,10 +597,7 @@ double _calcularPrecioBarniz(bool es20Pts, int millares) {
               DropdownButtonFormField<String>(
                 value: _opcionFrente,
                 items: widget.opcionesFrente
-                    .map((op) => DropdownMenuItem(
-                          value: op,
-                          child: Text(op),
-                        ))
+                    .map((op) => DropdownMenuItem(value: op, child: Text(op)))
                     .toList(),
                 onChanged: (value) {
                   setState(() {
@@ -634,10 +623,7 @@ double _calcularPrecioBarniz(bool es20Pts, int millares) {
               DropdownButtonFormField<String>(
                 value: _opcionVuelta,
                 items: widget.opcionesVuelta
-                    .map((op) => DropdownMenuItem(
-                          value: op,
-                          child: Text(op),
-                        ))
+                    .map((op) => DropdownMenuItem(value: op, child: Text(op)))
                     .toList(),
                 onChanged: (value) {
                   setState(() {
@@ -661,7 +647,6 @@ double _calcularPrecioBarniz(bool es20Pts, int millares) {
                 const Text("Cambiar precio por tinta"),
               ],
             ),
-
 
             const SizedBox(height: 20),
 
@@ -708,17 +693,16 @@ double _calcularPrecioBarniz(bool es20Pts, int millares) {
             // COSTO TOTAL TINTAS
             const Text(
               "Costo Total Tintas:",
-              style: TextStyle(fontWeight: FontWeight.bold), 
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             _MonedaInput(readOnly: true),
 
             const SizedBox(height: 20),
-          
+
             // ==============================
             // PLACA 615 X 724
             // ==============================
-
             const Text("Cantidad Placas 615 X 724:"),
             const SizedBox(height: 4),
             SizedBox(
@@ -738,7 +722,8 @@ double _calcularPrecioBarniz(bool es20Pts, int millares) {
             const Text("Costo por Placa 615 X 724:"),
             const SizedBox(height: 4),
             _MonedaInput(
-              controller: widget.costoPlacaController, // traer precio de extras y revisar por que cuando seleccionas maquina pone un precio de 5 
+              controller: widget
+                  .costoPlacaController, // traer precio de extras y revisar por que cuando seleccionas maquina pone un precio de 5
               readOnly: !widget.cambiarPrecioPlaca,
             ),
 
@@ -759,7 +744,6 @@ double _calcularPrecioBarniz(bool es20Pts, int millares) {
             // ==============================
             // PLACA 790 X 1030
             // ==============================
-
             const Text("Cantidad Placas 790 X 1030:"),
             const SizedBox(height: 4),
             SizedBox(
@@ -779,7 +763,8 @@ double _calcularPrecioBarniz(bool es20Pts, int millares) {
             const Text("Costo por Placa 790 X 1030:"),
             const SizedBox(height: 4),
             _MonedaInput(
-              controller: widget.costoPlaca790Controller, //traer precio de extras
+              controller:
+                  widget.costoPlaca790Controller, //traer precio de extras
               readOnly: !widget.cambiarPrecioPlaca,
             ),
 
@@ -818,7 +803,6 @@ double _calcularPrecioBarniz(bool es20Pts, int millares) {
               ],
             ),
 
-
             // COSTO BARNIZ
             const Text(
               "Costo Barniz de Máquina:",
@@ -826,13 +810,11 @@ double _calcularPrecioBarniz(bool es20Pts, int millares) {
             ),
             const SizedBox(height: 4),
             _MonedaInput(
-            controller: widget.costoBarnizController,
-            readOnly: !widget.cambiarPrecioBarniz,
-          ),
-
+              controller: widget.costoBarnizController,
+              readOnly: !widget.cambiarPrecioBarniz,
+            ),
 
             const SizedBox(height: 16),
-
 
             const Text(
               "Costo Total Placas:",

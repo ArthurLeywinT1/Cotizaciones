@@ -5,7 +5,8 @@ class Maquina {
   final int? cantidadTamanos;
   final int? anchoMaximo;
   final int? largoMaximo;
-  final double costoPorPlaca;
+  final double costoPlaca615x724;
+  final double costoPlaca790x1030;
   final DateTime? fechaModificacion;
 
   Maquina({
@@ -15,7 +16,8 @@ class Maquina {
     this.cantidadTamanos,
     this.anchoMaximo,
     this.largoMaximo,
-    required this.costoPorPlaca,
+    required this.costoPlaca615x724,
+    required this.costoPlaca790x1030,
     this.fechaModificacion,
   });
 
@@ -35,7 +37,10 @@ class Maquina {
       largoMaximo: map['largo_maximo'] != null
           ? int.tryParse(map['largo_maximo'].toString())
           : null,
-      costoPorPlaca: double.tryParse(map['costo_por_placa'].toString()) ?? 0.0,
+      costoPlaca615x724:
+          double.tryParse(map['costo_placa_615x724'].toString()) ?? 0.0,
+      costoPlaca790x1030:
+          double.tryParse(map['costo_placa_790x1030'].toString()) ?? 0.0,
       fechaModificacion: map['fecha_modificacion'] != null
           ? DateTime.tryParse(map['fecha_modificacion'].toString())
           : null,
@@ -50,7 +55,8 @@ class Maquina {
       'cantidad_tamanos': cantidadTamanos,
       'ancho_maximo': anchoMaximo,
       'largo_maximo': largoMaximo,
-      'costo_por_placa': costoPorPlaca,
+      'costo_placa_615x724': costoPlaca615x724,
+      'costo_placa_790x1030': costoPlaca790x1030,
       'fecha_modificacion': fechaModificacion?.toIso8601String(),
     };
   }

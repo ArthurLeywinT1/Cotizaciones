@@ -26,7 +26,8 @@ class _ModalMaquinaState extends State<ModalMaquina> {
   late TextEditingController tamanosCtrl;
   late TextEditingController anchoCtrl;
   late TextEditingController largoCtrl;
-  late TextEditingController costoCtrl;
+  late TextEditingController costo615Ctrl;
+  late TextEditingController costo790Ctrl;
 
   @override
   void initState() {
@@ -41,7 +42,13 @@ class _ModalMaquinaState extends State<ModalMaquina> {
     );
     anchoCtrl = TextEditingController(text: m?.anchoMaximo?.toString() ?? '');
     largoCtrl = TextEditingController(text: m?.largoMaximo?.toString() ?? '');
-    costoCtrl = TextEditingController(text: m?.costoPorPlaca.toString() ?? '');
+
+    costo615Ctrl = TextEditingController(
+      text: m?.costoPlaca615x724.toString() ?? '',
+    );
+    costo790Ctrl = TextEditingController(
+      text: m?.costoPlaca790x1030.toString() ?? '',
+    );
   }
 
   @override
@@ -51,7 +58,8 @@ class _ModalMaquinaState extends State<ModalMaquina> {
     tamanosCtrl.dispose();
     anchoCtrl.dispose();
     largoCtrl.dispose();
-    costoCtrl.dispose();
+    costo615Ctrl.dispose();
+    costo790Ctrl.dispose();
     super.dispose();
   }
 
@@ -68,7 +76,8 @@ class _ModalMaquinaState extends State<ModalMaquina> {
         cantidadTamanos: int.tryParse(tamanosCtrl.text),
         anchoMaximo: int.tryParse(anchoCtrl.text),
         largoMaximo: int.tryParse(largoCtrl.text),
-        costoPorPlaca: double.tryParse(costoCtrl.text) ?? 0.0,
+        costoPlaca615x724: double.tryParse(costo615Ctrl.text) ?? 0.0,
+        costoPlaca790x1030: double.tryParse(costo790Ctrl.text) ?? 0.0,
         fechaModificacion: DateTime.now(),
       );
 
@@ -93,6 +102,7 @@ class _ModalMaquinaState extends State<ModalMaquina> {
             key: _formKey,
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildInput(nombreCtrl, 'Nombre de la Máquina', required: true),
                 const SizedBox(height: 16),
@@ -147,11 +157,34 @@ class _ModalMaquinaState extends State<ModalMaquina> {
                 ),
                 const SizedBox(height: 16),
 
-                _buildInput(
-                  costoCtrl,
-                  'Costo por Placa (\$)',
-                  required: true,
-                  isNumber: true,
+                const Text(
+                  "Costos por Placa (\$)",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blueGrey,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildInput(
+                        costo615Ctrl,
+                        '615x724',
+                        required: true,
+                        isNumber: true,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildInput(
+                        costo790Ctrl,
+                        '790x1030',
+                        required: true,
+                        isNumber: true,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
