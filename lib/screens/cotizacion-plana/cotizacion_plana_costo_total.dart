@@ -25,7 +25,7 @@ class PanelCostoTotal extends StatefulWidget {
     required this.precioUnitarioController,
     required this.ivaController,
     required this.precioConIvaController,
-    required this.onRecalcular, // 🔥 NUEVO
+    required this.onRecalcular,
   });
 
   @override
@@ -50,7 +50,7 @@ class _PanelCostoTotalState extends State<PanelCostoTotal> {
                   TextButton(
                     onPressed: () {
                       Navigator.pop(context);
-                      widget.onRecalcular(); // 🔥 recalcula al cerrar
+                      widget.onRecalcular();
                     },
                     child: const Text(
                       "Aceptar",
@@ -70,6 +70,7 @@ class _PanelCostoTotalState extends State<PanelCostoTotal> {
                   setState(() {
                     controller.text = index.toString();
                   });
+                  widget.onRecalcular(); // 🔥 recalcula automáticamente
                 },
                 children: List.generate(
                   101,
@@ -108,15 +109,33 @@ class _PanelCostoTotalState extends State<PanelCostoTotal> {
             const Text("Costo Total:"),
             const SizedBox(height: 4),
 
-            TextField(
-              controller: widget.costoTotalController,
-              onChanged: (_) => widget.onRecalcular(), // 🔥
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                prefixText: "\$ ",
-                isDense: true,
-                contentPadding: EdgeInsets.all(10),
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: widget.costoTotalController,
+                    keyboardType: TextInputType.number,
+                    onChanged: (_) => widget.onRecalcular(),
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      prefixText: "\$ ",
+                      isDense: true,
+                      contentPadding: EdgeInsets.all(10),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: widget.onRecalcular,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 18,
+                    ),
+                  ),
+                  child: const Icon(Icons.calculate),
+                ),
+              ],
             ),
 
             const SizedBox(height: 20),
@@ -160,9 +179,8 @@ class _PanelCostoTotalState extends State<PanelCostoTotal> {
                       const SizedBox(width: 6),
                       IconButton(
                         icon: const Icon(Icons.arrow_drop_down_circle),
-                        onPressed: () => _mostrarPickerPorcentaje(
-                          widget.margenController,
-                        ),
+                        onPressed: () =>
+                            _mostrarPickerPorcentaje(widget.margenController),
                       ),
                     ],
                   ),
@@ -190,9 +208,8 @@ class _PanelCostoTotalState extends State<PanelCostoTotal> {
                       const SizedBox(width: 6),
                       IconButton(
                         icon: const Icon(Icons.arrow_drop_down_circle),
-                        onPressed: () => _mostrarPickerPorcentaje(
-                          widget.descuentoController,
-                        ),
+                        onPressed: () =>
+                            _mostrarPickerPorcentaje(widget.descuentoController),
                       ),
                     ],
                   ),
@@ -208,7 +225,7 @@ class _PanelCostoTotalState extends State<PanelCostoTotal> {
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
                     ],
-                    onChanged: (_) => widget.onRecalcular(), // 🔥
+                    onChanged: (_) => widget.onRecalcular(),
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       isDense: true,
@@ -241,7 +258,7 @@ class _PanelCostoTotalState extends State<PanelCostoTotal> {
         const SizedBox(height: 4),
         TextField(
           controller: controller,
-          readOnly: true, // 🔥 mejor dejarlo solo lectura
+          readOnly: true,
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
             prefixText: "\$ ",
