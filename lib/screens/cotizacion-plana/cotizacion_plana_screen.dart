@@ -361,6 +361,7 @@ List<TextEditingController> precioMarcos = [];
 // NEGATIVOS
 final cantidadNegativosController = TextEditingController();
 final precioNegativoController = TextEditingController();
+final totalNegativosController = TextEditingController();
 
 // TINTAS
 final cantidadTintasController = TextEditingController();
@@ -401,6 +402,36 @@ final costoTotalGrabadoController = TextEditingController(text: "0.00");
   late final List<TextEditingController> embalajeCostoControllers;
   late final List<TextEditingController> embalajeCantidadControllers;
   late final List<TextEditingController> embalajeTotalControllers;
+  // =======================
+// COSTO TOTAL (NUEVOS)
+// =======================
+
+final TextEditingController costoTotalController =
+    TextEditingController(text: "0.00");
+
+final TextEditingController margenController =
+    TextEditingController(text: "0");
+
+final TextEditingController descuentoController =
+    TextEditingController(text: "0");
+
+final TextEditingController diasEntregaController =
+    TextEditingController(text: "1");
+
+final TextEditingController precioUtilidadController =
+    TextEditingController(text: "0.00");
+
+final TextEditingController precioDescuentoController =
+    TextEditingController(text: "0.00");
+
+final TextEditingController precioUnitarioController =
+    TextEditingController(text: "0.00");
+
+final TextEditingController ivaController =
+    TextEditingController(text: "0.00");
+
+final TextEditingController precioConIvaController =
+    TextEditingController(text: "0.00");
 
   // ESTADOS GENERALES
   bool suaje = false;
@@ -589,6 +620,246 @@ final costoTotalGrabadoController = TextEditingController(text: "0.00");
           piezasTotales.toString();
     }
   }
+    void calcularCostoTotalGeneral() {
+
+    double total = 0.0;
+
+    // ==============================
+    // 🔹 PRUEBA COLOR INTERNAS
+    // ==============================
+
+    if (pruebaCarta) {
+      total += double.tryParse(totalCartaController.text) ?? 0;
+    }
+
+    if (pruebaTabloide) {
+      total += double.tryParse(totalTabloideController.text) ?? 0;
+    }
+
+    if (pruebaMediaCarta) {
+      total += double.tryParse(totalMediaCartaController.text) ?? 0;
+    }
+
+    // ==============================
+    // 🔹 PRUEBA COLOR PORTADA
+    // ==============================
+
+    if (portada && pruebaColorPortada) {
+
+      if (pruebaColorPortadaCarta) {
+        total += double.tryParse(totalPruebaPortadaCartaController.text) ?? 0;
+      }
+
+      if (pruebaColorPortadaTabloide) {
+        total += double.tryParse(totalPruebaPortadaTabloideController.text) ?? 0;
+      }
+
+      if (pruebaColorPortadaMediaCarta) {
+        total += double.tryParse(totalPruebaPortadaMediaCartaController.text) ?? 0;
+      }
+    }
+
+    // ==============================
+    // 🔹 PAPEL INTERNAS
+    // ==============================
+
+    if (offsetActivo) {
+      total += double.tryParse(costoPapelConIvaController.text) ?? 0;
+    }
+
+    // ==============================
+    // 🔹 PAPEL PORTADA
+    // ==============================
+
+    if (offsetActivo && portada) {
+      total += double.tryParse(costoPapelPortadaConIvaController.text) ?? 0;
+    }
+
+    // ==============================
+    // 🔹 TINTAS INTERNAS
+    // ==============================
+
+    if (offsetActivo) {
+      total += double.tryParse(costoGranTotalTintasController.text) ?? 0;
+    }
+
+    // ==============================
+    // 🔹 TINTAS PORTADA
+    // ==============================
+
+    if (offsetActivo && portada) {
+      total += double.tryParse(costoGranTotalTintasPortadaController.text) ?? 0;
+    }
+
+    // ==============================
+    // 🔹 PLACAS INTERNAS
+    // ==============================
+
+    if (offsetActivo) {
+      total += double.tryParse(costoTotalPlacasController.text) ?? 0;
+      total += double.tryParse(costoTotalPlacas790Controller.text) ?? 0;
+    }
+
+    // ==============================
+    // 🔹 PLACAS PORTADA
+    // ==============================
+
+    if (offsetActivo && portada) {
+      total += double.tryParse(costoTotalPlacasPortadaController.text) ?? 0;
+      total += double.tryParse(costoTotalPlacas790PortadaController.text) ?? 0;
+    }
+
+    // ==============================
+    // 🔹 BARNIZ MAQUINA INTERNAS
+    // ==============================
+
+    if (offsetActivo) {
+      double costoBarniz = double.tryParse(costoBarnizController.text) ?? 0;
+
+      if (barnizFte) {
+        total += costoBarniz;
+      }
+
+      if (barnizRev) {
+        total += costoBarniz;
+      }
+    }
+    // ==============================
+    // 🔹 BARNIZ MAQUINA PORTADA
+    // ==============================
+
+    if (offsetActivo && portada) {
+      double costoBarnizPortada =
+          double.tryParse(costoBarnizPortadaController.text) ?? 0;
+
+      if (barnizFtePortada) {
+        total += costoBarnizPortada;
+      }
+
+      if (barnizRevPortada) {
+        total += costoBarnizPortada;
+      }
+    }
+
+    // ==============================
+    // 🔹 ACABADOS UV INTERNAS
+    // ==============================
+
+    if (barnizUV) {
+      for (var c in acabadosCostoTotalControllers.values) {
+        total += double.tryParse(c.text) ?? 0;
+      }
+    }
+
+    // ==============================
+    // 🔹 ACABADOS UV PORTADA
+    // ==============================
+
+    if (portada && barnizUVPortada) {
+      for (var c in acabadosPortadaCostoTotalControllers.values) {
+        total += double.tryParse(c.text) ?? 0;
+      }
+    }
+
+    // ==============================
+    // 🔹 LAMINADOS INTERNAS
+    // ==============================
+
+    if (laminadosActivo) {
+      for (var c in laminadosCostoTotalControllers.values) {
+        total += double.tryParse(c.text) ?? 0;
+      }
+    }
+
+    // ==============================
+    // 🔹 LAMINADOS PORTADA
+    // ==============================
+
+    if (portada && laminadosPortada) {
+      for (var c in laminadosPortadaCostoTotalControllers.values) {
+        total += double.tryParse(c.text) ?? 0;
+      }
+    }
+
+    // ==============================
+    // 🔹 SUAJE
+    // ==============================
+
+    if (suaje) {
+      total += double.tryParse(costoTotalSuajadoController.text) ?? 0;
+    }
+
+    // ==============================
+    // 🔹 GRABADO
+    // ==============================
+
+    if (grabado) {
+      total += double.tryParse(costoTotalGrabadoController.text) ?? 0;
+    }
+
+    // ==============================
+    // 🔹 SERIGRAFIA
+    // ==============================
+
+    if (serigrafia) {
+      total += double.tryParse(totalMarcosController.text) ?? 0;
+      total += double.tryParse(totalNegativosController.text) ?? 0;
+      total += double.tryParse(totalTintasController.text) ?? 0;
+      total += double.tryParse(totalEntradaController.text) ?? 0;
+    }
+
+    // ==============================
+    // 🔹 EMBALAJE
+    // ==============================
+
+    if (embalaje) {
+      for (int i = 0; i < embalajeTotalControllers.length; i++) {
+        if (embalajeActivoItems[i]) {
+          total += double.tryParse(embalajeTotalControllers[i].text) ?? 0;
+        }
+      }
+    }
+
+    // ==============================
+    // 🔹 SETEAR TOTAL
+    // ==============================
+
+    costoTotalController.text = total.toStringAsFixed(2);
+  }
+    void _calcularUtilidadYFinal(double costoBase) {
+
+    double margen =
+        (double.tryParse(margenController.text) ?? 0) / 100;
+
+    double descuento =
+        (double.tryParse(descuentoController.text) ?? 0) / 100;
+
+    double precioConUtilidad = costoBase * (1 + margen);
+    precioUtilidadController.text =
+        precioConUtilidad.toStringAsFixed(2);
+
+    double precioConDescuento =
+        precioConUtilidad * (1 - descuento);
+    precioDescuentoController.text =
+        precioConDescuento.toStringAsFixed(2);
+
+    double cantidad =
+        double.tryParse(cantidadImpresionController.text) ?? 1;
+
+    double unitario =
+        cantidad > 0 ? precioConDescuento / cantidad : 0;
+
+    precioUnitarioController.text =
+        unitario.toStringAsFixed(2);
+
+    double iva = precioConDescuento * 0.16;
+    ivaController.text = iva.toStringAsFixed(2);
+
+    precioConIvaController.text =
+        (precioConDescuento + iva).toStringAsFixed(2);
+
+    setState(() {});
+  }
 
   @override
   void dispose() {
@@ -692,7 +963,15 @@ final costoTotalGrabadoController = TextEditingController(text: "0.00");
       for (var c in embalajeTotalControllers) {
         c.dispose();
       }
-      
+      costoTotalController.dispose();
+      margenController.dispose();
+      descuentoController.dispose();
+      diasEntregaController.dispose();
+      precioUtilidadController.dispose();
+      precioDescuentoController.dispose();
+      precioUnitarioController.dispose();
+      ivaController.dispose();
+      precioConIvaController.dispose();
     super.dispose();
   }
 
@@ -1193,6 +1472,7 @@ final costoTotalGrabadoController = TextEditingController(text: "0.00");
                 numeroEntradasController: numeroEntradasController,
                 costoMillarController: costoMillarSerigrafiaController,
                 totalEntradaController: totalEntradaController,
+                totalNegativosController: totalNegativosController,
               ),
 
               if (embalaje)
@@ -1218,8 +1498,23 @@ final costoTotalGrabadoController = TextEditingController(text: "0.00");
               ),
             ],
 
-            const PanelCostoTotal(),
-
+            PanelCostoTotal(
+              costoTotalController: costoTotalController,
+              margenController: margenController,
+              descuentoController: descuentoController,
+              diasEntregaController: diasEntregaController,
+              precioUtilidadController: precioUtilidadController,
+              precioDescuentoController: precioDescuentoController,
+              precioUnitarioController: precioUnitarioController,
+              ivaController: ivaController,
+              precioConIvaController: precioConIvaController,
+              onRecalcular: () {
+                calcularCostoTotalGeneral();
+                _calcularUtilidadYFinal(
+                  double.tryParse(costoTotalController.text) ?? 0,
+                );
+              },
+            ),
             const SizedBox(height: 40),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
