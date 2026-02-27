@@ -323,7 +323,7 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
         return 1800;
 
       case "8 OFICIO 2 COLORES":
-        if (millares <= 1) return 1050;
+        if (millares <= 1) return 1100;
         if (millares == 2) return 900;
         if (millares >= 3 && millares <= 4) return 780;
         if (millares >= 5 && millares <= 6) return 750;

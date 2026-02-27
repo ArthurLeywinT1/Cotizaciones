@@ -190,7 +190,7 @@ class _SegmentacionPliegosScreenState
                     true);
 
                 return InkWell(
-                  onTap: () {
+                  onTap: () async {
                     if (!widget.desdeCotizacion) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -209,28 +209,38 @@ class _SegmentacionPliegosScreenState
                       return;
                     }
 
-                    // ============================
-                    // NUEVO: calcular mejor opción
-                    // ============================
-                    final int piezasPorPliego =
-                    piezasNormal >= piezasInvertido ? piezasNormal : piezasInvertido;
+                    final opcion = await showDialog<String>(
+                      context: context,
+                      builder: (_) => AlertDialog(
+                        title: const Text("Seleccionar orientación"),
+                        content: const Text("¿Cómo deseas acomodar las piezas?"),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, "Normal"),
+                            child: Text("Normal ($piezasNormal piezas)"),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, "Invertido"),
+                            child: Text("Invertido ($piezasInvertido piezas)"),
+                          ),
+                        ],
+                      ),
+                    );
 
-                    final String orientacion =
-                    piezasNormal >= piezasInvertido ? "Normal" : "Invertido";
+                    if (opcion == null) return;
 
-                    // ============================
-                    // REGRESAR DATOS COMPLETOS
-                    // ============================
+                    final piezasSeleccionadas =
+                        opcion == "Normal" ? piezasNormal : piezasInvertido;
+
                     Navigator.pop(context, {
                       "nombre": p["titulo"],
                       "ancho": p["ancho"],
                       "alto": p["alto"],
-                      "piezasNormal": piezasNormal,
-                      "piezasInvertido": piezasInvertido,
-                      "piezasPorPliego": piezasPorPliego,
-                      "posicion": orientacion,
+                      "piezasPorPliego": piezasSeleccionadas,
+                      "posicion": opcion,
                     });
                   },
+
                   child: Card(
                     elevation: 2,
                     child: Padding(
