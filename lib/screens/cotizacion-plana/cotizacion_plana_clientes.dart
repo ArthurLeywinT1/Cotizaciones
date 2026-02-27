@@ -170,9 +170,6 @@ class PanelClientes extends ConsumerStatefulWidget {
 }
 
 class _PanelClientesState extends ConsumerState<PanelClientes> {
-  final TextEditingController paginasInternasPorPiezaController =
-      TextEditingController();
-
   void _buscarCliente() {
     showDialog(
       context: context,
@@ -200,16 +197,11 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
 
   void _calcularPaginasInternas() {
     final piezas = int.tryParse(widget.cantidadImpresionController.text) ?? 0;
-    final paginas = int.tryParse(paginasInternasPorPiezaController.text) ?? 0;
+    final paginas =
+        int.tryParse(widget.paginasInternasPorPiezaController.text) ?? 0;
 
     widget.paginasInternasTotalesController.text = (piezas * paginas)
         .toString();
-  }
-
-  @override
-  void dispose() {
-    paginasInternasPorPiezaController.dispose();
-    super.dispose();
   }
 
   @override
@@ -539,7 +531,7 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
               SizedBox(
                 width: 260,
                 child: TextField(
-                  controller: paginasInternasPorPiezaController,
+                  controller: widget.paginasInternasPorPiezaController,
                   keyboardType: TextInputType.number,
                   onChanged: (_) => _calcularPaginasInternas(),
                   decoration: const InputDecoration(
