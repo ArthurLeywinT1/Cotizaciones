@@ -1,5 +1,5 @@
 class Cotizacion {
-  final String id;
+  final String? id;
   final String? folio;
   final String clienteId;
   final String? clienteNombre;
@@ -19,7 +19,7 @@ class Cotizacion {
   final DateTime? fechaCreacion;
 
   Cotizacion({
-    required this.id,
+    this.id,
     this.folio,
     required this.clienteId,
     this.clienteNombre,
@@ -41,7 +41,7 @@ class Cotizacion {
 
   factory Cotizacion.fromMap(Map<String, dynamic> map) {
     return Cotizacion(
-      id: map['id'].toString(),
+      id: map['id']?.toString(),
       folio: map['folio']?.toString(),
       clienteId: map['cliente_id'].toString(),
       clienteNombre: map['cliente_nombre']?.toString(),
@@ -67,6 +67,7 @@ class Cotizacion {
 
   Map<String, dynamic> toMap() {
     return {
+      if (id != null) 'id': id,
       'cliente_id': clienteId,
       'usuario_id': usuarioId,
       'descripcion': descripcion,
@@ -83,6 +84,6 @@ class Cotizacion {
     };
   }
 
-  String get medidas => "${anchoMedida} x ${altoMedida} cm";
-  String get tintas => "${tintaFrontal} x ${tintaReverso}";
+  String get medidas => "$anchoMedida x $altoMedida cm";
+  String get tintas => "$tintaFrontal x $tintaReverso";
 }

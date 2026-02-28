@@ -6,6 +6,8 @@ class CotizacionService {
 
   Future<List<Cotizacion>> obtenerCotizaciones() async {
     try {
+      // 🔹 MEJORA: Se cambió el ORDER BY a fecha_creacion.
+      // Si ordenas por folio (texto), '3101.1' será "mayor" que '0102.1' y romperá el orden en cambios de mes.
       final sql = '''
         SELECT 
           c.*, 
@@ -14,7 +16,7 @@ class CotizacionService {
         FROM cotizaciones c
         LEFT JOIN clientes cl ON c.cliente_id = cl.id
         LEFT JOIN usuarios u ON c.usuario_id = u.id
-        ORDER BY c.folio DESC
+        ORDER BY c.fecha_creacion DESC
       ''';
 
       final resultado = await db.query(sql);
@@ -63,7 +65,9 @@ class CotizacionService {
     try {
       await db.execute(
         '''UPDATE cotizaciones 
-           SET cliente_id = @cid, descripcion = @desc, 
+           SET cliente_id = @cid, 
+               usuario_id = @uid, -- 🔹 MEJORA: Agregado por si se reasigna la cotización a otro vendedor
+               descripcion = @desc, 
                ancho_medida = @ancho, alto_medida = @alto,
                tipo_cotizacion = @tipo, tinta_frontal = @tFrente,
                tinta_reverso = @tReverso, cantidad_impresiones = @cant,
@@ -73,6 +77,7 @@ class CotizacionService {
         params: {
           'id': cotizacion.id,
           'cid': cotizacion.clienteId,
+          'uid': cotizacion.usuarioId,
           'desc': cotizacion.descripcion,
           'ancho': cotizacion.anchoMedida,
           'alto': cotizacion.altoMedida,
