@@ -6,8 +6,6 @@ class CotizacionService {
 
   Future<List<Cotizacion>> obtenerCotizaciones() async {
     try {
-      // 🔹 MEJORA: Se cambió el ORDER BY a fecha_creacion.
-      // Si ordenas por folio (texto), '3101.1' será "mayor" que '0102.1' y romperá el orden en cambios de mes.
       final sql = '''
         SELECT 
           c.*, 

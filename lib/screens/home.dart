@@ -95,7 +95,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       case 'catalogo_cotizaciones':
         return const CatalogoCotizacionesScreen();
       case 'cotizacion_plana':
-        return const CotizacionPlanaScreen();
+        return CotizacionPlanaScreen(
+          onNavigateToCatalog: () => _abrirPantalla('catalogo_cotizaciones'),
+        );
       default:
         return _buildDashboard();
     }
@@ -164,19 +166,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       titulo: "Catálogos",
                       opciones: const [
                         PopupMenuItem(
-                            value: "clientes", child: Text("Clientes")),
+                          value: "clientes",
+                          child: Text("Clientes"),
+                        ),
                         PopupMenuItem(
-                            value: "proveedores",
-                            child: Text("Proveedores")),
+                          value: "proveedores",
+                          child: Text("Proveedores"),
+                        ),
+                        PopupMenuItem(value: "papeles", child: Text("Papeles")),
                         PopupMenuItem(
-                            value: "papeles", child: Text("Papeles")),
+                          value: "descuentos",
+                          child: Text("Descuentos Papel"),
+                        ),
                         PopupMenuItem(
-                            value: "descuentos",
-                            child: Text("Descuentos Papel")),
-                        PopupMenuItem(
-                            value: "maquinas", child: Text("Máquinas")),
-                        PopupMenuItem(
-                            value: "extras", child: Text("Extras")),
+                          value: "maquinas",
+                          child: Text("Máquinas"),
+                        ),
+                        PopupMenuItem(value: "extras", child: Text("Extras")),
                       ],
                       onSelected: _abrirPantalla,
                     ),
