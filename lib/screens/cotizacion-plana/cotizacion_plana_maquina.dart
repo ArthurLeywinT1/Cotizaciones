@@ -825,15 +825,6 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
 
             const SizedBox(height: 16),
 
-            const Text(
-              "Costo Total Placas:",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4),
-            _MonedaInput(
-              controller: widget.costoTotalPlacasController,
-              readOnly: true,
-            ),
           ],
         ),
       ),

@@ -13,12 +13,14 @@ class CotizacionPlanaSerigrafia extends ConsumerStatefulWidget {
   final List<TextEditingController> anchoMarcos;
   final List<TextEditingController> altoMarcos;
   final List<TextEditingController> precioMarcos;
+  
 
   // =============================
   // NEGATIVOS
   // =============================
   final TextEditingController cantidadNegativosController;
   final TextEditingController precioNegativoController;
+  final TextEditingController totalNegativosController;
 
   // =============================
   // TINTAS
@@ -50,6 +52,7 @@ class CotizacionPlanaSerigrafia extends ConsumerStatefulWidget {
     required this.numeroEntradasController,
     required this.costoMillarController,
     required this.totalEntradaController,
+    required this.totalNegativosController,
   });
 
   @override
@@ -67,6 +70,8 @@ class _CotizacionPlanaSerigrafiaState
     widget.costoMillarController.addListener(_calcularTotalEntrada);
     widget.cantidadTintasController.addListener(_calcularTotalTintas);
     widget.costoTintasController.addListener(_calcularTotalTintas);
+    widget.cantidadNegativosController.addListener(_calcularTotalNegativos);
+    widget.precioNegativoController.addListener(_calcularTotalNegativos);
 
     for (int i = 0; i < widget.anchoMarcos.length; i++) {
       widget.anchoMarcos[i].addListener(calcularTotalMarcos);
@@ -133,6 +138,7 @@ class _CotizacionPlanaSerigrafiaState
     _calcularTotalEntrada();
     _calcularTotalTintas();
     calcularTotalMarcos();
+    _calcularTotalNegativos();
   }
 
   // =====================================================
@@ -216,6 +222,20 @@ class _CotizacionPlanaSerigrafiaState
     widget.totalMarcosController.text = total.toStringAsFixed(2);
   }
 
+
+    void _calcularTotalNegativos() {
+      final cantidad =
+          double.tryParse(widget.cantidadNegativosController.text) ?? 0;
+
+      final precio =
+          double.tryParse(widget.precioNegativoController.text) ?? 0;
+
+      final total = cantidad * precio;
+
+      widget.totalNegativosController.text =
+          total.toStringAsFixed(2);
+    }
+
   // =====================================================
   // TINTAS
   // =====================================================
@@ -259,6 +279,8 @@ class _CotizacionPlanaSerigrafiaState
     widget.costoMillarController.removeListener(_calcularTotalEntrada);
     widget.cantidadTintasController.removeListener(_calcularTotalTintas);
     widget.costoTintasController.removeListener(_calcularTotalTintas);
+    widget.cantidadNegativosController.removeListener(_calcularTotalNegativos);
+    widget.precioNegativoController.removeListener(_calcularTotalNegativos);
     super.dispose();
   }
 
@@ -321,7 +343,6 @@ class _CotizacionPlanaSerigrafiaState
             campo("Total Marcos", widget.totalMarcosController, readOnly: true),
 
             const SizedBox(height: 30),
-
             Row(
               children: [
                 Expanded(
@@ -334,8 +355,16 @@ class _CotizacionPlanaSerigrafiaState
                 Expanded(
                   child: campo(
                     "Precio Negativo",
-                    widget
-                        .precioNegativoController, //precio en extras y multiplicarlo por la cantidad de negativos
+                    widget.precioNegativoController,
+                    readOnly: true
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: campo(
+                    "Total Negativos",
+                    widget.totalNegativosController,
+                    readOnly: true,
                   ),
                 ),
               ],
