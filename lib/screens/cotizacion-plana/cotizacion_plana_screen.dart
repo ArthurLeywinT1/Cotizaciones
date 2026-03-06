@@ -20,8 +20,13 @@ import 'cotizacion_plana_grabado.dart';
 // Pantalla principal de cotización plana
 class CotizacionPlanaScreen extends ConsumerStatefulWidget {
   final VoidCallback? onNavigateToCatalog;
+  final Cotizacion? cotizacionAEditar;
 
-  const CotizacionPlanaScreen({super.key, this.onNavigateToCatalog});
+  const CotizacionPlanaScreen({
+    super.key,
+    this.onNavigateToCatalog,
+    this.cotizacionAEditar,
+  });
 
   @override
   ConsumerState<CotizacionPlanaScreen> createState() =>
@@ -527,6 +532,392 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     );
 
     embalajeTotalControllers = List.generate(7, (_) => TextEditingController());
+    if (widget.cotizacionAEditar != null) {
+      _cargarDatosEdicion(widget.cotizacionAEditar!);
+    }
+  }
+
+  void _cargarDatosEdicion(Cotizacion edit) {
+    clienteIdSeleccionado = edit.clienteId;
+    descripcionController.text = edit.descripcion;
+    anchoController.text = edit.anchoMedida.toString();
+    altoController.text = edit.altoMedida.toString();
+    tintasFteController.text = edit.tintaFrontal.toString();
+    tintasRevController.text = edit.tintaReverso.toString();
+    cantidadImpresionController.text = edit.cantidadImpresiones.toString();
+    totalPliegosController.text = edit.totalPliegos.toString();
+
+    void restaurarAcabados(
+      Map<String, dynamic>? dataJson,
+      Map<String, Map<String, bool>> mapEstado,
+      Map<String, TextEditingController> mapCm2,
+      Map<String, TextEditingController> mapTotal,
+    ) {
+      if (dataJson == null) return;
+      dataJson.forEach((k, v) {
+        if (mapEstado.containsKey(k) && v is Map) {
+          mapEstado[k]!["frente"] = v["frente"] ?? false;
+          mapEstado[k]!["vuelta"] = v["vuelta"] ?? false;
+          mapCm2[k]?.text = v["costoCm2"]?.toString() ?? "0.00";
+          mapTotal[k]?.text = v["costoTotal"]?.toString() ?? "0.00";
+        }
+      });
+    }
+
+    if (edit.configClientes != null) {
+      final cli = edit.configClientes!;
+      proyectoController.text = cli["proyecto"] ?? "";
+      razonSocialController.text = cli["razonSocial"] ?? "";
+      medianilController.text = cli["medianil"] ?? "";
+      anchoFinalController.text = cli["anchoFinal"] ?? "";
+      altoFinalController.text = cli["altoFinal"] ?? "";
+      paginasInternasTotalesController.text =
+          cli["paginasInternasTotales"] ?? "";
+      paginasInternasPorPiezaController.text =
+          cli["paginasInternasPorPieza"] ?? "";
+
+      portada = cli["portada"] ?? false;
+      anchoPortadaController.text = cli["anchoPortada"] ?? "";
+      altoPortadaController.text = cli["altoPortada"] ?? "";
+      medianilPortadaController.text = cli["medianilPortada"] ?? "";
+      anchoFinalPortadaController.text = cli["anchoFinalPortada"] ?? "";
+      altoFinalPortadaController.text = cli["altoFinalPortada"] ?? "";
+      piezasPortadaController.text = cli["piezasPortada"] ?? "";
+
+      pruebaColorPortada = cli["pruebaColorPortada"] ?? false;
+      if (cli["pruebaColorPortadaDetalles"] != null) {
+        final pcPort = cli["pruebaColorPortadaDetalles"];
+        costoPruebaPortadaController.text = pcPort["costoPruebaPortada"] ?? "";
+        if (pcPort["carta"] != null) {
+          pruebaColorPortadaCarta = pcPort["carta"]["activo"] ?? false;
+          cantidadPruebaPortadaCartaController.text =
+              pcPort["carta"]["cantidad"] ?? "0";
+          precioPruebaPortadaCartaController.text =
+              pcPort["carta"]["precio"] ?? "0.00";
+          totalPruebaPortadaCartaController.text =
+              pcPort["carta"]["total"] ?? "0.00";
+        }
+        if (pcPort["tabloide"] != null) {
+          pruebaColorPortadaTabloide = pcPort["tabloide"]["activo"] ?? false;
+          cantidadPruebaPortadaTabloideController.text =
+              pcPort["tabloide"]["cantidad"] ?? "0";
+          precioPruebaPortadaTabloideController.text =
+              pcPort["tabloide"]["precio"] ?? "0.00";
+          totalPruebaPortadaTabloideController.text =
+              pcPort["tabloide"]["total"] ?? "0.00";
+        }
+        if (pcPort["mediaCarta"] != null) {
+          pruebaColorPortadaMediaCarta =
+              pcPort["mediaCarta"]["activo"] ?? false;
+          cantidadPruebaPortadaMediaCartaController.text =
+              pcPort["mediaCarta"]["cantidad"] ?? "0";
+          precioPruebaPortadaMediaCartaController.text =
+              pcPort["mediaCarta"]["precio"] ?? "0.00";
+          totalPruebaPortadaMediaCartaController.text =
+              pcPort["mediaCarta"]["total"] ?? "0.00";
+        }
+      }
+
+      if (cli["pruebaColorInternasDetalles"] != null) {
+        final pcInt = cli["pruebaColorInternasDetalles"];
+        if (pcInt["carta"] != null) {
+          pruebaCarta = pcInt["carta"]["activo"] ?? false;
+          cantidadCartaController.text = pcInt["carta"]["cantidad"] ?? "0";
+          precioCartaController.text = pcInt["carta"]["precio"] ?? "0.00";
+          totalCartaController.text = pcInt["carta"]["total"] ?? "0.00";
+        }
+        if (pcInt["tabloide"] != null) {
+          pruebaTabloide = pcInt["tabloide"]["activo"] ?? false;
+          cantidadTabloideController.text =
+              pcInt["tabloide"]["cantidad"] ?? "0";
+          precioTabloideController.text = pcInt["tabloide"]["precio"] ?? "0.00";
+          totalTabloideController.text = pcInt["tabloide"]["total"] ?? "0.00";
+        }
+        if (pcInt["mediaCarta"] != null) {
+          pruebaMediaCarta = pcInt["mediaCarta"]["activo"] ?? false;
+          cantidadMediaCartaController.text =
+              pcInt["mediaCarta"]["cantidad"] ?? "0";
+          precioMediaCartaController.text =
+              pcInt["mediaCarta"]["precio"] ?? "0.00";
+          totalMediaCartaController.text =
+              pcInt["mediaCarta"]["total"] ?? "0.00";
+        }
+      }
+
+      if (cli["switches"] != null) {
+        final sw = cli["switches"];
+        offsetActivo = sw["offsetActivo"] ?? false;
+        barnizUV = sw["barnizUV"] ?? false;
+        barnizUVPortada = sw["barnizUVPortada"] ?? false;
+        laminadosActivo = sw["laminadosActivo"] ?? false;
+        laminadosPortada = sw["laminadosPortada"] ?? false;
+        suaje = sw["suaje"] ?? false;
+        serigrafia = sw["serigrafia"] ?? false;
+        grabado = sw["grabado"] ?? false;
+        embalaje = sw["embalaje"] ?? false;
+        acabadosEspeciales = sw["acabadosEspeciales"] ?? false;
+      }
+    }
+
+    if (edit.configPliegos != null) {
+      final pInt = edit.configPliegos!["interior"];
+      if (pInt != null) {
+        pliegoAnchoController.text = pInt["pliegoAncho"] ?? "";
+        pliegoAltoController.text = pInt["pliegoAlto"] ?? "";
+        posicionPiezasController.text = pInt["posicionPiezas"] ?? "";
+        piezasPorPliegoController.text = pInt["piezasPorPliego"] ?? "";
+        tamanoPorPliegoController.text = pInt["tamanoPorPliego"] ?? "";
+        cantidadPliegosController.text = pInt["cantidadPliegos"] ?? "";
+        pliegosSobrantesController.text = pInt["pliegosSobrantes"] ?? "";
+        millaresController.text = pInt["millares"] ?? "";
+      }
+      final pPort = edit.configPliegos!["portada"];
+      if (pPort != null) {
+        pliegoAnchoPortadaController.text = pPort["pliegoAncho"] ?? "";
+        pliegoAltoPortadaController.text = pPort["pliegoAlto"] ?? "";
+        posicionPiezasPortadaController.text = pPort["posicionPiezas"] ?? "";
+        piezasPorPliegoPortadaController.text = pPort["piezasPorPliego"] ?? "";
+        tamanoPorPliegoPortadaController.text = pPort["tamanoPorPliego"] ?? "";
+        cantidadPliegosPortadaController.text = pPort["cantidadPliegos"] ?? "";
+        pliegosSobrantesPortadaController.text =
+            pPort["pliegosSobrantes"] ?? "";
+        totalPliegosPortadaController.text = pPort["totalPliegos"] ?? "";
+        millaresPortadaController.text = pPort["millares"] ?? "";
+      }
+    }
+
+    if (edit.configDatosPapel != null) {
+      final dpInt = edit.configDatosPapel!["interior"];
+      if (dpInt != null) {
+        nombrePapelController.text = dpInt["nombre"] ?? "";
+        tipoPapelController.text = dpInt["tipo"] ?? "";
+        anchoPapelController.text = dpInt["ancho"] ?? "";
+        largoPapelController.text = dpInt["largo"] ?? "";
+        pesoPapelController.text = dpInt["peso"] ?? "";
+        proveedorPapelController.text = dpInt["proveedor"] ?? "";
+      }
+      final dpPort = edit.configDatosPapel!["portada"];
+      if (dpPort != null) {
+        nombrePapelPortadaController.text = dpPort["nombre"] ?? "";
+        tipoPapelPortadaController.text = dpPort["tipo"] ?? "";
+        anchoPapelPortadaController.text = dpPort["ancho"] ?? "";
+        largoPapelPortadaController.text = dpPort["largo"] ?? "";
+        pesoPapelPortadaController.text = dpPort["peso"] ?? "";
+        proveedorPapelPortadaController.text = dpPort["proveedor"] ?? "";
+      }
+    }
+
+    if (edit.configCostoPapel != null) {
+      final cpInt = edit.configCostoPapel!["interior"];
+      if (cpInt != null) {
+        costoMillarController.text = cpInt["costoMillar"] ?? "";
+        costoTotalPapelController.text = cpInt["costoTotalPapel"] ?? "";
+        descuentoPapelController.text = cpInt["descuentoPapel"] ?? "";
+        costoPapelConIvaController.text = cpInt["costoPapelConIva"] ?? "";
+      }
+      final cpPort = edit.configCostoPapel!["portada"];
+      if (cpPort != null) {
+        costoMillarPortadaController.text = cpPort["costoMillar"] ?? "";
+        costoTotalPapelPortadaController.text = cpPort["costoTotalPapel"] ?? "";
+        descuentoPapelPortadaController.text = cpPort["descuentoPapel"] ?? "";
+        costoPapelPortadaConIvaController.text =
+            cpPort["costoPapelConIva"] ?? "";
+      }
+    }
+
+    if (edit.configMaquina != null) {
+      final mqInt = edit.configMaquina!["interior"];
+      if (mqInt != null) {
+        nombreMaquinaController.text = mqInt["nombreMaquina"] ?? "";
+        costoPlacaController.text = mqInt["costoPlaca"] ?? "";
+        cantidadTotalTintasController.text = mqInt["cantidadTotalTintas"] ?? "";
+        costoUnitFteController.text = mqInt["costoUnitFte"] ?? "";
+        costoTotalFteController.text = mqInt["costoTotalFte"] ?? "";
+        costoUnitRevController.text = mqInt["costoUnitRev"] ?? "";
+        costoTotalRevController.text = mqInt["costoTotalRev"] ?? "";
+        costoGranTotalTintasController.text =
+            mqInt["costoGranTotalTintas"] ?? "";
+        cantidadPlacasController.text = mqInt["cantidadPlacas"] ?? "";
+        costoBarnizController.text = mqInt["costoBarniz"] ?? "";
+        costoTotalPlacasController.text = mqInt["costoTotalPlacas"] ?? "";
+        cantidadPlacas790Controller.text = mqInt["cantidadPlacas790"] ?? "";
+        costoPlaca790Controller.text = mqInt["costoPlaca790"] ?? "";
+        costoTotalPlacas790Controller.text = mqInt["costoTotalPlacas790"] ?? "";
+        barnizFte = mqInt["barnizFte"] ?? false;
+        barnizRev = mqInt["barnizRev"] ?? false;
+        barnizFteController.text = mqInt["barnizFteValor"] ?? "";
+        barnizRevController.text = mqInt["barnizRevValor"] ?? "";
+        costoUnitBarnizFteController.text = mqInt["costoUnitBarnizFte"] ?? "";
+        costoUnitBarnizRevController.text = mqInt["costoUnitBarnizRev"] ?? "";
+        cambiarPrecioPlaca = mqInt["cambiarPrecioPlaca"] ?? false;
+        cambiarPrecioTinta = mqInt["cambiarPrecioTinta"] ?? false;
+        cambiarPrecioBarniz = mqInt["cambiarPrecioBarniz"] ?? false;
+      }
+      final mqPort = edit.configMaquina!["portada"];
+      if (mqPort != null) {
+        nombreMaquinaPortadaController.text = mqPort["nombreMaquina"] ?? "";
+        costoPlacaPortadaController.text = mqPort["costoPlaca"] ?? "";
+        tintasFtePortadaController.text = mqPort["tintasFte"] ?? "";
+        tintasRevPortadaController.text = mqPort["tintasRev"] ?? "";
+        cantidadTotalTintasPortadaController.text =
+            mqPort["cantidadTotalTintas"] ?? "";
+        costoUnitFtePortadaController.text = mqPort["costoUnitFte"] ?? "";
+        costoTotalFtePortadaController.text = mqPort["costoTotalFte"] ?? "";
+        costoUnitRevPortadaController.text = mqPort["costoUnitRev"] ?? "";
+        costoTotalRevPortadaController.text = mqPort["costoTotalRev"] ?? "";
+        costoGranTotalTintasPortadaController.text =
+            mqPort["costoGranTotalTintas"] ?? "";
+        cantidadPlacasPortadaController.text = mqPort["cantidadPlacas"] ?? "";
+        costoBarnizPortadaController.text = mqPort["costoBarniz"] ?? "";
+        costoTotalPlacasPortadaController.text =
+            mqPort["costoTotalPlacas"] ?? "";
+        cantidadPlacas790PortadaController.text =
+            mqPort["cantidadPlacas790"] ?? "";
+        costoPlaca790PortadaController.text = mqPort["costoPlaca790"] ?? "";
+        costoTotalPlacas790PortadaController.text =
+            mqPort["costoTotalPlacas790"] ?? "";
+        barnizFtePortada = mqPort["barnizFte"] ?? false;
+        barnizRevPortada = mqPort["barnizRev"] ?? false;
+        barnizFtePortadaController.text = mqPort["barnizFteValor"] ?? "";
+        barnizRevPortadaController.text = mqPort["barnizRevValor"] ?? "";
+        costoUnitBarnizFtePortadaController.text =
+            mqPort["costoUnitBarnizFte"] ?? "";
+        costoUnitBarnizRevPortadaController.text =
+            mqPort["costoUnitBarnizRev"] ?? "";
+        cambiarPrecioPlacaPortada = mqPort["cambiarPrecioPlaca"] ?? false;
+      }
+    }
+
+    if (edit.configAcabados != null) {
+      restaurarAcabados(
+        edit.configAcabados!["interior"]?["detalles"],
+        acabados,
+        acabadosCostoCm2Controllers,
+        acabadosCostoTotalControllers,
+      );
+      restaurarAcabados(
+        edit.configAcabados!["portada"]?["detalles"],
+        acabadosPortada,
+        acabadosPortadaCostoCm2Controllers,
+        acabadosPortadaCostoTotalControllers,
+      );
+    }
+
+    if (edit.configLaminado != null) {
+      restaurarAcabados(
+        edit.configLaminado!["interior"]?["detalles"],
+        laminados,
+        laminadosCostoCm2Controllers,
+        laminadosCostoTotalControllers,
+      );
+      restaurarAcabados(
+        edit.configLaminado!["portada"]?["detalles"],
+        laminadosPortadaMap,
+        laminadosPortadaCostoCm2Controllers,
+        laminadosPortadaCostoTotalControllers,
+      );
+    }
+
+    if (edit.configSuaje != null) {
+      final ms = edit.configSuaje!;
+      seCuentaConSuaje = ms["seCuentaConSuaje"] ?? false;
+      duplicarCostoSuaje = ms["duplicarCostoSuaje"] ?? false;
+      tamanoSuajeController.text = ms["tamanoSuaje"] ?? "";
+      anchoSuajeController.text = ms["anchoSuaje"] ?? "";
+      largoSuajeController.text = ms["largoSuaje"] ?? "";
+      costoSuajeCmController.text = ms["costoSuajeCm"] ?? "";
+      costoTotalSuajeController.text = ms["costoTotalSuaje"] ?? "";
+      costoArregloSuajeController.text = ms["costoArregloSuaje"] ?? "";
+      costoTotalSuajadoController.text = ms["costoTotalSuajado"] ?? "";
+      pliegosSuajeController.text = ms["pliegosSuaje"] ?? "";
+      costoMillarSuajeController.text = ms["costoMillarSuaje"] ?? "";
+    }
+
+    if (edit.configGrabado != null) {
+      final mg = edit.configGrabado!;
+      cantidadPlacasGrabadoController.text = mg["cantidadPlacas"] ?? "";
+      costoPlacaGrabadoController.text = mg["costoPlaca"] ?? "";
+      costoTotalPlacasGrabadoController.text = mg["costoTotalPlacas"] ?? "";
+      costoEntradaGrabadoController.text = mg["costoEntrada"] ?? "";
+      costoTotalEntradaGrabadoController.text = mg["costoTotalEntrada"] ?? "";
+      costoTotalGrabadoController.text = mg["costoTotalGrabado"] ?? "";
+    }
+
+    if (edit.configSerigrafia != null) {
+      final ms = edit.configSerigrafia!;
+      cantidadMarcosController.text = ms["cantidadMarcos"] ?? "";
+      totalMarcosController.text = ms["totalMarcos"] ?? "";
+      cantidadNegativosController.text = ms["cantidadNegativos"] ?? "";
+      precioNegativoController.text = ms["precioNegativo"] ?? "";
+      totalNegativosController.text = ms["totalNegativos"] ?? "";
+      cantidadTintasController.text = ms["cantidadTintas"] ?? "";
+      costoTintasController.text = ms["costoTintas"] ?? "";
+      totalTintasController.text = ms["totalTintas"] ?? "";
+      numeroEntradasController.text = ms["numeroEntradas"] ?? "";
+      costoMillarSerigrafiaController.text = ms["costoMillarSerigrafia"] ?? "";
+      totalEntradaController.text = ms["totalEntrada"] ?? "";
+
+      final marcosLista = ms["listaMarcos"] as List?;
+      if (marcosLista != null) {
+        anchoMarcos.clear();
+        altoMarcos.clear();
+        precioMarcos.clear();
+        for (var m in marcosLista) {
+          anchoMarcos.add(
+            TextEditingController(text: m["ancho"]?.toString() ?? "0"),
+          );
+          altoMarcos.add(
+            TextEditingController(text: m["alto"]?.toString() ?? "0"),
+          );
+          precioMarcos.add(
+            TextEditingController(text: m["precio"]?.toString() ?? "0.00"),
+          );
+        }
+      }
+    }
+
+    if (edit.configEmbalaje != null) {
+      final me = edit.configEmbalaje!;
+      final itemsGuardados = me["items"] as List?;
+      if (itemsGuardados != null) {
+        for (int i = 0; i < embalajeItems.length; i++) {
+          var itemDb;
+          for (var x in itemsGuardados) {
+            if (x["item"] == embalajeItems[i]) {
+              itemDb = x;
+              break;
+            }
+          }
+          if (itemDb != null) {
+            embalajeActivoItems[i] = true;
+            embalajeCostoControllers[i].text =
+                itemDb["costo"]?.toString() ?? "";
+            embalajeCantidadControllers[i].text =
+                itemDb["cantidad"]?.toString() ?? "";
+            embalajeTotalControllers[i].text =
+                itemDb["total"]?.toString() ?? "";
+          } else {
+            embalajeActivoItems[i] = false;
+          }
+        }
+      }
+    }
+
+    if (edit.configCostoTotal != null) {
+      final mc = edit.configCostoTotal!;
+      costoTotalController.text = mc["costoTotal"] ?? "";
+      margenController.text = mc["margen"] ?? "";
+      descuentoController.text = mc["descuento"] ?? "";
+      diasEntregaController.text = mc["diasEntrega"] ?? "";
+      precioUtilidadController.text = mc["precioUtilidad"] ?? "";
+      precioDescuentoController.text = mc["precioDescuento"] ?? "";
+      precioUnitarioController.text = mc["precioUnitario"] ?? "";
+      ivaController.text = mc["iva"] ?? "";
+      precioConIvaController.text = mc["precioConIva"] ?? "";
+      gastosEntrega = mc["gastosEntregaActivo"] ?? false;
+    }
+
+    setState(() {});
   }
 
   void calcularMedidasFinales() {
@@ -862,17 +1253,18 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   }
 
   Future<void> _guardarCotizacion() async {
+    calcularMedidasFinales();
+    if (portada) calcularMedidasFinalesPortada();
+    calcularCostoTotalGeneral();
+
     if (clienteIdSeleccionado == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, selecciona un Cliente primero'),
-        ),
+        const SnackBar(content: Text('Selecciona un Cliente primero')),
       );
       return;
     }
 
     final authState = ref.read(authProvider);
-
     final String? usuarioIdActual = authState.usuario?.id;
 
     if (usuarioIdActual == null) {
@@ -884,32 +1276,395 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       return;
     }
 
+    final mapClientes = {
+      "clienteIdSeleccionado": clienteIdSeleccionado,
+      "descripcion": descripcionController.text,
+      "cantidadImpresiones": cantidadImpresionController.text,
+      "proyecto": proyectoController.text,
+      "razonSocial": razonSocialController.text,
+      "ancho": anchoController.text,
+      "alto": altoController.text,
+      "medianil": medianilController.text,
+      "anchoFinal": anchoFinalController.text,
+      "altoFinal": altoFinalController.text,
+      "medidasFinalesCalculadas":
+          "${anchoFinalController.text} x ${altoFinalController.text} cm",
+      "paginasInternasTotales": paginasInternasTotalesController.text,
+      "paginasInternasPorPieza": paginasInternasPorPiezaController.text,
+      "portada": portada,
+      "anchoPortada": anchoPortadaController.text,
+      "altoPortada": altoPortadaController.text,
+      "medianilPortada": medianilPortadaController.text,
+      "anchoFinalPortada": anchoFinalPortadaController.text,
+      "altoFinalPortada": altoFinalPortadaController.text,
+      "medidasFinalesPortadaCalculadas": portada
+          ? "${anchoFinalPortadaController.text} x ${altoFinalPortadaController.text} cm"
+          : null,
+      "piezasPortada": piezasPortadaController.text,
+      "pruebaColorPortada": pruebaColorPortada,
+      "pruebaColorPortadaDetalles": {
+        "costoPruebaPortada": costoPruebaPortadaController.text,
+        "carta": {
+          "activo": pruebaColorPortadaCarta,
+          "cantidad": cantidadPruebaPortadaCartaController.text,
+          "precio": precioPruebaPortadaCartaController.text,
+          "total": totalPruebaPortadaCartaController.text,
+        },
+        "tabloide": {
+          "activo": pruebaColorPortadaTabloide,
+          "cantidad": cantidadPruebaPortadaTabloideController.text,
+          "precio": precioPruebaPortadaTabloideController.text,
+          "total": totalPruebaPortadaTabloideController.text,
+        },
+        "mediaCarta": {
+          "activo": pruebaColorPortadaMediaCarta,
+          "cantidad": cantidadPruebaPortadaMediaCartaController.text,
+          "precio": precioPruebaPortadaMediaCartaController.text,
+          "total": totalPruebaPortadaMediaCartaController.text,
+        },
+      },
+      "pruebaColorInternasDetalles": {
+        "carta": {
+          "activo": pruebaCarta,
+          "cantidad": cantidadCartaController.text,
+          "precio": precioCartaController.text,
+          "total": totalCartaController.text,
+        },
+        "tabloide": {
+          "activo": pruebaTabloide,
+          "cantidad": cantidadTabloideController.text,
+          "precio": precioTabloideController.text,
+          "total": totalTabloideController.text,
+        },
+        "mediaCarta": {
+          "activo": pruebaMediaCarta,
+          "cantidad": cantidadMediaCartaController.text,
+          "precio": precioMediaCartaController.text,
+          "total": totalMediaCartaController.text,
+        },
+      },
+      "switches": {
+        "offsetActivo": offsetActivo,
+        "barnizUV": barnizUV,
+        "barnizUVPortada": barnizUVPortada,
+        "laminadosActivo": laminadosActivo,
+        "laminadosPortada": laminadosPortada,
+        "suaje": suaje,
+        "serigrafia": serigrafia,
+        "grabado": grabado,
+        "embalaje": embalaje,
+        "acabadosEspeciales": acabadosEspeciales,
+      },
+    };
+    final mapPliegos = {
+      "interior": {
+        "pliegoAncho": pliegoAnchoController.text,
+        "pliegoAlto": pliegoAltoController.text,
+        "posicionPiezas": posicionPiezasController.text,
+        "piezasPorPliego": piezasPorPliegoController.text,
+        "tamanoPorPliego": tamanoPorPliegoController.text,
+        "cantidadPliegos": cantidadPliegosController.text,
+        "pliegosSobrantes": pliegosSobrantesController.text,
+        "totalPliegos": totalPliegosController.text,
+        "millares": millaresController.text,
+      },
+      "portada": portada
+          ? {
+              "pliegoAncho": pliegoAnchoPortadaController.text,
+              "pliegoAlto": pliegoAltoPortadaController.text,
+              "posicionPiezas": posicionPiezasPortadaController.text,
+              "piezasPorPliego": piezasPorPliegoPortadaController.text,
+              "tamanoPorPliego": tamanoPorPliegoPortadaController.text,
+              "cantidadPliegos": cantidadPliegosPortadaController.text,
+              "pliegosSobrantes": pliegosSobrantesPortadaController.text,
+              "totalPliegos": totalPliegosPortadaController.text,
+              "millares": millaresPortadaController.text,
+            }
+          : null,
+    };
+    final mapDatosPapel = {
+      "interior": {
+        "nombre": nombrePapelController.text,
+        "tipo": tipoPapelController.text,
+        "ancho": anchoPapelController.text,
+        "largo": largoPapelController.text,
+        "peso": pesoPapelController.text,
+        "proveedor": proveedorPapelController.text,
+      },
+      "portada": portada
+          ? {
+              "nombre": nombrePapelPortadaController.text,
+              "tipo": tipoPapelPortadaController.text,
+              "ancho": anchoPapelPortadaController.text,
+              "largo": largoPapelPortadaController.text,
+              "peso": pesoPapelPortadaController.text,
+              "proveedor": proveedorPapelPortadaController.text,
+            }
+          : null,
+    };
+    final mapCostoPapel = {
+      "interior": {
+        "costoMillar": costoMillarController.text,
+        "costoTotalPapel": costoTotalPapelController.text,
+        "descuentoPapel": descuentoPapelController.text,
+        "costoPapelConIva": costoPapelConIvaController.text,
+      },
+      "portada": portada
+          ? {
+              "costoMillar": costoMillarPortadaController.text,
+              "costoTotalPapel": costoTotalPapelPortadaController.text,
+              "descuentoPapel": descuentoPapelPortadaController.text,
+              "costoPapelConIva": costoPapelPortadaConIvaController.text,
+            }
+          : null,
+    };
+    final mapMaquina = {
+      "offsetActivo": offsetActivo,
+      "interior": {
+        "nombreMaquina": nombreMaquinaController.text,
+        "costoPlaca": costoPlacaController.text,
+        "tintasFte": tintasFteController.text,
+        "tintasRev": tintasRevController.text,
+        "cantidadTotalTintas": cantidadTotalTintasController.text,
+        "costoUnitFte": costoUnitFteController.text,
+        "costoTotalFte": costoTotalFteController.text,
+        "costoUnitRev": costoUnitRevController.text,
+        "costoTotalRev": costoTotalRevController.text,
+        "costoGranTotalTintas": costoGranTotalTintasController.text,
+        "cantidadPlacas": cantidadPlacasController.text,
+        "costoBarniz": costoBarnizController.text,
+        "costoTotalPlacas": costoTotalPlacasController.text,
+        "cantidadPlacas790": cantidadPlacas790Controller.text,
+        "costoPlaca790": costoPlaca790Controller.text,
+        "costoTotalPlacas790": costoTotalPlacas790Controller.text,
+        "barnizFte": barnizFte,
+        "barnizRev": barnizRev,
+        "barnizFteValor": barnizFteController.text,
+        "barnizRevValor": barnizRevController.text,
+        "costoUnitBarnizFte": costoUnitBarnizFteController.text,
+        "costoUnitBarnizRev": costoUnitBarnizRevController.text,
+        "cambiarPrecioPlaca": cambiarPrecioPlaca,
+        "cambiarPrecioTinta": cambiarPrecioTinta,
+        "cambiarPrecioBarniz": cambiarPrecioBarniz,
+      },
+      "portada": portada
+          ? {
+              "nombreMaquina": nombreMaquinaPortadaController.text,
+              "costoPlaca": costoPlacaPortadaController.text,
+              "tintasFte": tintasFtePortadaController.text,
+              "tintasRev": tintasRevPortadaController.text,
+              "cantidadTotalTintas": cantidadTotalTintasPortadaController.text,
+              "costoUnitFte": costoUnitFtePortadaController.text,
+              "costoTotalFte": costoTotalFtePortadaController.text,
+              "costoUnitRev": costoUnitRevPortadaController.text,
+              "costoTotalRev": costoTotalRevPortadaController.text,
+              "costoGranTotalTintas":
+                  costoGranTotalTintasPortadaController.text,
+              "cantidadPlacas": cantidadPlacasPortadaController.text,
+              "costoBarniz": costoBarnizPortadaController.text,
+              "costoTotalPlacas": costoTotalPlacasPortadaController.text,
+              "cantidadPlacas790": cantidadPlacas790PortadaController.text,
+              "costoPlaca790": costoPlaca790PortadaController.text,
+              "costoTotalPlacas790": costoTotalPlacas790PortadaController.text,
+              "barnizFte": barnizFtePortada,
+              "barnizRev": barnizRevPortada,
+              "barnizFteValor": barnizFtePortadaController.text,
+              "barnizRevValor": barnizRevPortadaController.text,
+              "costoUnitBarnizFte": costoUnitBarnizFtePortadaController.text,
+              "costoUnitBarnizRev": costoUnitBarnizRevPortadaController.text,
+              "cambiarPrecioPlaca": cambiarPrecioPlacaPortada,
+              "cambiarPrecioTinta": cambiarPrecioTinta,
+              "cambiarPrecioBarniz": cambiarPrecioBarniz,
+            }
+          : null,
+    };
+    Map<String, dynamic> extraerEstado(
+      Map<String, Map<String, bool>> estado,
+      Map<String, TextEditingController> costoCm2,
+      Map<String, TextEditingController> costoTotal,
+    ) {
+      return estado.map(
+        (key, value) => MapEntry(key, {
+          "frente": value["frente"],
+          "vuelta": value["vuelta"],
+          "costoCm2": costoCm2[key]?.text ?? "0.00",
+          "costoTotal": costoTotal[key]?.text ?? "0.00",
+        }),
+      );
+    }
+
+    final mapAcabados = {
+      "interior": {
+        "barnizUV": barnizUV,
+        "detalles": barnizUV
+            ? extraerEstado(
+                acabados,
+                acabadosCostoCm2Controllers,
+                acabadosCostoTotalControllers,
+              )
+            : {},
+      },
+      "portada": portada
+          ? {
+              "barnizUV": barnizUVPortada,
+              "detalles": barnizUVPortada
+                  ? extraerEstado(
+                      acabadosPortada,
+                      acabadosPortadaCostoCm2Controllers,
+                      acabadosPortadaCostoTotalControllers,
+                    )
+                  : {},
+            }
+          : null,
+    };
+    final mapLaminado = {
+      "interior": {
+        "laminadosActivo": laminadosActivo,
+        "detalles": laminadosActivo
+            ? extraerEstado(
+                laminados,
+                laminadosCostoCm2Controllers,
+                laminadosCostoTotalControllers,
+              )
+            : {},
+      },
+      "portada": portada
+          ? {
+              "laminadosActivo": laminadosPortada,
+              "detalles": laminadosPortada
+                  ? extraerEstado(
+                      laminadosPortadaMap,
+                      laminadosPortadaCostoCm2Controllers,
+                      laminadosPortadaCostoTotalControllers,
+                    )
+                  : {},
+            }
+          : null,
+    };
+    final mapSuaje = {
+      "suajeActivo": suaje,
+      "seCuentaConSuaje": seCuentaConSuaje,
+      "duplicarCostoSuaje": duplicarCostoSuaje,
+      "tamanoSuaje": tamanoSuajeController.text,
+      "anchoSuaje": anchoSuajeController.text,
+      "largoSuaje": largoSuajeController.text,
+      "costoSuajeCm": costoSuajeCmController.text,
+      "costoTotalSuaje": costoTotalSuajeController.text,
+      "costoArregloSuaje": costoArregloSuajeController.text,
+      "costoTotalSuajado": costoTotalSuajadoController.text,
+      "pliegosSuaje": pliegosSuajeController.text,
+      "costoMillarSuaje": costoMillarSuajeController.text,
+    };
+    final mapGrabado = {
+      "grabadoActivo": grabado,
+      "cantidadPlacas": cantidadPlacasGrabadoController.text,
+      "costoPlaca": costoPlacaGrabadoController.text,
+      "costoTotalPlacas": costoTotalPlacasGrabadoController.text,
+      "costoEntrada": costoEntradaGrabadoController.text,
+      "costoTotalEntrada": costoTotalEntradaGrabadoController.text,
+      "costoTotalGrabado": costoTotalGrabadoController.text,
+    };
+    List<Map<String, String>> listaMarcos = [];
+    for (int i = 0; i < anchoMarcos.length; i++) {
+      listaMarcos.add({
+        "ancho": anchoMarcos[i].text,
+        "alto": altoMarcos[i].text,
+        "precio": precioMarcos[i].text,
+      });
+    }
+    final mapSerigrafia = {
+      "serigrafiaActivo": serigrafia,
+      "cantidadMarcos": cantidadMarcosController.text,
+      "totalMarcos": totalMarcosController.text,
+      "listaMarcos": listaMarcos,
+      "cantidadNegativos": cantidadNegativosController.text,
+      "precioNegativo": precioNegativoController.text,
+      "totalNegativos": totalNegativosController.text,
+      "cantidadTintas": cantidadTintasController.text,
+      "costoTintas": costoTintasController.text,
+      "totalTintas": totalTintasController.text,
+      "numeroEntradas": numeroEntradasController.text,
+      "costoMillarSerigrafia": costoMillarSerigrafiaController.text,
+      "totalEntrada": totalEntradaController.text,
+    };
+    List<Map<String, dynamic>> embalajeDetalles = [];
+    for (int i = 0; i < embalajeItems.length; i++) {
+      if (embalajeActivoItems[i]) {
+        embalajeDetalles.add({
+          "item": embalajeItems[i],
+          "costo": embalajeCostoControllers[i].text,
+          "cantidad": embalajeCantidadControllers[i].text,
+          "total": embalajeTotalControllers[i].text,
+        });
+      }
+    }
+    final mapEmbalaje = {"embalajeActivo": embalaje, "items": embalajeDetalles};
+    final mapCostoTotal = {
+      "costoTotal": costoTotalController.text,
+      "margen": margenController.text,
+      "descuento": descuentoController.text,
+      "diasEntrega": diasEntregaController.text,
+      "precioUtilidad": precioUtilidadController.text,
+      "precioDescuento": precioDescuentoController.text,
+      "precioUnitario": precioUnitarioController.text,
+      "iva": ivaController.text,
+      "precioConIva": precioConIvaController.text,
+      "gastosEntregaActivo": gastosEntrega,
+    };
+    final mapAcabadosEspeciales = {"activo": acabadosEspeciales};
+    final mapCorte = {"activo": false};
     final nuevaCotizacion = Cotizacion(
+      id: widget.cotizacionAEditar?.id,
+      folio: widget.cotizacionAEditar?.folio,
+      fechaCreacion: widget.cotizacionAEditar?.fechaCreacion,
       clienteId: clienteIdSeleccionado!,
       usuarioId: usuarioIdActual,
       descripcion: descripcionController.text.trim(),
       anchoMedida: double.tryParse(anchoController.text) ?? 0.0,
       altoMedida: double.tryParse(altoController.text) ?? 0.0,
-      tipoCotizacion: 'Plana',
       tintaFrontal: int.tryParse(tintasFteController.text) ?? 0,
       tintaReverso: int.tryParse(tintasRevController.text) ?? 0,
       cantidadImpresiones: int.tryParse(cantidadImpresionController.text) ?? 0,
+      totalPliegos: int.tryParse(totalPliegosController.text) ?? 0,
       precioSinIva: double.tryParse(precioDescuentoController.text) ?? 0.0,
       precioUnitario: double.tryParse(precioUnitarioController.text) ?? 0.0,
       precioConIva: double.tryParse(precioConIvaController.text) ?? 0.0,
+      configClientes: mapClientes,
+      configPliegos: mapPliegos,
+      configDatosPapel: mapDatosPapel,
+      configCostoPapel: mapCostoPapel,
+      configMaquina: mapMaquina,
+      configAcabados: mapAcabados,
+      configLaminado: mapLaminado,
+      configSuaje: mapSuaje,
+      configGrabado: mapGrabado,
+      configSerigrafia: mapSerigrafia,
+      configEmbalaje: mapEmbalaje,
+      configCostoTotal: mapCostoTotal,
+      configAcabadosEspeciales: mapAcabadosEspeciales,
+      configCorte: mapCorte,
     );
-
-    final exito = await ref
-        .read(cotizacionesProvider.notifier)
-        .crearCotizacion(nuevaCotizacion);
-
+    final bool exito;
+    if (widget.cotizacionAEditar != null) {
+      exito = await ref
+          .read(cotizacionesProvider.notifier)
+          .actualizarCotizacion(nuevaCotizacion);
+    } else {
+      exito = await ref
+          .read(cotizacionesProvider.notifier)
+          .crearCotizacion(nuevaCotizacion);
+    }
     if (!mounted) return;
-
     if (exito) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cotización guardada exitosamente')),
+        SnackBar(
+          content: Text(
+            widget.cotizacionAEditar != null
+                ? 'Cotización modificada exitosamente'
+                : 'Cotización guardada exitosamente',
+          ),
+        ),
       );
-
       if (widget.onNavigateToCatalog != null) {
         widget.onNavigateToCatalog!();
       } else if (Navigator.canPop(context)) {

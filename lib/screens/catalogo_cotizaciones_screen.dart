@@ -81,14 +81,14 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                 ? const Center(child: Text('No hay cotizaciones registradas'))
                 : Tabla(
                     columns: const [
-                      DataColumn(label: Text('Número\nCotización')),
+                      DataColumn(label: Text('Folio')),
                       DataColumn(label: Text('Fecha\nCreación')),
                       DataColumn(label: Text('Cliente')),
                       DataColumn(label: Text('Descripción')),
                       DataColumn(label: Text('Medida\nTrabajo (cm)')),
-                      DataColumn(label: Text('Tipo\nCotización')),
                       DataColumn(label: Text('Tintas')),
                       DataColumn(label: Text('Cantidad\nImpresiones')),
+                      DataColumn(label: Text('Total\nPliegos')),
                       DataColumn(label: Text('Precio\nsin IVA')),
                       DataColumn(label: Text('Precio\nUnitario')),
                       DataColumn(label: Text('Precio\ncon IVA')),
@@ -118,9 +118,9 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                           DataCell(Text(c.clienteNombre ?? 'Desconocido')),
                           DataCell(Text(c.descripcion)),
                           DataCell(Text(c.medidas)),
-                          DataCell(Text(c.tipoCotizacion)),
                           DataCell(Text(c.tintas)),
                           DataCell(Text(c.cantidadImpresiones.toString())),
+                          DataCell(Text(c.totalPliegos.toString())),
                           DataCell(
                             Text('\$${c.precioSinIva.toStringAsFixed(2)}'),
                           ),
@@ -153,8 +153,21 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                   label: "Modificar",
                   onPressed: () {
                     if (seleccionado != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CotizacionPlanaScreen(
+                            cotizacionAEditar: seleccionado,
+                          ),
+                        ),
+                      );
+                    } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Función en desarrollo')),
+                        const SnackBar(
+                          content: Text(
+                            'Por favor, selecciona una cotización para modificar',
+                          ),
+                        ),
                       );
                     }
                   },
@@ -166,6 +179,14 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                   onPressed: () {
                     if (seleccionado != null) {
                       _eliminar(context, ref, seleccionado);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Por favor, selecciona una cotización para eliminar',
+                          ),
+                        ),
+                      );
                     }
                   },
                 ),

@@ -164,6 +164,7 @@ class _PanelPliegosState extends State<PanelPliegos> {
                     controller: widget.posicionPiezasController,
                     readOnly: true,
                     decoration: const InputDecoration(
+                      labelText: "Orientación de piezas",
                       border: OutlineInputBorder(),
                       isDense: true,
                       filled: true,
