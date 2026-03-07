@@ -404,7 +404,8 @@ class _CotizacionPlanaSerigrafiaState
             Row(
               children: [
                 Expanded(
-                  child: campo("# de Entrada", widget.numeroEntradasController),
+                  child: campo("# de Entrada", widget.numeroEntradasController,
+                  readOnly: true,),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
