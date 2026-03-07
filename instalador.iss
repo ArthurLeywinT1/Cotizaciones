@@ -1,8 +1,9 @@
 [Setup]
 AppName=Cotizaciones
 AppVersion=1.0
-DefaultDirName={pf}\Cotizaciones
+DefaultDirName={userappdata}\Cotizaciones
 DefaultGroupName=Cotizaciones
+DisableDirPage=no
 OutputDir=output
 OutputBaseFilename=CotizacionesSetup
 Compression=lzma
@@ -11,11 +12,11 @@ ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
 
 [Files]
-Source: "build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: recursesubdirs;
+Source: "build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
 
 [Icons]
-Name: "{group}\Cotizaciones"; Filename: "{app}\cotizador.exe";
-Name: "{commondesktop}\Cotizaciones"; Filename: "{app}\cotizador.exe";
+Name: "{group}\Cotizaciones"; Filename: "{app}\cotizador.exe"
+Name: "{commondesktop}\Cotizaciones"; Filename: "{app}\cotizador.exe"
 
 [Run]
-Filename: "{app}\cotizador.exe"; Description: "Abrir Cotizaciones"; Flags: nowait postinstall skipifsilent;
+Filename: "{app}\cotizador.exe"; Description: "Abrir Cotizaciones"; Flags: nowait postinstall skipifsilent

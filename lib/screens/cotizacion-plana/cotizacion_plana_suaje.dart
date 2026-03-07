@@ -271,6 +271,7 @@ class _PanelSuajeState extends ConsumerState<PanelSuaje> {
                     const Text("# de Pliegos:"),
                     const SizedBox(height: 4),
                     TextField(
+                      readOnly: true,
                       controller: widget.pliegosSuajeController,
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
