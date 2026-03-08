@@ -149,6 +149,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       TextEditingController();
   final TextEditingController totalPliegosController = TextEditingController();
   final TextEditingController millaresController = TextEditingController();
+  final TextEditingController pliegosExtraController = TextEditingController();
 
   // PLIEGOS PORTADA
   final TextEditingController pliegoAnchoPortadaController =
@@ -168,6 +169,8 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   final TextEditingController totalPliegosPortadaController =
       TextEditingController();
   final TextEditingController millaresPortadaController =
+      TextEditingController();
+  final TextEditingController pliegosExtraPortadaController =
       TextEditingController();
 
   // Controladores papel
@@ -254,6 +257,8 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
 
   late final TextEditingController costoUnitBarnizFteController;
   late final TextEditingController costoUnitBarnizRevController;
+  String? configuracionFrente;
+  String? configuracionVuelta;
 
   // MAQUINA PORTADA
   final TextEditingController nombreMaquinaPortadaController =
@@ -305,6 +310,8 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
 
   late final TextEditingController costoUnitBarnizFtePortadaController;
   late final TextEditingController costoUnitBarnizRevPortadaController;
+  String? configuracionFrentePortada;
+  String? configuracionVueltaPortada;
 
   // Contoladores suaje
   final TextEditingController tamanoSuajeController = TextEditingController();
@@ -1790,6 +1797,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     precioUnitarioController.dispose();
     ivaController.dispose();
     precioConIvaController.dispose();
+    pliegosExtraController.dispose();
     super.dispose();
   }
 
@@ -2034,6 +2042,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
                 totalPliegosController: totalPliegosController,
                 millaresController: millaresController,
                 cantidadPliegosController: cantidadPliegosController,
+                pliegosExtraController: pliegosExtraController,
               ),
 
               PanelDatosPapel(
@@ -2095,6 +2104,12 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
                 costoUnitBarnizRevController: costoUnitBarnizRevController,
                 onBarnizFteChanged: (v) => setState(() => barnizFte = v),
                 onBarnizRevChanged: (v) => setState(() => barnizRev = v),
+                onConfiguracionFrenteChanged: (valor) {
+                  configuracionFrente = valor;
+                },
+                onConfiguracionVueltaChanged: (valor) {
+                  configuracionVuelta = valor;
+                },
               ),
             ],
 
@@ -2147,6 +2162,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
                 pliegosSobrantesController: pliegosSobrantesPortadaController,
                 totalPliegosController: totalPliegosPortadaController,
                 millaresController: millaresPortadaController,
+                pliegosExtraController: pliegosExtraPortadaController,
               ),
 
               /// PAPEL PORTADA
@@ -2214,6 +2230,13 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
                     costoUnitBarnizRevPortadaController,
                 onBarnizFteChanged: (v) => setState(() => barnizFtePortada = v),
                 onBarnizRevChanged: (v) => setState(() => barnizRevPortada = v),
+                onConfiguracionFrenteChanged: (valor) {
+                  configuracionFrentePortada = valor;
+                },
+
+                onConfiguracionVueltaChanged: (valor) {
+                  configuracionVueltaPortada = valor;
+                },
               ),
             ],
 

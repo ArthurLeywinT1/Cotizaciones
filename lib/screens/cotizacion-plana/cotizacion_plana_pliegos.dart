@@ -18,6 +18,7 @@ class PanelPliegos extends StatefulWidget {
   final TextEditingController pliegosSobrantesController;
   final TextEditingController totalPliegosController;
   final TextEditingController millaresController;
+  final TextEditingController pliegosExtraController;
 
   const PanelPliegos({
     super.key,
@@ -33,6 +34,7 @@ class PanelPliegos extends StatefulWidget {
     required this.pliegosSobrantesController,
     required this.totalPliegosController,
     required this.millaresController,
+    required this.pliegosExtraController,
   });
 
   @override
@@ -40,18 +42,31 @@ class PanelPliegos extends StatefulWidget {
 }
 
 class _PanelPliegosState extends State<PanelPliegos> {
-  /// Pliegos extra seleccionados
+
   int pliegosExtraSeleccionados = 0;
+
+  /// Cargar valor desde el padre
+  @override
+  void initState() {
+    super.initState();
+
+    pliegosExtraSeleccionados =
+        int.tryParse(widget.pliegosExtraController.text) ?? 0;
+  }
 
   /// ===============================
   /// CÁLCULO DE PLIEGOS
   /// ===============================
   void _calcularPliegos() {
+
     final int impresiones =
         int.tryParse(widget.cantidadImpresionesController.text) ?? 0;
 
     final int piezasPorPliego =
         int.tryParse(widget.piezasPorPliegoController.text) ?? 0;
+
+    final int pliegosExtra =
+        int.tryParse(widget.pliegosExtraController.text) ?? 0;
 
     if (impresiones <= 0 || piezasPorPliego <= 0) {
       widget.cantidadPliegosController.text = "0";
@@ -66,12 +81,13 @@ class _PanelPliegosState extends State<PanelPliegos> {
     final int sobrante = haySobrante ? 1 : 0;
 
     final int totalPliegos =
-        pliegosEnteros + sobrante + pliegosExtraSeleccionados;
+        pliegosEnteros + sobrante + pliegosExtra;
 
     widget.cantidadPliegosController.text = pliegosEnteros.toString();
     widget.pliegosSobrantesController.text = sobrante.toString();
     widget.totalPliegosController.text = totalPliegos.toString();
-    widget.millaresController.text = (totalPliegos / 1000).toStringAsFixed(2);
+    widget.millaresController.text =
+        (totalPliegos / 1000).toStringAsFixed(2);
   }
 
   @override
@@ -84,6 +100,7 @@ class _PanelPliegosState extends State<PanelPliegos> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+
             const Text(
               "Datos del Pliego",
               style: TextStyle(fontWeight: FontWeight.bold),
@@ -104,7 +121,9 @@ class _PanelPliegosState extends State<PanelPliegos> {
                     ),
                   ),
                 ),
+
                 const SizedBox(width: 8),
+
                 Expanded(
                   child: TextField(
                     controller: widget.pliegoAltoController,
@@ -115,10 +134,12 @@ class _PanelPliegosState extends State<PanelPliegos> {
                     ),
                   ),
                 ),
+
                 IconButton(
                   icon: const Icon(Icons.search),
                   tooltip: "Ver segmentación",
                   onPressed: () async {
+
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -126,25 +147,28 @@ class _PanelPliegosState extends State<PanelPliegos> {
                           anchoTrabajo:
                               double.tryParse(
                                 widget.anchoFinalController.text,
-                              ) ??
-                              0,
+                              ) ?? 0,
                           altoTrabajo:
                               double.tryParse(
                                 widget.altoFinalController.text,
-                              ) ??
-                              0,
+                              ) ?? 0,
                         ),
                       ),
                     );
 
                     if (result != null) {
-                      widget.pliegoAnchoController.text = result["ancho"]
-                          .toString();
-                      widget.pliegoAltoController.text = result["alto"]
-                          .toString();
+                      widget.pliegoAnchoController.text =
+                          result["ancho"].toString();
+
+                      widget.pliegoAltoController.text =
+                          result["alto"].toString();
+
                       widget.piezasPorPliegoController.text =
                           result["piezasPorPliego"].toString();
-                      widget.posicionPiezasController.text = result["posicion"];
+
+                      widget.posicionPiezasController.text =
+                          result["posicion"];
+
                       widget.tamanoPorPliegoController.text =
                           "${widget.anchoFinalController.text} x ${widget.altoFinalController.text}";
 
@@ -172,7 +196,9 @@ class _PanelPliegosState extends State<PanelPliegos> {
                     ),
                   ),
                 ),
+
                 const SizedBox(width: 10),
+
                 Expanded(
                   child: TextField(
                     controller: widget.piezasPorPliegoController,
@@ -230,16 +256,22 @@ class _PanelPliegosState extends State<PanelPliegos> {
                 DropdownMenuItem(value: 300, child: Text("300")),
               ],
               onChanged: (value) {
+
                 setState(() {
                   pliegosExtraSeleccionados = value ?? 0;
+
+                  /// GUARDAR EN EL PADRE
+                  widget.pliegosExtraController.text =
+                      pliegosExtraSeleccionados.toString();
                 });
+
                 _calcularPliegos();
               },
             ),
 
             const Divider(height: 30),
 
-            /// RESULTADOS DE PLIEGOS
+            /// RESULTADOS
             Row(
               children: [
                 Expanded(
@@ -255,7 +287,9 @@ class _PanelPliegosState extends State<PanelPliegos> {
                     ),
                   ),
                 ),
+
                 const SizedBox(width: 10),
+
                 Expanded(
                   child: TextField(
                     controller: widget.pliegosSobrantesController,

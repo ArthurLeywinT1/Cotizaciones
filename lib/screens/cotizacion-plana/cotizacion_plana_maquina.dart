@@ -44,6 +44,8 @@ class PanelMaquina extends ConsumerStatefulWidget {
 
   final Function(bool) onBarnizFteChanged;
   final Function(bool) onBarnizRevChanged;
+  final ValueChanged<String?> onConfiguracionFrenteChanged;
+  final ValueChanged<String?> onConfiguracionVueltaChanged; 
 
   const PanelMaquina({
     super.key,
@@ -80,6 +82,8 @@ class PanelMaquina extends ConsumerStatefulWidget {
     required this.barnizRevController,
     required this.costoUnitBarnizFteController,
     required this.costoUnitBarnizRevController,
+    required this.onConfiguracionFrenteChanged,
+    required this.onConfiguracionVueltaChanged,
   });
 
   @override
@@ -610,13 +614,11 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
                   setState(() {
                     _opcionFrente = value;
                   });
-                  _calcularCostosTintas(); // 🔥 recalcula inmediatamente
+
+                  widget.onConfiguracionFrenteChanged(value); // 🔥 enviar al padre
+                  _calcularCostosTintas();
                 },
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                ),
-              ),
+              )
             ],
 
             const SizedBox(height: 16),
@@ -636,13 +638,11 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
                   setState(() {
                     _opcionVuelta = value;
                   });
-                  _calcularCostosTintas(); // 🔥 recalcula inmediatamente
+
+                  widget.onConfiguracionVueltaChanged(value); // 🔥 enviar al padre
+                  _calcularCostosTintas();
                 },
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                ),
-              ),
+              )
             ],
 
             Row(
