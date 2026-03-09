@@ -45,6 +45,7 @@ class _ModalUsuarioState extends State<ModalUsuario> {
     'Acabado',
     'Logistica',
     'Serigrafia',
+    'Grabado',
     'Otro',
   ];
 

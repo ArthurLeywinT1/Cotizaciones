@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/extra_provider.dart';
+
 // Panel específico para el cálculo de acabados (barnices UV)
 class PanelAcabados extends ConsumerStatefulWidget {
   final bool read_Only;

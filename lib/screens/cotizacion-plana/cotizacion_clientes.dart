@@ -203,18 +203,19 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
     widget.paginasInternasTotalesController.text = (piezas * paginas)
         .toString();
   }
+
   void calcularTotal(
-  TextEditingController cantidadController,
-  TextEditingController precioController,
-  TextEditingController totalController,
-) {
-  double cantidad = double.tryParse(cantidadController.text) ?? 0;
-  double precio = double.tryParse(precioController.text) ?? 0;
+    TextEditingController cantidadController,
+    TextEditingController precioController,
+    TextEditingController totalController,
+  ) {
+    double cantidad = double.tryParse(cantidadController.text) ?? 0;
+    double precio = double.tryParse(precioController.text) ?? 0;
 
-  double total = cantidad * precio;
+    double total = cantidad * precio;
 
-  totalController.text = total.toStringAsFixed(2);
-}
+    totalController.text = total.toStringAsFixed(2);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -784,8 +785,10 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                                     labelText: "Cantidad",
                                   ),
                                   onChanged: (value) => calcularTotal(
-                                    widget.cantidadPruebaPortadaTabloideController,
-                                    widget.precioPruebaPortadaTabloideController,
+                                    widget
+                                        .cantidadPruebaPortadaTabloideController,
+                                    widget
+                                        .precioPruebaPortadaTabloideController,
                                     widget.totalPruebaPortadaTabloideController,
                                   ),
                                 ),
@@ -800,8 +803,10 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                                     labelText: "Costo",
                                   ),
                                   onChanged: (value) => calcularTotal(
-                                    widget.cantidadPruebaPortadaTabloideController,
-                                    widget.precioPruebaPortadaTabloideController,
+                                    widget
+                                        .cantidadPruebaPortadaTabloideController,
+                                    widget
+                                        .precioPruebaPortadaTabloideController,
                                     widget.totalPruebaPortadaTabloideController,
                                   ),
                                 ),
@@ -842,9 +847,12 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                                     labelText: "Cantidad",
                                   ),
                                   onChanged: (value) => calcularTotal(
-                                    widget.cantidadPruebaPortadaMediaCartaController,
-                                    widget.precioPruebaPortadaMediaCartaController,
-                                    widget.totalPruebaPortadaMediaCartaController,
+                                    widget
+                                        .cantidadPruebaPortadaMediaCartaController,
+                                    widget
+                                        .precioPruebaPortadaMediaCartaController,
+                                    widget
+                                        .totalPruebaPortadaMediaCartaController,
                                   ),
                                 ),
                               ),
@@ -858,9 +866,12 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                                     labelText: "Costo",
                                   ),
                                   onChanged: (value) => calcularTotal(
-                                    widget.cantidadPruebaPortadaMediaCartaController,
-                                    widget.precioPruebaPortadaMediaCartaController,
-                                    widget.totalPruebaPortadaMediaCartaController,
+                                    widget
+                                        .cantidadPruebaPortadaMediaCartaController,
+                                    widget
+                                        .precioPruebaPortadaMediaCartaController,
+                                    widget
+                                        .totalPruebaPortadaMediaCartaController,
                                   ),
                                 ),
                               ),

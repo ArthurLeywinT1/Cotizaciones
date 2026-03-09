@@ -16,6 +16,7 @@ import 'cotizacion_plana_laminado.dart';
 import 'cotizacion_plana_serigrafia.dart';
 import 'embalaje.dart';
 import 'cotizacion_plana_grabado.dart';
+import '../ordenTrabajo.dart';
 
 // Pantalla principal de cotización plana
 class CotizacionPlanaScreen extends ConsumerStatefulWidget {
@@ -1259,7 +1260,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     setState(() {});
   }
 
-  Future<void> _guardarCotizacion() async {
+  Future<void> _guardarCotizacion({String? nuevoStatus}) async {
     calcularMedidasFinales();
     if (portada) calcularMedidasFinalesPortada();
     calcularCostoTotalGeneral();
@@ -1370,6 +1371,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         "posicionPiezas": posicionPiezasController.text,
         "piezasPorPliego": piezasPorPliegoController.text,
         "tamanoPorPliego": tamanoPorPliegoController.text,
+        "pliegosExtra": pliegosExtraController.text,
         "cantidadPliegos": cantidadPliegosController.text,
         "pliegosSobrantes": pliegosSobrantesController.text,
         "totalPliegos": totalPliegosController.text,
@@ -1382,6 +1384,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
               "posicionPiezas": posicionPiezasPortadaController.text,
               "piezasPorPliego": piezasPorPliegoPortadaController.text,
               "tamanoPorPliego": tamanoPorPliegoPortadaController.text,
+              "pliegosExtra": pliegosExtraPortadaController.text,
               "cantidadPliegos": cantidadPliegosPortadaController.text,
               "pliegosSobrantes": pliegosSobrantesPortadaController.text,
               "totalPliegos": totalPliegosPortadaController.text,
@@ -1448,6 +1451,8 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         "barnizRev": barnizRev,
         "barnizFteValor": barnizFteController.text,
         "barnizRevValor": barnizRevController.text,
+        "configuracionFrente": configuracionFrente,
+        "configuracionVuelta": configuracionVuelta,
         "costoUnitBarnizFte": costoUnitBarnizFteController.text,
         "costoUnitBarnizRev": costoUnitBarnizRevController.text,
         "cambiarPrecioPlaca": cambiarPrecioPlaca,
@@ -1620,6 +1625,10 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     };
     final mapAcabadosEspeciales = {"activo": acabadosEspeciales};
     final mapCorte = {"activo": false};
+    final String statusFinal =
+        nuevoStatus ??
+        widget.cotizacionAEditar?.status ??
+        'Esperando Aprobacion';
     final nuevaCotizacion = Cotizacion(
       id: widget.cotizacionAEditar?.id,
       folio: widget.cotizacionAEditar?.folio,
@@ -1636,6 +1645,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       precioSinIva: double.tryParse(precioDescuentoController.text) ?? 0.0,
       precioUnitario: double.tryParse(precioUnitarioController.text) ?? 0.0,
       precioConIva: double.tryParse(precioConIvaController.text) ?? 0.0,
+      status: statusFinal,
       configClientes: mapClientes,
       configPliegos: mapPliegos,
       configDatosPapel: mapDatosPapel,
@@ -1663,18 +1673,25 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     }
     if (!mounted) return;
     if (exito) {
+      final isOT = (nuevoStatus == 'Orden de Trabajo');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            widget.cotizacionAEditar != null
+            isOT
+                ? 'Orden de Trabajo generada exitosamente'
+                : widget.cotizacionAEditar != null
                 ? 'Cotización modificada exitosamente'
                 : 'Cotización guardada exitosamente',
           ),
         ),
       );
-      if (widget.onNavigateToCatalog != null) {
-        widget.onNavigateToCatalog!();
-      } else if (Navigator.canPop(context)) {
+
+      if (isOT) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const OrdenTrabajoScreen()),
+        );
+      } else {
         Navigator.pop(context);
       }
     } else {
@@ -2366,15 +2383,16 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 botonAccion(
-                  "Guardar Cotización",
-                  onPressed: _guardarCotizacion,
+                  widget.cotizacionAEditar != null
+                      ? "Actualizar Cotización"
+                      : "Guardar Cotización",
+                  onPressed: () => _guardarCotizacion(),
                 ),
-                botonAccion("Cancelar"),
-                botonAccion("Modificar Descuentos"),
-                botonAccion("Recotizar"),
-                botonAccion("Recotizar Cantidad"),
-                botonAccion("Generar OT"),
-                botonAccion("Cancelar Cotización"),
+                botonAccion(
+                  "Generar Orden de Trabajo",
+                  onPressed: () =>
+                      _guardarCotizacion(nuevoStatus: 'Orden de Trabajo'),
+                ),
               ],
             ),
 

@@ -11,10 +11,11 @@ import 'papel_screen.dart';
 import 'maquina_screen.dart';
 import 'extra_screen.dart';
 import 'descuento_screen.dart';
-import 'segmentacion_pliegos_screen.dart';
+import 'segmentacion.dart';
 import 'cotizacion-plana/cotizacion_plana_screen.dart';
-import 'catalogo_cotizaciones_screen.dart';
+import 'cotizacion.dart';
 import 'login.dart';
+import 'ordenTrabajo.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -69,6 +70,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         return 'Catálogo de Cotizaciones';
       case 'cotizacion_plana':
         return 'Catálogo de Cotización Plana';
+      case 'OrdenTrabajo':
+        return 'Ordenes de Trabajo';
       default:
         return 'Romosso - Cotizador - Usuario: ${usuarioNombre ?? 'Desconocido'}';
     }
@@ -98,6 +101,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         return CotizacionPlanaScreen(
           onNavigateToCatalog: () => _abrirPantalla('catalogo_cotizaciones'),
         );
+      case 'OrdenTrabajo':
+        return const OrdenTrabajoScreen();
       default:
         return _buildDashboard();
     }
@@ -203,6 +208,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                       ],
                       onSelected: _abrirPantalla,
+                    ),
+                    BarraItem(
+                      texto: 'Ordenes de Trabajo',
+                      onTap: () => _abrirPantalla('OrdenTrabajo'),
                     ),
                   ],
                 ),

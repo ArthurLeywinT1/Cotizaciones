@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 // Panel específico para el cálculo de acabados especiales (5 tipos, cada uno con descripción y costo)
 class PanelAcabadosEspeciales extends StatefulWidget {
   final TextEditingController cantidadImpresionController;

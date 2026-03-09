@@ -33,7 +33,6 @@ class PanelCostoTotal extends StatefulWidget {
 }
 
 class _PanelCostoTotalState extends State<PanelCostoTotal> {
-
   void _mostrarPickerPorcentaje(TextEditingController controller) {
     showCupertinoModalPopup(
       context: context,
@@ -75,10 +74,7 @@ class _PanelCostoTotalState extends State<PanelCostoTotal> {
                 children: List.generate(
                   101,
                   (i) => Center(
-                    child: Text(
-                      "$i%",
-                      style: const TextStyle(fontSize: 20),
-                    ),
+                    child: Text("$i%", style: const TextStyle(fontSize: 20)),
                   ),
                 ),
               ),
@@ -98,7 +94,6 @@ class _PanelCostoTotalState extends State<PanelCostoTotal> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             const Text(
               "Costo Totales",
               style: TextStyle(fontWeight: FontWeight.bold),
@@ -150,7 +145,6 @@ class _PanelCostoTotalState extends State<PanelCostoTotal> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   const Text(
                     "Datos Solo Administrador:",
                     style: TextStyle(fontWeight: FontWeight.bold),
@@ -208,8 +202,9 @@ class _PanelCostoTotalState extends State<PanelCostoTotal> {
                       const SizedBox(width: 6),
                       IconButton(
                         icon: const Icon(Icons.arrow_drop_down_circle),
-                        onPressed: () =>
-                            _mostrarPickerPorcentaje(widget.descuentoController),
+                        onPressed: () => _mostrarPickerPorcentaje(
+                          widget.descuentoController,
+                        ),
                       ),
                     ],
                   ),
@@ -222,9 +217,7 @@ class _PanelCostoTotalState extends State<PanelCostoTotal> {
                   TextField(
                     controller: widget.diasEntregaController,
                     keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     onChanged: (_) => widget.onRecalcular(),
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
@@ -238,8 +231,14 @@ class _PanelCostoTotalState extends State<PanelCostoTotal> {
 
             const SizedBox(height: 20),
 
-            campoResultado("Precio con Utilidad:", widget.precioUtilidadController),
-            campoResultado("Precio con Descuento:", widget.precioDescuentoController),
+            campoResultado(
+              "Precio con Utilidad:",
+              widget.precioUtilidadController,
+            ),
+            campoResultado(
+              "Precio con Descuento:",
+              widget.precioDescuentoController,
+            ),
             campoResultado("Precio Unitario:", widget.precioUnitarioController),
             campoResultado("IVA:", widget.ivaController),
             campoResultado("Precio Con IVA:", widget.precioConIvaController),

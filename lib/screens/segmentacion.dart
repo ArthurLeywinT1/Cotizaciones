@@ -17,8 +17,7 @@ class SegmentacionPliegosScreen extends StatefulWidget {
       _SegmentacionPliegosScreenState();
 }
 
-class _SegmentacionPliegosScreenState
-    extends State<SegmentacionPliegosScreen> {
+class _SegmentacionPliegosScreenState extends State<SegmentacionPliegosScreen> {
   double trabajoAncho = 0;
   double trabajoAlto = 0;
 
@@ -85,7 +84,6 @@ class _SegmentacionPliegosScreenState
       backgroundColor: Colors.grey[200],
       body: Column(
         children: [
-
           if (!widget.desdeCotizacion)
             Container(
               width: double.infinity,
@@ -94,8 +92,9 @@ class _SegmentacionPliegosScreenState
               child: const Text(
                 "⚠️ La selección de pliegos solo se permite desde Cotización",
                 style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold),
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -122,7 +121,9 @@ class _SegmentacionPliegosScreenState
                         isDense: true,
                         border: OutlineInputBorder(),
                       ),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       onChanged: (v) {
                         setState(() {
                           trabajoAncho = double.tryParse(v) ?? 0;
@@ -141,7 +142,9 @@ class _SegmentacionPliegosScreenState
                         isDense: true,
                         border: OutlineInputBorder(),
                       ),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       onChanged: (v) {
                         setState(() {
                           trabajoAlto = double.tryParse(v) ?? 0;
@@ -154,7 +157,8 @@ class _SegmentacionPliegosScreenState
                   ElevatedButton(
                     onPressed: () {
                       setState(() {
-                        trabajoAncho = double.tryParse(anchoController.text) ?? 0;
+                        trabajoAncho =
+                            double.tryParse(anchoController.text) ?? 0;
                         trabajoAlto = double.tryParse(altoController.text) ?? 0;
                       });
                     },
@@ -180,21 +184,25 @@ class _SegmentacionPliegosScreenState
                 final bool especial = p["especial"] == true;
 
                 final piezasNormal = calcularPiezas(
-                    (p["ancho"] as num).toDouble(),
-                    (p["alto"] as num).toDouble(),
-                    false);
+                  (p["ancho"] as num).toDouble(),
+                  (p["alto"] as num).toDouble(),
+                  false,
+                );
 
                 final piezasInvertido = calcularPiezas(
-                    (p["ancho"] as num).toDouble(),
-                    (p["alto"] as num).toDouble(),
-                    true);
+                  (p["ancho"] as num).toDouble(),
+                  (p["alto"] as num).toDouble(),
+                  true,
+                );
 
                 return InkWell(
                   onTap: () async {
                     if (!widget.desdeCotizacion) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text("❗ Solo puedes seleccionar un pliego si vienes desde Cotización"),
+                          content: Text(
+                            "❗ Solo puedes seleccionar un pliego si vienes desde Cotización",
+                          ),
                         ),
                       );
                       return;
@@ -203,7 +211,9 @@ class _SegmentacionPliegosScreenState
                     if (especial && (p["ancho"] == 0 || p["alto"] == 0)) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text("Introduce las medidas en 'Medida Especial'"),
+                          content: Text(
+                            "Introduce las medidas en 'Medida Especial'",
+                          ),
                         ),
                       );
                       return;
@@ -213,14 +223,17 @@ class _SegmentacionPliegosScreenState
                       context: context,
                       builder: (_) => AlertDialog(
                         title: const Text("Seleccionar orientación"),
-                        content: const Text("¿Cómo deseas acomodar las piezas?"),
+                        content: const Text(
+                          "¿Cómo deseas acomodar las piezas?",
+                        ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context, "Normal"),
                             child: Text("Normal ($piezasNormal piezas)"),
                           ),
                           TextButton(
-                            onPressed: () => Navigator.pop(context, "Invertido"),
+                            onPressed: () =>
+                                Navigator.pop(context, "Invertido"),
                             child: Text("Invertido ($piezasInvertido piezas)"),
                           ),
                         ],
@@ -229,8 +242,9 @@ class _SegmentacionPliegosScreenState
 
                     if (opcion == null) return;
 
-                    final piezasSeleccionadas =
-                        opcion == "Normal" ? piezasNormal : piezasInvertido;
+                    final piezasSeleccionadas = opcion == "Normal"
+                        ? piezasNormal
+                        : piezasInvertido;
 
                     Navigator.pop(context, {
                       "nombre": p["titulo"],
@@ -251,11 +265,15 @@ class _SegmentacionPliegosScreenState
                           Text(
                             p["titulo"],
                             style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 13),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
                           ),
                           const SizedBox(height: 6),
-                          const Text("Medidas del papel (cm):",
-                              style: TextStyle(fontSize: 12)),
+                          const Text(
+                            "Medidas del papel (cm):",
+                            style: TextStyle(fontSize: 12),
+                          ),
                           const SizedBox(height: 6),
 
                           Row(
@@ -276,10 +294,11 @@ class _SegmentacionPliegosScreenState
                                   ),
                                   onChanged: especial
                                       ? (v) {
-                                    setState(() {
-                                      p["ancho"] = double.tryParse(v) ?? 0;
-                                    });
-                                  }
+                                          setState(() {
+                                            p["ancho"] =
+                                                double.tryParse(v) ?? 0;
+                                          });
+                                        }
                                       : null,
                                 ),
                               ),
@@ -300,10 +319,10 @@ class _SegmentacionPliegosScreenState
                                   ),
                                   onChanged: especial
                                       ? (v) {
-                                    setState(() {
-                                      p["alto"] = double.tryParse(v) ?? 0;
-                                    });
-                                  }
+                                          setState(() {
+                                            p["alto"] = double.tryParse(v) ?? 0;
+                                          });
+                                        }
                                       : null,
                                 ),
                               ),
@@ -311,11 +330,17 @@ class _SegmentacionPliegosScreenState
                           ),
 
                           const SizedBox(height: 8),
-                          const Text("Piezas normal:", style: TextStyle(fontSize: 12)),
+                          const Text(
+                            "Piezas normal:",
+                            style: TextStyle(fontSize: 12),
+                          ),
                           Row(
                             children: [
-                              const Icon(Icons.arrow_downward,
-                                  color: Colors.green, size: 16),
+                              const Icon(
+                                Icons.arrow_downward,
+                                color: Colors.green,
+                                size: 16,
+                              ),
                               const SizedBox(width: 6),
                               Text(
                                 trabajoAncho > 0
@@ -334,11 +359,17 @@ class _SegmentacionPliegosScreenState
                           ),
 
                           const SizedBox(height: 6),
-                          const Text("Piezas invertido:", style: TextStyle(fontSize: 12)),
+                          const Text(
+                            "Piezas invertido:",
+                            style: TextStyle(fontSize: 12),
+                          ),
                           Row(
                             children: [
-                              const Icon(Icons.sync_alt,
-                                  color: Colors.green, size: 16),
+                              const Icon(
+                                Icons.sync_alt,
+                                color: Colors.green,
+                                size: 16,
+                              ),
                               const SizedBox(width: 6),
                               Text(
                                 trabajoAlto > 0
