@@ -1542,6 +1542,8 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
               "barnizRev": barnizRevPortada,
               "barnizFteValor": barnizFtePortadaController.text,
               "barnizRevValor": barnizRevPortadaController.text,
+              "configuracionFrente": configuracionFrentePortada,
+              "configuracionVuelta": configuracionVueltaPortada,
               "costoUnitBarnizFte": costoUnitBarnizFtePortadaController.text,
               "costoUnitBarnizRev": costoUnitBarnizRevPortadaController.text,
               "cambiarPrecioPlaca": cambiarPrecioPlacaPortada,
@@ -2202,12 +2204,18 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
                 costoUnitBarnizRevController: costoUnitBarnizRevController,
                 onBarnizFteChanged: (v) => setState(() => barnizFte = v),
                 onBarnizRevChanged: (v) => setState(() => barnizRev = v),
+                valorInicialFrente: configuracionFrente,
+                valorInicialVuelta: configuracionVuelta,
                 onConfiguracionFrenteChanged: (valor) {
-                  configuracionFrente = valor;
-                },
-                onConfiguracionVueltaChanged: (valor) {
-                  configuracionVuelta = valor;
-                },
+                    setState(() { // <--- Agrega setState
+                      configuracionFrente = valor;
+                    });
+                  },
+                  onConfiguracionVueltaChanged: (valor) {
+                    setState(() { // <--- Agrega setState
+                      configuracionVuelta = valor;
+                    });
+                  },
               ),
             ],
 
@@ -2328,12 +2336,18 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
                     costoUnitBarnizRevPortadaController,
                 onBarnizFteChanged: (v) => setState(() => barnizFtePortada = v),
                 onBarnizRevChanged: (v) => setState(() => barnizRevPortada = v),
+                valorInicialFrente: configuracionFrentePortada, 
+                valorInicialVuelta: configuracionVueltaPortada, 
                 onConfiguracionFrenteChanged: (valor) {
-                  configuracionFrentePortada = valor;
+                    setState(() {
+                      configuracionFrentePortada = valor;
+                    });
                 },
 
                 onConfiguracionVueltaChanged: (valor) {
-                  configuracionVueltaPortada = valor;
+                  setState(() {
+                    configuracionVueltaPortada = valor;
+                  });
                 },
               ),
             ],
