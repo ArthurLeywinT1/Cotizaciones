@@ -34,9 +34,8 @@ class PanelCostoTotal extends StatefulWidget {
 }
 
 class _PanelCostoTotalState extends State<PanelCostoTotal> {
-  // Formateador para mostrar números con comas y 2 decimales
-  final NumberFormat _f = NumberFormat("#,##0.00", "en_US");
 
+  
   void _mostrarPickerPorcentaje(TextEditingController controller) {
     showCupertinoModalPopup(
       context: context,
