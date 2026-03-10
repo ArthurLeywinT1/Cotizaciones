@@ -8,7 +8,7 @@ class PanelCostoPapel extends ConsumerStatefulWidget {
   final TextEditingController costoTotalPapelController;
   final TextEditingController descuentoController;
   final TextEditingController costoConIvaController;
-// 🔒 SOLO COSTO PAPEL
+  // 🔒 SOLO COSTO PAPEL
   const PanelCostoPapel({
     super.key,
     required this.costoMillarController,

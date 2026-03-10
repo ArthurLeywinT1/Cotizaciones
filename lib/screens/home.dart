@@ -12,8 +12,8 @@ import 'maquina_screen.dart';
 import 'extra_screen.dart';
 import 'descuento_screen.dart';
 import 'segmentacion.dart';
-import 'cotizacion-plana/cotizacion_plana_screen.dart';
-import 'cotizacion.dart';
+import 'cotizacion-plana/cotizacion_plana.dart';
+import 'cotizacion_screen.dart';
 import 'login.dart';
 import 'ordenTrabajo.dart';
 

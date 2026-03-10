@@ -3,10 +3,22 @@ import 'package:flutter/material.dart';
 // Panel específico para el cálculo de acabados especiales (5 tipos, cada uno con descripción y costo)
 class PanelAcabadosEspeciales extends StatefulWidget {
   final TextEditingController cantidadImpresionController;
+  final List<bool> activos;
+  final List<TextEditingController> descripcionControllers;
+  final List<TextEditingController> costoMillarControllers;
+  final List<TextEditingController> costoTotalControllers;
+  final void Function(int index, bool value) onChangedActivo;
+  final void Function(int index) onCalcularCosto;
 
   const PanelAcabadosEspeciales({
     super.key,
     required this.cantidadImpresionController,
+    required this.activos,
+    required this.descripcionControllers,
+    required this.costoMillarControllers,
+    required this.costoTotalControllers,
+    required this.onChangedActivo,
+    required this.onCalcularCosto,
   });
 
   @override
@@ -16,47 +28,40 @@ class PanelAcabadosEspeciales extends StatefulWidget {
 
 class _PanelAcabadosEspecialesState extends State<PanelAcabadosEspeciales> {
   // Estado de los 5 acabados especiales
-  final List<bool> activo = [false, false, false, false, false];
-  late List<TextEditingController> costoMillarControllers;
-  late List<TextEditingController> costoTotalControllers;
+  late List<bool> localActivos;
 
   @override
   void initState() {
     super.initState();
-    costoMillarControllers = List.generate(5, (_) => TextEditingController());
-    costoTotalControllers = List.generate(
-      5,
-      (_) => TextEditingController(text: "0.00"),
-    );
-    widget.cantidadImpresionController.addListener(_onCantidadChanged);
+    _sincronizarEstadoLocal();
+    widget.cantidadImpresionController.addListener(_recalcularTodos);
   }
 
-  void _onCantidadChanged() {
+  void _sincronizarEstadoLocal() {
+    localActivos = List.from(widget.activos);
+  }
+
+  void _recalcularTodos() {
     for (int i = 0; i < 5; i++) {
-      if (activo[i]) {
-        _calcularCosto(i);
+      if (localActivos[i]) {
+        _calcularCostoIndividual(i);
       }
     }
   }
 
-  void _calcularCosto(int index) {
+  void _calcularCostoIndividual(int index) {
     final double piezas =
         double.tryParse(widget.cantidadImpresionController.text) ?? 0.0;
     final double costoMillar =
-        double.tryParse(costoMillarControllers[index].text) ?? 0.0;
+        double.tryParse(widget.costoMillarControllers[index].text) ?? 0.0;
     final double total = (piezas / 1000) * costoMillar;
-    costoTotalControllers[index].text = total.toStringAsFixed(2);
+    widget.costoTotalControllers[index].text = total.toStringAsFixed(2);
+    widget.onCalcularCosto(index);
   }
 
   @override
   void dispose() {
-    widget.cantidadImpresionController.removeListener(_onCantidadChanged);
-    for (var c in costoMillarControllers) {
-      c.dispose();
-    }
-    for (var c in costoTotalControllers) {
-      c.dispose();
-    }
+    widget.cantidadImpresionController.removeListener(_recalcularTodos);
     super.dispose();
   }
 
@@ -74,21 +79,24 @@ class _PanelAcabadosEspecialesState extends State<PanelAcabadosEspeciales> {
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-
             // Genera los 5 acabados dinámicamente
             for (int i = 0; i < 5; i++) ...[
               Row(
                 children: [
                   Checkbox(
-                    value: activo[i],
-                    onChanged: (value) {
+                    value: localActivos[i],
+                    onChanged: (v) {
+                      final bool nuevoValor = v ?? false;
                       setState(() {
-                        activo[i] = value!;
-                        if (activo[i]) {
-                          _calcularCosto(i);
+                        localActivos[i] = nuevoValor;
+                        widget.onChangedActivo(i, nuevoValor);
+                        if (nuevoValor) {
+                          _calcularCostoIndividual(i);
                         } else {
-                          costoMillarControllers[i].clear();
-                          costoTotalControllers[i].text = "0.00";
+                          widget.descripcionControllers[i].clear();
+                          widget.costoMillarControllers[i].clear();
+                          widget.costoTotalControllers[i].text = "0.00";
+                          widget.onCalcularCosto(i);
                         }
                       });
                     },
@@ -98,12 +106,12 @@ class _PanelAcabadosEspecialesState extends State<PanelAcabadosEspeciales> {
               ),
 
               // Si está activo → muestra los campos
-              if (activo[i]) ...[
+              if (localActivos[i]) ...[
                 const SizedBox(height: 4),
 
                 // CAMPO DESCRIPCIÓN
-                const SizedBox(height: 4),
                 TextField(
+                  controller: widget.descripcionControllers[i],
                   decoration: const InputDecoration(
                     labelText: "Descripción",
                     border: OutlineInputBorder(),
@@ -135,9 +143,11 @@ class _PanelAcabadosEspecialesState extends State<PanelAcabadosEspeciales> {
 
                     Expanded(
                       child: TextField(
-                        controller: costoMillarControllers[i],
+                        controller: widget.costoMillarControllers[i],
                         keyboardType: TextInputType.number,
-                        onChanged: (_) => _calcularCosto(i),
+                        onChanged: (_) {
+                          _calcularCostoIndividual(i);
+                        },
                         decoration: const InputDecoration(
                           labelText: "Costo por millar",
                           border: OutlineInputBorder(),
@@ -154,7 +164,7 @@ class _PanelAcabadosEspecialesState extends State<PanelAcabadosEspeciales> {
 
                 // CAMPO COSTO
                 TextField(
-                  controller: costoTotalControllers[i],
+                  controller: widget.costoTotalControllers[i],
                   readOnly: true,
                   decoration: const InputDecoration(
                     labelText: "Costo Total",

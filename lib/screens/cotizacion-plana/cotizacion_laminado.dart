@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/extra_provider.dart';
+
 // Panel específico para el cálculo de laminados
 class PanelLaminados extends ConsumerStatefulWidget {
   final bool readOnly;
@@ -100,43 +101,38 @@ class _PanelLaminadosState extends ConsumerState<PanelLaminados> {
   }
 
   void _calcularCostoIndividual(String titulo) {
-  final double ancho =
-      double.tryParse(widget.pliegoAnchoController.text) ?? 0.0;
-  final double alto =
-      double.tryParse(widget.pliegoAltoController.text) ?? 0.0;
-  final double totalPliegos =
-      double.tryParse(widget.totalPliegosController.text) ?? 0.0;
-  final double costoCm2 =
-      double.tryParse(widget.controllersCostoCm2[titulo]?.text ?? "0") ?? 0.0;
-  final double cantidadImpresion =
-      double.tryParse(widget.cantidadImpresionController.text) ?? 0.0;
+    final double ancho =
+        double.tryParse(widget.pliegoAnchoController.text) ?? 0.0;
+    final double alto =
+        double.tryParse(widget.pliegoAltoController.text) ?? 0.0;
+    final double totalPliegos =
+        double.tryParse(widget.totalPliegosController.text) ?? 0.0;
+    final double costoCm2 =
+        double.tryParse(widget.controllersCostoCm2[titulo]?.text ?? "0") ?? 0.0;
+    final double cantidadImpresion =
+        double.tryParse(widget.cantidadImpresionController.text) ?? 0.0;
 
-  final int lados =
-      (frente[titulo] == true ? 1 : 0) +
-      (vuelta[titulo] == true ? 1 : 0);
+    final int lados =
+        (frente[titulo] == true ? 1 : 0) + (vuelta[titulo] == true ? 1 : 0);
 
-  final double area = (ancho * 0.01) * (alto * 0.01);
+    final double area = (ancho * 0.01) * (alto * 0.01);
 
-  double costoCalculado = 0.0;
+    double costoCalculado = 0.0;
 
-  if (widget.isOffset) {
-  
-    costoCalculado = area * totalPliegos * costoCm2 * lados;
-  } else {
-  
-    costoCalculado = area * cantidadImpresion * costoCm2 * lados;
-  }
+    if (widget.isOffset) {
+      costoCalculado = area * totalPliegos * costoCm2 * lados;
+    } else {
+      costoCalculado = area * cantidadImpresion * costoCm2 * lados;
+    }
 
-  final double costoMinimo = costosMinimos[titulo] ?? 0.0;
-  double costoFinal = 0.0;
+    final double costoMinimo = costosMinimos[titulo] ?? 0.0;
+    double costoFinal = 0.0;
 
-  if (lados > 0) {
-    costoFinal =
-        costoCalculado < costoMinimo ? costoMinimo : costoCalculado;
-  }
+    if (lados > 0) {
+      costoFinal = costoCalculado < costoMinimo ? costoMinimo : costoCalculado;
+    }
 
-  widget.controllersCostoTotal[titulo]
-      ?.text = costoFinal.toStringAsFixed(2);
+    widget.controllersCostoTotal[titulo]?.text = costoFinal.toStringAsFixed(2);
   }
 
   @override

@@ -13,7 +13,6 @@ class CotizacionPlanaSerigrafia extends ConsumerStatefulWidget {
   final List<TextEditingController> anchoMarcos;
   final List<TextEditingController> altoMarcos;
   final List<TextEditingController> precioMarcos;
-  
 
   // =============================
   // NEGATIVOS
@@ -222,19 +221,16 @@ class _CotizacionPlanaSerigrafiaState
     widget.totalMarcosController.text = total.toStringAsFixed(2);
   }
 
+  void _calcularTotalNegativos() {
+    final cantidad =
+        double.tryParse(widget.cantidadNegativosController.text) ?? 0;
 
-    void _calcularTotalNegativos() {
-      final cantidad =
-          double.tryParse(widget.cantidadNegativosController.text) ?? 0;
+    final precio = double.tryParse(widget.precioNegativoController.text) ?? 0;
 
-      final precio =
-          double.tryParse(widget.precioNegativoController.text) ?? 0;
+    final total = cantidad * precio;
 
-      final total = cantidad * precio;
-
-      widget.totalNegativosController.text =
-          total.toStringAsFixed(2);
-    }
+    widget.totalNegativosController.text = total.toStringAsFixed(2);
+  }
 
   // =====================================================
   // TINTAS
@@ -356,7 +352,7 @@ class _CotizacionPlanaSerigrafiaState
                   child: campo(
                     "Precio Negativo",
                     widget.precioNegativoController,
-                    readOnly: true
+                    readOnly: true,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -404,8 +400,11 @@ class _CotizacionPlanaSerigrafiaState
             Row(
               children: [
                 Expanded(
-                  child: campo("# de Entrada", widget.numeroEntradasController,
-                  readOnly: true,),
+                  child: campo(
+                    "# de Entrada",
+                    widget.numeroEntradasController,
+                    readOnly: true,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(

@@ -4,7 +4,7 @@ import '../models/cotizacion_model.dart';
 import '../providers/cotizacion_provider.dart';
 import '../widgets/boton.dart';
 import '../widgets/tabla.dart';
-import 'cotizacion-plana/cotizacion_plana_screen.dart';
+import 'cotizacion-plana/cotizacion_plana.dart';
 
 class CatalogoCotizacionesScreen extends ConsumerWidget {
   const CatalogoCotizacionesScreen({super.key});
@@ -59,12 +59,6 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('Catálogo Cotizaciones'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 1,
-      ),
       body: Column(
         children: [
           Expanded(
@@ -153,14 +147,40 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                   label: "Modificar",
                   onPressed: () {
                     if (seleccionado != null) {
+                      final cotizacionesActuales = ref
+                          .read(cotizacionesProvider)
+                          .cotizaciones;
+                      final cotizacionFresca = cotizacionesActuales.firstWhere(
+                        (c) => c.id == seleccionado.id,
+                        orElse: () => seleccionado,
+                      );
+
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => CotizacionPlanaScreen(
-                            cotizacionAEditar: seleccionado,
+                            cotizacionAEditar: cotizacionFresca,
                           ),
                         ),
-                      );
+                      ).then((_) {
+                        final listaActualizada = ref
+                            .read(cotizacionesProvider)
+                            .cotizaciones;
+                        try {
+                          final actualizada = listaActualizada.firstWhere(
+                            (c) => c.id == seleccionado.id,
+                          );
+                          ref
+                                  .read(cotizacionSeleccionadaProvider.notifier)
+                                  .state =
+                              actualizada;
+                        } catch (_) {
+                          ref
+                                  .read(cotizacionSeleccionadaProvider.notifier)
+                                  .state =
+                              null;
+                        }
+                      });
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(

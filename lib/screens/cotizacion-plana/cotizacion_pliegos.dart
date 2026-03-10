@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../segmentacion_pliegos_screen.dart';
+import '../segmentacion.dart';
 
 // Panel específico para el cálculo de pliegos
 class PanelPliegos extends StatefulWidget {
@@ -42,7 +42,6 @@ class PanelPliegos extends StatefulWidget {
 }
 
 class _PanelPliegosState extends State<PanelPliegos> {
-
   int pliegosExtraSeleccionados = 0;
 
   /// Cargar valor desde el padre
@@ -58,7 +57,6 @@ class _PanelPliegosState extends State<PanelPliegos> {
   /// CÁLCULO DE PLIEGOS
   /// ===============================
   void _calcularPliegos() {
-
     final int impresiones =
         int.tryParse(widget.cantidadImpresionesController.text) ?? 0;
 
@@ -80,14 +78,12 @@ class _PanelPliegosState extends State<PanelPliegos> {
     final bool haySobrante = impresiones % piezasPorPliego > 0;
     final int sobrante = haySobrante ? 1 : 0;
 
-    final int totalPliegos =
-        pliegosEnteros + sobrante + pliegosExtra;
+    final int totalPliegos = pliegosEnteros + sobrante + pliegosExtra;
 
     widget.cantidadPliegosController.text = pliegosEnteros.toString();
     widget.pliegosSobrantesController.text = sobrante.toString();
     widget.totalPliegosController.text = totalPliegos.toString();
-    widget.millaresController.text =
-        (totalPliegos / 1000).toStringAsFixed(2);
+    widget.millaresController.text = (totalPliegos / 1000).toStringAsFixed(2);
   }
 
   @override
@@ -100,7 +96,6 @@ class _PanelPliegosState extends State<PanelPliegos> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             const Text(
               "Datos del Pliego",
               style: TextStyle(fontWeight: FontWeight.bold),
@@ -139,7 +134,6 @@ class _PanelPliegosState extends State<PanelPliegos> {
                   icon: const Icon(Icons.search),
                   tooltip: "Ver segmentación",
                   onPressed: () async {
-
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -147,27 +141,28 @@ class _PanelPliegosState extends State<PanelPliegos> {
                           anchoTrabajo:
                               double.tryParse(
                                 widget.anchoFinalController.text,
-                              ) ?? 0,
+                              ) ??
+                              0,
                           altoTrabajo:
                               double.tryParse(
                                 widget.altoFinalController.text,
-                              ) ?? 0,
+                              ) ??
+                              0,
                         ),
                       ),
                     );
 
                     if (result != null) {
-                      widget.pliegoAnchoController.text =
-                          result["ancho"].toString();
+                      widget.pliegoAnchoController.text = result["ancho"]
+                          .toString();
 
-                      widget.pliegoAltoController.text =
-                          result["alto"].toString();
+                      widget.pliegoAltoController.text = result["alto"]
+                          .toString();
 
                       widget.piezasPorPliegoController.text =
                           result["piezasPorPliego"].toString();
 
-                      widget.posicionPiezasController.text =
-                          result["posicion"];
+                      widget.posicionPiezasController.text = result["posicion"];
 
                       widget.tamanoPorPliegoController.text =
                           "${widget.anchoFinalController.text} x ${widget.altoFinalController.text}";
@@ -256,13 +251,12 @@ class _PanelPliegosState extends State<PanelPliegos> {
                 DropdownMenuItem(value: 300, child: Text("300")),
               ],
               onChanged: (value) {
-
                 setState(() {
                   pliegosExtraSeleccionados = value ?? 0;
 
                   /// GUARDAR EN EL PADRE
-                  widget.pliegosExtraController.text =
-                      pliegosExtraSeleccionados.toString();
+                  widget.pliegosExtraController.text = pliegosExtraSeleccionados
+                      .toString();
                 });
 
                 _calcularPliegos();

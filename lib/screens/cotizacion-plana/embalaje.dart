@@ -57,8 +57,9 @@ class PanelEmbalaje extends StatelessWidget {
                     Expanded(
                       child: TextField(
                         controller: costoControllers[i],
-                        keyboardType:
-                            const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                         decoration: const InputDecoration(
                           labelText: "Costo Unitario",
                           prefixText: "\$ ",
@@ -74,8 +75,9 @@ class PanelEmbalaje extends StatelessWidget {
                     Expanded(
                       child: TextField(
                         controller: cantidadControllers[i],
-                        keyboardType:
-                            const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                         decoration: const InputDecoration(
                           labelText: "Cantidad",
                           border: OutlineInputBorder(),

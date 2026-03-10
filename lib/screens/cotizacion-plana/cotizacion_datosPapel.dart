@@ -4,6 +4,7 @@ import '../../providers/papel_provider.dart';
 import '../../providers/proveedor_provider.dart';
 import '../modals/modal_papel.dart';
 import 'buscador_papel.dart';
+
 // Panel específico para el ingreso y visualización de datos del papel a usar en la cotización plana
 class PanelDatosPapel extends ConsumerStatefulWidget {
   final TextEditingController nombrePapelController;

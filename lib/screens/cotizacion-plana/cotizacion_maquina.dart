@@ -45,7 +45,7 @@ class PanelMaquina extends ConsumerStatefulWidget {
   final Function(bool) onBarnizFteChanged;
   final Function(bool) onBarnizRevChanged;
   final ValueChanged<String?> onConfiguracionFrenteChanged;
-  final ValueChanged<String?> onConfiguracionVueltaChanged; 
+  final ValueChanged<String?> onConfiguracionVueltaChanged;
 
   const PanelMaquina({
     super.key,
@@ -224,8 +224,7 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
 
     double granTotal = totalFte + totalRev;
 
-    widget.costoGranTotalTintasController.text =
-        granTotal.toStringAsFixed(2);
+    widget.costoGranTotalTintasController.text = granTotal.toStringAsFixed(2);
 
     setState(() {
       widget.opcionesFrente.clear();
@@ -615,10 +614,12 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
                     _opcionFrente = value;
                   });
 
-                  widget.onConfiguracionFrenteChanged(value); // 🔥 enviar al padre
+                  widget.onConfiguracionFrenteChanged(
+                    value,
+                  ); // 🔥 enviar al padre
                   _calcularCostosTintas();
                 },
-              )
+              ),
             ],
 
             const SizedBox(height: 16),
@@ -639,10 +640,12 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
                     _opcionVuelta = value;
                   });
 
-                  widget.onConfiguracionVueltaChanged(value); // 🔥 enviar al padre
+                  widget.onConfiguracionVueltaChanged(
+                    value,
+                  ); // 🔥 enviar al padre
                   _calcularCostosTintas();
                 },
-              )
+              ),
             ],
 
             Row(
@@ -824,7 +827,6 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
             ),
 
             const SizedBox(height: 16),
-
           ],
         ),
       ),

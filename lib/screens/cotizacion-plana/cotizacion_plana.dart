@@ -3,19 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/cotizacion_model.dart';
 import '../../providers/cotizacion_provider.dart';
 import '../../providers/auth_provider.dart';
-import 'cotizacion_plana_clientes.dart';
-import 'cotizacion_plana_pliegos.dart';
-import 'cotizacion_plana_datos_papel.dart';
-import 'cotizacion_plana_costo_papel.dart';
-import 'cotizacion_plana_maquina.dart';
-import 'cotizacion_plana_acabados.dart';
-import 'cotizacion_plana_suaje.dart';
-import 'cotizacion_plana_acabados_especiales.dart';
-import 'cotizacion_plana_costo_total.dart';
-import 'cotizacion_plana_laminado.dart';
-import 'cotizacion_plana_serigrafia.dart';
+import 'cotizacion_clientes.dart';
+import 'cotizacion_pliegos.dart';
+import 'cotizacion_datosPapel.dart';
+import 'cotizacion_costoPapel.dart';
+import 'cotizacion_maquina.dart';
+import 'cotizacion_acabados.dart';
+import 'cotizacion_suaje.dart';
+import 'cotizacion_acabadosEspeciales.dart';
+import 'cotizacion_costoTotal.dart';
+import 'cotizacion_laminado.dart';
+import 'cotizacion_serigrafia.dart';
 import 'embalaje.dart';
-import 'cotizacion_plana_grabado.dart';
+import 'cotizacion_grabado.dart';
 import '../ordenTrabajo.dart';
 
 // Pantalla principal de cotización plana
@@ -425,6 +425,17 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   late final List<TextEditingController> embalajeCostoControllers;
   late final List<TextEditingController> embalajeCantidadControllers;
   late final List<TextEditingController> embalajeTotalControllers;
+
+  // =======================
+  // ACABADOS ESPECIALES
+  // =======================
+  List<bool> acabadosEspecialesActivos = List.generate(5, (_) => false);
+  late final List<TextEditingController> acabadosEspecialesDescControllers;
+  late final List<TextEditingController>
+  acabadosEspecialesCostoMillarControllers;
+  late final List<TextEditingController>
+  acabadosEspecialesCostoTotalControllers;
+
   // =======================
   // COSTO TOTAL (NUEVOS)
   // =======================
@@ -540,6 +551,19 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     );
 
     embalajeTotalControllers = List.generate(7, (_) => TextEditingController());
+    acabadosEspecialesDescControllers = List.generate(
+      5,
+      (_) => TextEditingController(),
+    );
+    acabadosEspecialesCostoMillarControllers = List.generate(
+      5,
+      (_) => TextEditingController(),
+    );
+    acabadosEspecialesCostoTotalControllers = List.generate(
+      5,
+      (_) => TextEditingController(text: "0.00"),
+    );
+
     if (widget.cotizacionAEditar != null) {
       _cargarDatosEdicion(widget.cotizacionAEditar!);
     }
@@ -675,6 +699,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         posicionPiezasController.text = pInt["posicionPiezas"] ?? "";
         piezasPorPliegoController.text = pInt["piezasPorPliego"] ?? "";
         tamanoPorPliegoController.text = pInt["tamanoPorPliego"] ?? "";
+        pliegosExtraController.text = pInt["pliegosExtra"] ?? "";
         cantidadPliegosController.text = pInt["cantidadPliegos"] ?? "";
         pliegosSobrantesController.text = pInt["pliegosSobrantes"] ?? "";
         millaresController.text = pInt["millares"] ?? "";
@@ -686,6 +711,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         posicionPiezasPortadaController.text = pPort["posicionPiezas"] ?? "";
         piezasPorPliegoPortadaController.text = pPort["piezasPorPliego"] ?? "";
         tamanoPorPliegoPortadaController.text = pPort["tamanoPorPliego"] ?? "";
+        pliegosExtraPortadaController.text = pPort["pliegosExtra"] ?? "";
         cantidadPliegosPortadaController.text = pPort["cantidadPliegos"] ?? "";
         pliegosSobrantesPortadaController.text =
             pPort["pliegosSobrantes"] ?? "";
@@ -755,6 +781,8 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         barnizRev = mqInt["barnizRev"] ?? false;
         barnizFteController.text = mqInt["barnizFteValor"] ?? "";
         barnizRevController.text = mqInt["barnizRevValor"] ?? "";
+        configuracionFrente = mqInt["configuracionFrente"];
+        configuracionVuelta = mqInt["configuracionVuelta"];
         costoUnitBarnizFteController.text = mqInt["costoUnitBarnizFte"] ?? "";
         costoUnitBarnizRevController.text = mqInt["costoUnitBarnizRev"] ?? "";
         cambiarPrecioPlaca = mqInt["cambiarPrecioPlaca"] ?? false;
@@ -923,6 +951,22 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       ivaController.text = mc["iva"] ?? "";
       precioConIvaController.text = mc["precioConIva"] ?? "";
       gastosEntrega = mc["gastosEntregaActivo"] ?? false;
+    }
+
+    if (edit.configAcabadosEspeciales != null) {
+      final mae = edit.configAcabadosEspeciales!;
+      final detallesGuardados = mae["detalles"] as List?;
+      if (detallesGuardados != null) {
+        for (int i = 0; i < detallesGuardados.length && i < 5; i++) {
+          acabadosEspecialesActivos[i] = true;
+          acabadosEspecialesDescControllers[i].text =
+              detallesGuardados[i]["descripcion"] ?? "";
+          acabadosEspecialesCostoMillarControllers[i].text =
+              detallesGuardados[i]["costoMillar"] ?? "";
+          acabadosEspecialesCostoTotalControllers[i].text =
+              detallesGuardados[i]["costoTotal"] ?? "0.00";
+        }
+      }
     }
 
     setState(() {});
@@ -1224,6 +1268,22 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       for (int i = 0; i < embalajeTotalControllers.length; i++) {
         if (embalajeActivoItems[i]) {
           total += double.tryParse(embalajeTotalControllers[i].text) ?? 0;
+        }
+      }
+    }
+
+    // ==============================
+    // 🔹 ACABADOS ESPECIALES
+    // ==============================
+
+    if (acabadosEspeciales) {
+      for (int i = 0; i < 5; i++) {
+        if (acabadosEspecialesActivos[i]) {
+          total +=
+              double.tryParse(
+                acabadosEspecialesCostoTotalControllers[i].text,
+              ) ??
+              0;
         }
       }
     }
@@ -1623,7 +1683,23 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       "precioConIva": precioConIvaController.text,
       "gastosEntregaActivo": gastosEntrega,
     };
-    final mapAcabadosEspeciales = {"activo": acabadosEspeciales};
+
+    List<Map<String, dynamic>> acabadosEspecialesDetalles = [];
+    for (int i = 0; i < 5; i++) {
+      if (acabadosEspecialesActivos[i]) {
+        acabadosEspecialesDetalles.add({
+          "descripcion": acabadosEspecialesDescControllers[i].text,
+          "costoMillar": acabadosEspecialesCostoMillarControllers[i].text,
+          "costoTotal": acabadosEspecialesCostoTotalControllers[i].text,
+        });
+      }
+    }
+
+    final mapAcabadosEspeciales = {
+      "activo": acabadosEspeciales,
+      "detalles": acabadosEspecialesDetalles,
+    };
+
     final mapCorte = {"activo": false};
     final String statusFinal =
         nuevoStatus ??
@@ -1805,6 +1881,11 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     for (var c in embalajeTotalControllers) {
       c.dispose();
     }
+
+    for (var c in acabadosEspecialesDescControllers) c.dispose();
+    for (var c in acabadosEspecialesCostoMillarControllers) c.dispose();
+    for (var c in acabadosEspecialesCostoTotalControllers) c.dispose();
+
     costoTotalController.dispose();
     margenController.dispose();
     descuentoController.dispose();
@@ -2358,6 +2439,20 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
             if (acabadosEspeciales) ...[
               PanelAcabadosEspeciales(
                 cantidadImpresionController: cantidadImpresionController,
+                activos: acabadosEspecialesActivos,
+                descripcionControllers: acabadosEspecialesDescControllers,
+                costoMillarControllers:
+                    acabadosEspecialesCostoMillarControllers,
+                costoTotalControllers: acabadosEspecialesCostoTotalControllers,
+                onChangedActivo: (index, value) {
+                  setState(() {
+                    acabadosEspecialesActivos[index] = value;
+                  });
+                  calcularCostoTotalGeneral();
+                },
+                onCalcularCosto: (index) {
+                  calcularCostoTotalGeneral();
+                },
               ),
             ],
 
