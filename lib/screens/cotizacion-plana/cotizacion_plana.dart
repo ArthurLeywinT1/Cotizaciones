@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import '../../models/cotizacion_model.dart';
 import '../../providers/cotizacion_provider.dart';
 import '../../providers/auth_provider.dart';
@@ -35,6 +36,7 @@ class CotizacionPlanaScreen extends ConsumerStatefulWidget {
 }
 
 class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
+  final NumberFormat _f = NumberFormat("#,##0.00", "en_US");
   // =============================
   // CONTROLADORES – CLIENTES
   // =============================
@@ -1072,250 +1074,97 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     }
   }
 
-  void calcularCostoTotalGeneral() {
-    double total = 0.0;
-
-    // ==============================
-    // 🔹 PRUEBA COLOR INTERNAS
-    // ==============================
-
-    if (pruebaCarta) {
-      total += double.tryParse(totalCartaController.text) ?? 0;
-    }
-
-    if (pruebaTabloide) {
-      total += double.tryParse(totalTabloideController.text) ?? 0;
-    }
-
-    if (pruebaMediaCarta) {
-      total += double.tryParse(totalMediaCartaController.text) ?? 0;
-    }
-
-    // ==============================
-    // 🔹 PRUEBA COLOR PORTADA
-    // ==============================
-
-    if (portada && pruebaColorPortada) {
-      if (pruebaColorPortadaCarta) {
-        total += double.tryParse(totalPruebaPortadaCartaController.text) ?? 0;
-      }
-
-      if (pruebaColorPortadaTabloide) {
-        total +=
-            double.tryParse(totalPruebaPortadaTabloideController.text) ?? 0;
-      }
-
-      if (pruebaColorPortadaMediaCarta) {
-        total +=
-            double.tryParse(totalPruebaPortadaMediaCartaController.text) ?? 0;
-      }
-    }
-
-    // ==============================
-    // 🔹 PAPEL INTERNAS
-    // ==============================
-
-    if (offsetActivo) {
-      total += double.tryParse(costoPapelConIvaController.text) ?? 0;
-    }
-
-    // ==============================
-    // 🔹 PAPEL PORTADA
-    // ==============================
-
-    if (offsetActivo && portada) {
-      total += double.tryParse(costoPapelPortadaConIvaController.text) ?? 0;
-    }
-
-    // ==============================
-    // 🔹 TINTAS INTERNAS
-    // ==============================
-
-    if (offsetActivo) {
-      total += double.tryParse(costoGranTotalTintasController.text) ?? 0;
-    }
-
-    // ==============================
-    // 🔹 TINTAS PORTADA
-    // ==============================
-
-    if (offsetActivo && portada) {
-      total += double.tryParse(costoGranTotalTintasPortadaController.text) ?? 0;
-    }
-
-    // ==============================
-    // 🔹 PLACAS INTERNAS
-    // ==============================
-
-    if (offsetActivo) {
-      total += double.tryParse(costoTotalPlacasController.text) ?? 0;
-      total += double.tryParse(costoTotalPlacas790Controller.text) ?? 0;
-    }
-
-    // ==============================
-    // 🔹 PLACAS PORTADA
-    // ==============================
-
-    if (offsetActivo && portada) {
-      total += double.tryParse(costoTotalPlacasPortadaController.text) ?? 0;
-      total += double.tryParse(costoTotalPlacas790PortadaController.text) ?? 0;
-    }
-
-    // ==============================
-    // 🔹 BARNIZ MAQUINA INTERNAS
-    // ==============================
-
-    if (offsetActivo) {
-      double costoBarniz = double.tryParse(costoBarnizController.text) ?? 0;
-
-      if (barnizFte) {
-        total += costoBarniz;
-      }
-
-      if (barnizRev) {
-        total += costoBarniz;
-      }
-    }
-    // ==============================
-    // 🔹 BARNIZ MAQUINA PORTADA
-    // ==============================
-
-    if (offsetActivo && portada) {
-      double costoBarnizPortada =
-          double.tryParse(costoBarnizPortadaController.text) ?? 0;
-
-      if (barnizFtePortada) {
-        total += costoBarnizPortada;
-      }
-
-      if (barnizRevPortada) {
-        total += costoBarnizPortada;
-      }
-    }
-
-    // ==============================
-    // 🔹 ACABADOS UV INTERNAS
-    // ==============================
-
-    if (barnizUV) {
-      for (var c in acabadosCostoTotalControllers.values) {
-        total += double.tryParse(c.text) ?? 0;
-      }
-    }
-
-    // ==============================
-    // 🔹 ACABADOS UV PORTADA
-    // ==============================
-
-    if (portada && barnizUVPortada) {
-      for (var c in acabadosPortadaCostoTotalControllers.values) {
-        total += double.tryParse(c.text) ?? 0;
-      }
-    }
-
-    // ==============================
-    // 🔹 LAMINADOS INTERNAS
-    // ==============================
-
-    if (laminadosActivo) {
-      for (var c in laminadosCostoTotalControllers.values) {
-        total += double.tryParse(c.text) ?? 0;
-      }
-    }
-
-    // ==============================
-    // 🔹 LAMINADOS PORTADA
-    // ==============================
-
-    if (portada && laminadosPortada) {
-      for (var c in laminadosPortadaCostoTotalControllers.values) {
-        total += double.tryParse(c.text) ?? 0;
-      }
-    }
-
-    // ==============================
-    // 🔹 SUAJE
-    // ==============================
-
-    if (suaje) {
-      total += double.tryParse(costoTotalSuajadoController.text) ?? 0;
-    }
-
-    // ==============================
-    // 🔹 GRABADO
-    // ==============================
-
-    if (grabado) {
-      total += double.tryParse(costoTotalGrabadoController.text) ?? 0;
-    }
-
-    // ==============================
-    // 🔹 SERIGRAFIA
-    // ==============================
-
-    if (serigrafia) {
-      total += double.tryParse(totalMarcosController.text) ?? 0;
-      total += double.tryParse(totalNegativosController.text) ?? 0;
-      total += double.tryParse(totalTintasController.text) ?? 0;
-      total += double.tryParse(totalEntradaController.text) ?? 0;
-    }
-
-    // ==============================
-    // 🔹 EMBALAJE
-    // ==============================
-
-    if (embalaje) {
-      for (int i = 0; i < embalajeTotalControllers.length; i++) {
-        if (embalajeActivoItems[i]) {
-          total += double.tryParse(embalajeTotalControllers[i].text) ?? 0;
-        }
-      }
-    }
-
-    // ==============================
-    // 🔹 ACABADOS ESPECIALES
-    // ==============================
-
-    if (acabadosEspeciales) {
-      for (int i = 0; i < 5; i++) {
-        if (acabadosEspecialesActivos[i]) {
-          total +=
-              double.tryParse(
-                acabadosEspecialesCostoTotalControllers[i].text,
-              ) ??
-              0;
-        }
-      }
-    }
-
-    // ==============================
-    // 🔹 SETEAR TOTAL
-    // ==============================
-
-    costoTotalController.text = total.toStringAsFixed(2);
+  double _limpiar(String texto) {
+    return double.tryParse(texto.replaceAll(',', '')) ?? 0.0;
   }
 
-  void _calcularUtilidadYFinal(double costoBase) {
-    double margen = (double.tryParse(margenController.text) ?? 0) / 100;
+void calcularCostoTotalGeneral() {
+    double total = 0.0;
 
-    double descuento = (double.tryParse(descuentoController.text) ?? 0) / 100;
+    // PRUEBAS COLOR
+    if (pruebaCarta) total += _limpiar(totalCartaController.text);
+    if (pruebaTabloide) total += _limpiar(totalTabloideController.text);
+    if (pruebaMediaCarta) total += _limpiar(totalMediaCartaController.text);
+
+    if (portada && pruebaColorPortada) {
+      if (pruebaColorPortadaCarta) total += _limpiar(totalPruebaPortadaCartaController.text);
+      if (pruebaColorPortadaTabloide) total += _limpiar(totalPruebaPortadaTabloideController.text);
+      if (pruebaColorPortadaMediaCarta) total += _limpiar(totalPruebaPortadaMediaCartaController.text);
+    }
+
+    // OFFSET INTERNAS Y PORTADA
+    if (offsetActivo) {
+      total += _limpiar(costoPapelConIvaController.text);
+      total += _limpiar(costoGranTotalTintasController.text);
+      total += _limpiar(costoTotalPlacasController.text);
+      total += _limpiar(costoTotalPlacas790Controller.text);
+      
+      if (barnizFte) total += _limpiar(costoBarnizController.text);
+      if (barnizRev) total += _limpiar(costoBarnizController.text);
+
+      if (portada) {
+        total += _limpiar(costoPapelPortadaConIvaController.text);
+        total += _limpiar(costoGranTotalTintasPortadaController.text);
+        total += _limpiar(costoTotalPlacasPortadaController.text);
+        total += _limpiar(costoTotalPlacas790PortadaController.text);
+        if (barnizFtePortada) total += _limpiar(costoBarnizPortadaController.text);
+        if (barnizRevPortada) total += _limpiar(costoBarnizPortadaController.text);
+      }
+    }
+
+    // ACABADOS UV Y LAMINADOS
+    if (barnizUV) {
+      for (var c in acabadosCostoTotalControllers.values) total += _limpiar(c.text);
+    }
+    if (portada && barnizUVPortada) {
+      for (var c in acabadosPortadaCostoTotalControllers.values) total += _limpiar(c.text);
+    }
+    if (laminadosActivo) {
+      for (var c in laminadosCostoTotalControllers.values) total += _limpiar(c.text);
+    }
+    if (portada && laminadosPortada) {
+      for (var c in laminadosPortadaCostoTotalControllers.values) total += _limpiar(c.text);
+    }
+
+    // OTROS MÓDULOS
+    if (suaje) total += _limpiar(costoTotalSuajadoController.text);
+    if (grabado) total += _limpiar(costoTotalGrabadoController.text);
+    if (serigrafia) {
+      total += _limpiar(totalMarcosController.text);
+      total += _limpiar(totalNegativosController.text);
+      total += _limpiar(totalTintasController.text);
+      total += _limpiar(totalEntradaController.text);
+    }
+    if (embalaje) {
+      for (int i = 0; i < embalajeTotalControllers.length; i++) {
+        if (embalajeActivoItems[i]) total += _limpiar(embalajeTotalControllers[i].text);
+      }
+    }
+    if (acabadosEspeciales) {
+      for (var c in acabadosEspecialesCostoTotalControllers) total += _limpiar(c.text);
+    }
+
+    // SETEAR COSTO TOTAL CON COMAS
+    costoTotalController.text = _f.format(total);
+  }
+
+void _calcularUtilidadYFinal(double costoBase) {
+    double margen = _limpiar(margenController.text) / 100;
+    double descuento = _limpiar(descuentoController.text) / 100;
+    double cantidad = _limpiar(cantidadImpresionController.text);
 
     double precioConUtilidad = costoBase * (1 + margen);
-    precioUtilidadController.text = precioConUtilidad.toStringAsFixed(2);
-
     double precioConDescuento = precioConUtilidad * (1 - descuento);
-    precioDescuentoController.text = precioConDescuento.toStringAsFixed(2);
-
-    double cantidad = double.tryParse(cantidadImpresionController.text) ?? 1;
-
     double unitario = cantidad > 0 ? precioConDescuento / cantidad : 0;
-
-    precioUnitarioController.text = unitario.toStringAsFixed(2);
-
     double iva = precioConDescuento * 0.16;
-    ivaController.text = iva.toStringAsFixed(2);
+    double precioConIva = precioConDescuento + iva;
 
-    precioConIvaController.text = (precioConDescuento + iva).toStringAsFixed(2);
+    // ASIGNAR A CONTROLADORES CON COMAS
+    precioUtilidadController.text = _f.format(precioConUtilidad);
+    precioDescuentoController.text = _f.format(precioConDescuento);
+    precioUnitarioController.text = _f.format(unitario);
+    ivaController.text = _f.format(iva);
+    precioConIvaController.text = _f.format(precioConIva);
 
     setState(() {});
   }
@@ -1324,6 +1173,8 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     calcularMedidasFinales();
     if (portada) calcularMedidasFinalesPortada();
     calcularCostoTotalGeneral();
+    double costoBaseLimpio = _limpiar(costoTotalController.text);
+    _calcularUtilidadYFinal(costoBaseLimpio);
 
     if (clienteIdSeleccionado == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1720,9 +1571,9 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       tintaReverso: int.tryParse(tintasRevController.text) ?? 0,
       cantidadImpresiones: int.tryParse(cantidadImpresionController.text) ?? 0,
       totalPliegos: int.tryParse(totalPliegosController.text) ?? 0,
-      precioSinIva: double.tryParse(precioDescuentoController.text) ?? 0.0,
-      precioUnitario: double.tryParse(precioUnitarioController.text) ?? 0.0,
-      precioConIva: double.tryParse(precioConIvaController.text) ?? 0.0,
+      precioSinIva: double.tryParse(precioDescuentoController.text.replaceAll(',', '')) ?? 0.0,
+      precioUnitario: double.tryParse(precioUnitarioController.text.replaceAll(',', '')) ?? 0.0,
+      precioConIva: double.tryParse(precioConIvaController.text.replaceAll(',', '')) ?? 0.0,
       status: statusFinal,
       configClientes: mapClientes,
       configPliegos: mapPliegos,
@@ -2469,7 +2320,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
                 },
               ),
             ],
-
             PanelCostoTotal(
               costoTotalController: costoTotalController,
               margenController: margenController,
@@ -2481,10 +2331,12 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
               ivaController: ivaController,
               precioConIvaController: precioConIvaController,
               onRecalcular: () {
+                // 1. Recolecta todos los costos de los paneles
                 calcularCostoTotalGeneral();
-                _calcularUtilidadYFinal(
-                  double.tryParse(costoTotalController.text) ?? 0,
-                );
+                
+                // 2. Procesa la utilidad basada en el número limpio
+                double costoBaseLimpio = _limpiar(costoTotalController.text);
+                _calcularUtilidadYFinal(costoBaseLimpio);
               },
             ),
             const SizedBox(height: 40),
