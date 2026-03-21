@@ -5,6 +5,8 @@ import '../providers/cotizacion_provider.dart';
 import '../widgets/boton.dart';
 import '../widgets/tabla.dart';
 import 'cotizacion-plana/cotizacion_plana.dart';
+import 'modals/pdf.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class CatalogoCotizacionesScreen extends ConsumerWidget {
   const CatalogoCotizacionesScreen({super.key});
@@ -67,7 +69,7 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                 : cotizacionesState.error.isNotEmpty
                 ? Center(
                     child: Text(
-                      'Error: ${cotizacionesState.error}',
+                      'Error al guardar cotizacion',
                       style: const TextStyle(color: Colors.red),
                     ),
                   )
@@ -185,7 +187,7 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text(
-                            'Por favor, selecciona una cotización para modificar',
+                            'Selecciona una cotización para modificar',
                           ),
                         ),
                       );
@@ -203,7 +205,7 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text(
-                            'Por favor, selecciona una cotización para eliminar',
+                            'Selecciona una cotización para eliminar',
                           ),
                         ),
                       );
@@ -215,6 +217,30 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                   label: "Recargar",
                   onPressed: () {
                     ref.read(cotizacionesProvider.notifier).recargar();
+                  },
+                ),
+                Boton(
+                  icon: Icons.picture_as_pdf,
+                  label: "Generar PDF",
+                  onPressed: () async {
+                    if (seleccionado != null) {
+                      await initializeDateFormatting('es');
+                      if (!context.mounted) return;
+
+                      showDialog(
+                        context: context,
+                        builder: (context) =>
+                            DialogoGenerarPdf(cotizacion: seleccionado),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Selecciona una cotización para generar PDF',
+                          ),
+                        ),
+                      );
+                    }
                   },
                 ),
               ],
