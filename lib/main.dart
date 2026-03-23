@@ -24,4 +24,3 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// Por meter todo en el main rompias el test main, pero asi ya no hay pedo
