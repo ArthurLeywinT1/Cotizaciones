@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/orden_trabajo_provider.dart';
 import 'sections/adquisiciones_section.dart';
+import 'sections/corte_section.dart';
+import 'sections/serigrafia_section.dart';
+import 'sections/diseno_section.dart';
 
 class OrdenTrabajoScreen extends ConsumerWidget {
   const OrdenTrabajoScreen({super.key});
@@ -44,6 +47,9 @@ class OrdenTrabajoScreen extends ConsumerWidget {
 
            //Renderizado Condicional de las Hojas (Secciones)
             if (controller.activeSections['adquisiciones']!) const AdquisicionesSection(),
+            if (controller.activeSections['diseño']!) const DisenoSection(),
+            if (controller.activeSections['corte']!) const CorteSection(),
+            if (controller.activeSections['serigrafia']!) const SerigrafiaSection(),
             
           ],
         ),

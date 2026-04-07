@@ -35,6 +35,13 @@ class CutProcess {
   });
 }
 
+class DesignTask {
+  String id;
+  String desc;
+  
+  DesignTask({required this.id, this.desc = ''});
+}
+
 // ==========================================
 // 2. EL CONTROLADOR (El que maneja la lógica)
 // ==========================================
@@ -72,6 +79,20 @@ class OrdenTrabajoController extends ChangeNotifier {
   
   void removeMaterial(String id) {
     materials.removeWhere((m) => m.id == id);
+    notifyListeners();
+  }
+  // --- Datos Simulados: Diseño ---
+  List<DesignTask> designTasks = [
+    DesignTask(id: '1', desc: 'Diseñar placas para offset')
+  ];
+  
+  void addDesignTask() {
+    designTasks.add(DesignTask(id: DateTime.now().millisecondsSinceEpoch.toString()));
+    notifyListeners();
+  }
+  
+  void removeDesignTask(String id) {
+    designTasks.removeWhere((d) => d.id == id);
     notifyListeners();
   }
 
@@ -114,6 +135,10 @@ class OrdenTrabajoController extends ChangeNotifier {
   void updateSerigrafiaPantone(String code) { 
     serigrafiaPantoneCode = code; 
     notifyListeners(); 
+  }
+  void updateSerigrafiaColor(Color color) {
+    serigrafiaColorDirecto = color;
+    notifyListeners();
   }
 }
 
