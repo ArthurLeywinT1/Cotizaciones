@@ -20,6 +20,8 @@ dependencies:
   pdf: ^3.12.0
   printing: ^5.14.3
   file_picker: ^10.3.10
+  flex_color_picker: ^3.5.0
+  
 
 dev_dependencies:
   flutter_test:

@@ -17,7 +17,7 @@ import 'cotizacion_laminado.dart';
 import 'cotizacion_serigrafia.dart';
 import 'embalaje.dart';
 import 'cotizacion_grabado.dart';
-import '../ordenTrabajo.dart';
+import '../../orden de trabajo/ordenTrabajo.dart';
 
 // Pantalla principal de cotización plana
 class CotizacionPlanaScreen extends ConsumerStatefulWidget {

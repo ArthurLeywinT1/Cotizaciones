@@ -15,7 +15,7 @@ import 'segmentacion.dart';
 import 'cotizacion-plana/cotizacion_plana.dart';
 import 'cotizacion_screen.dart';
 import 'login.dart';
-import 'ordenTrabajo.dart';
+import '../orden de trabajo/ordenTrabajo.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
