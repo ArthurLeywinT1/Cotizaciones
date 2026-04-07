@@ -6,6 +6,13 @@ import 'sections/adquisiciones_section.dart';
 import 'sections/corte_section.dart';
 import 'sections/serigrafia_section.dart';
 import 'sections/diseno_section.dart';
+import 'sections/offset_section.dart';
+import 'sections/laminados_section.dart';
+import 'sections/suaje_section.dart';
+import 'sections/grabado_section.dart';
+import 'sections/acabado_section.dart';
+import 'sections/embalaje_section.dart';
+import 'sections/logistica_section.dart';
 
 class OrdenTrabajoScreen extends ConsumerWidget {
   const OrdenTrabajoScreen({super.key});
@@ -46,11 +53,18 @@ class OrdenTrabajoScreen extends ConsumerWidget {
             const SizedBox(height: 16),
 
            //Renderizado Condicional de las Hojas (Secciones)
-            if (controller.activeSections['adquisiciones']!) const AdquisicionesSection(),
-            if (controller.activeSections['diseño']!) const DisenoSection(),
-            if (controller.activeSections['corte']!) const CorteSection(),
-            if (controller.activeSections['serigrafia']!) const SerigrafiaSection(),
-            
+          if (controller.activeSections['adquisiciones'] == true) const AdquisicionesSection(),
+          if (controller.activeSections['diseño'] == true) const DisenoSection(),
+          if (controller.activeSections['offset'] == true) const OffsetSection(),
+          if (controller.activeSections['corte'] == true) const CorteSection(),
+          if (controller.activeSections['laminados'] == true) const LaminadosSection(),
+          if (controller.activeSections['suaje'] == true) const SuajeSection(),
+          if (controller.activeSections['grabado'] == true) const GrabadoSection(),
+          if (controller.activeSections['serigrafia'] == true) const SerigrafiaSection(),
+          if (controller.activeSections['acabado'] == true) const AcabadoSection(),
+          if (controller.activeSections['embalaje'] == true) const EmbalajeSection(),
+          if (controller.activeSections['logistica'] == true) const LogisticaSection(),
+
           ],
         ),
       ),

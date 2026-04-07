@@ -8,7 +8,6 @@ class AdquisicionesSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Observamos el estado global
     final controller = ref.watch(ordenTrabajoProvider);
 
     return Card(
@@ -19,59 +18,133 @@ class AdquisicionesSection extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // --- ENCABEZADO ---
             Row(
               children: [
-                Icon(Icons.shopping_cart, color: Theme.of(context).colorScheme.primary),
+                const Icon(Icons.shopping_cart, color: Colors.teal),
                 const SizedBox(width: 8),
                 const Text("1. ADQUISICIONES", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               ],
             ),
             const Divider(),
             
-            // Tabla / Lista de Materiales
-            ...controller.materials.map((m) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      initialValue: m.nombre, 
-                      decoration: const InputDecoration(hintText: 'Material', isDense: true, border: OutlineInputBorder()), 
-                      onChanged: (v) => m.nombre = v,
-                    )
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextFormField(
-                      initialValue: m.proveedor, 
-                      decoration: const InputDecoration(hintText: 'Proveedor', isDense: true, border: OutlineInputBorder()), 
-                      onChanged: (v) => m.proveedor = v,
-                    )
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 100,
-                    child: TextFormField(
-                      initialValue: m.cantidad.toString(), 
-                      decoration: const InputDecoration(hintText: 'Cant', isDense: true, border: OutlineInputBorder()), 
-                      keyboardType: TextInputType.number, 
-                      onChanged: (v) => m.cantidad = int.tryParse(v) ?? 0,
-                    )
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red), 
-                    onPressed: () => controller.removeMaterial(m.id),
-                  ),
-                ],
-              ),
-            )),
-            
+            const Text("MATERIALES REQUERIDOS", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.teal)),
             const SizedBox(height: 8),
-            TextButton.icon(
-              onPressed: () => controller.addMaterial(), 
-              icon: const Icon(Icons.add), 
-              label: const Text("Agregar Material")
+
+            // --- LISTA DINÁMICA DE MATERIALES ---
+            Column(
+              children: controller.materials.map((material) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.teal[50],
+                    border: Border.all(color: Colors.teal[200]!),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      // CAMPO 1: NOMBRE DEL MATERIAL
+                      Expanded(
+                        flex: 2,
+                        child: TextFormField(
+                          initialValue: material.nombre,
+                          decoration: const InputDecoration(
+                            hintText: "Descripción del material...",
+                            isDense: true,
+                            border: InputBorder.none,
+                          ),
+                          style: const TextStyle(fontSize: 13),
+                          onChanged: (v) => material.nombre = v,
+                        ),
+                      ),
+                      
+                      Container(height: 30, width: 1, color: Colors.teal[200], margin: const EdgeInsets.symmetric(horizontal: 4)),
+                      
+                      // CAMPO 2: PROVEEDOR
+                      Expanded(
+                        flex: 2,
+                        child: TextFormField(
+                          initialValue: material.proveedor,
+                          decoration: const InputDecoration(
+                            hintText: "Proveedor sugerido...",
+                            isDense: true,
+                            border: InputBorder.none,
+                          ),
+                          style: const TextStyle(fontSize: 13),
+                          onChanged: (v) => material.proveedor = v,
+                        ),
+                      ),
+
+                      Container(height: 30, width: 1, color: Colors.teal[200], margin: const EdgeInsets.symmetric(horizontal: 4)),
+                      
+                      // CAMPO 3: CANTIDAD
+                      Expanded(
+                        flex: 1,
+                        child: TextFormField(
+                          // Para que no muestre un "0" inicial si está vacío
+                          initialValue: material.cantidad == 0 ? '' : material.cantidad.toString(),
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            hintText: "Cant.",
+                            isDense: true,
+                            border: InputBorder.none,
+                          ),
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.teal),
+                          onChanged: (v) => material.cantidad = int.tryParse(v) ?? 0,
+                        ),
+                      ),
+
+                      // BOTÓN DE BORRAR
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
+                        tooltip: "Borrar material",
+                        onPressed: () => controller.removeMaterial(material.id),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      )
+                    ],
+                  ),
+                );
+              }).toList(),
             ),
+
+            const SizedBox(height: 8),
+            
+            // Botón para agregar más materiales
+            TextButton.icon(
+              onPressed: () => controller.addMaterial(),
+              icon: const Icon(Icons.add_circle_outline, color: Colors.teal),
+              label: const Text("Agregar Material", style: TextStyle(color: Colors.teal, fontWeight: FontWeight.bold)),
+            ),
+
+            const SizedBox(height: 16),
+            const Divider(height: 1, thickness: 0.5),
+            const SizedBox(height: 12),
+
+            // --- NOTAS / INSTRUCCIONES EXTRAS ---
+            const Text("NOTAS / INSTRUCCIONES EXTRAS", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+            const SizedBox(height: 4),
+            TextField(
+              maxLines: 3, 
+              onChanged: (v) => ref.read(ordenTrabajoProvider).updateAdquisiciones('notas', v), 
+              decoration: InputDecoration(
+                hintText: "Escribe aquí especificaciones de compra, tiempos de entrega o detalles de crédito...",
+                isDense: true,
+                filled: true,
+                fillColor: Colors.yellow[50], 
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.yellow[600]!, width: 0.5)
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.yellow[600]!, width: 0.5)
+                ),
+              ),
+              style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
+            ),
+
           ],
         ),
       ),
