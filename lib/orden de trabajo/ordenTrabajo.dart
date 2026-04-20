@@ -14,16 +14,41 @@ import 'sections/acabado_section.dart';
 import 'sections/embalaje_section.dart';
 import 'sections/logistica_section.dart';
 
-class OrdenTrabajoScreen extends ConsumerWidget {
-  const OrdenTrabajoScreen({super.key});
+class OrdenTrabajoScreen extends ConsumerStatefulWidget {
+  final String? cotizacionId;
+
+  const OrdenTrabajoScreen({super.key, this.cotizacionId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<OrdenTrabajoScreen> createState() => _OrdenTrabajoScreenState();
+}
+
+class _OrdenTrabajoScreenState extends ConsumerState<OrdenTrabajoScreen> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.cotizacionId != null && widget.cotizacionId!.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref
+            .read(ordenTrabajoProvider.notifier)
+            .cargarDatosPorId(widget.cotizacionId!, ref);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // Escuchamos el proveedor
     final controller = ref.watch(ordenTrabajoProvider);
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
+      appBar: AppBar(
+        title: Text(
+          "Orden de Trabajo: ${controller.orderId}",
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -40,11 +65,21 @@ class OrdenTrabajoScreen extends ConsumerWidget {
                   children: controller.activeSections.keys.map((key) {
                     final isActive = controller.activeSections[key]!;
                     return FilterChip(
-                      label: Text(key.toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                      label: Text(
+                        key.toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       selected: isActive,
                       onSelected: (_) => controller.toggleSection(key),
-                      selectedColor: Theme.of(context).colorScheme.primaryContainer,
-                      checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
+                      selectedColor: Theme.of(
+                        context,
+                      ).colorScheme.primaryContainer,
+                      checkmarkColor: Theme.of(
+                        context,
+                      ).colorScheme.onPrimaryContainer,
                     );
                   }).toList(),
                 ),
@@ -52,19 +87,29 @@ class OrdenTrabajoScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
 
-           //Renderizado Condicional de las Hojas (Secciones)
-          if (controller.activeSections['adquisiciones'] == true) const AdquisicionesSection(),
-          if (controller.activeSections['diseño'] == true) const DisenoSection(),
-          if (controller.activeSections['offset'] == true) const OffsetSection(),
-          if (controller.activeSections['corte'] == true) const CorteSection(),
-          if (controller.activeSections['laminados'] == true) const LaminadosSection(),
-          if (controller.activeSections['suaje'] == true) const SuajeSection(),
-          if (controller.activeSections['grabado'] == true) const GrabadoSection(),
-          if (controller.activeSections['serigrafia'] == true) const SerigrafiaSection(),
-          if (controller.activeSections['acabado'] == true) const AcabadoSection(),
-          if (controller.activeSections['embalaje'] == true) const EmbalajeSection(),
-          if (controller.activeSections['logistica'] == true) const LogisticaSection(),
-
+            // Renderizado Condicional de las Hojas (Secciones)
+            if (controller.activeSections['adquisiciones'] == true)
+              const AdquisicionesSection(),
+            if (controller.activeSections['diseño'] == true)
+              const DisenoSection(),
+            if (controller.activeSections['offset'] == true)
+              const OffsetSection(),
+            if (controller.activeSections['corte'] == true)
+              const CorteSection(),
+            if (controller.activeSections['laminados'] == true)
+              const LaminadosSection(),
+            if (controller.activeSections['suaje'] == true)
+              const SuajeSection(),
+            if (controller.activeSections['grabado'] == true)
+              const GrabadoSection(),
+            if (controller.activeSections['serigrafia'] == true)
+              const SerigrafiaSection(),
+            if (controller.activeSections['acabado'] == true)
+              const AcabadoSection(),
+            if (controller.activeSections['embalaje'] == true)
+              const EmbalajeSection(),
+            if (controller.activeSections['logistica'] == true)
+              const LogisticaSection(),
           ],
         ),
       ),

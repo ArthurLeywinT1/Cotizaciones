@@ -1078,7 +1078,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     return double.tryParse(texto.replaceAll(',', '')) ?? 0.0;
   }
 
-void calcularCostoTotalGeneral() {
+  void calcularCostoTotalGeneral() {
     double total = 0.0;
 
     // PRUEBAS COLOR
@@ -1087,9 +1087,12 @@ void calcularCostoTotalGeneral() {
     if (pruebaMediaCarta) total += _limpiar(totalMediaCartaController.text);
 
     if (portada && pruebaColorPortada) {
-      if (pruebaColorPortadaCarta) total += _limpiar(totalPruebaPortadaCartaController.text);
-      if (pruebaColorPortadaTabloide) total += _limpiar(totalPruebaPortadaTabloideController.text);
-      if (pruebaColorPortadaMediaCarta) total += _limpiar(totalPruebaPortadaMediaCartaController.text);
+      if (pruebaColorPortadaCarta)
+        total += _limpiar(totalPruebaPortadaCartaController.text);
+      if (pruebaColorPortadaTabloide)
+        total += _limpiar(totalPruebaPortadaTabloideController.text);
+      if (pruebaColorPortadaMediaCarta)
+        total += _limpiar(totalPruebaPortadaMediaCartaController.text);
     }
 
     // OFFSET INTERNAS Y PORTADA
@@ -1098,7 +1101,7 @@ void calcularCostoTotalGeneral() {
       total += _limpiar(costoGranTotalTintasController.text);
       total += _limpiar(costoTotalPlacasController.text);
       total += _limpiar(costoTotalPlacas790Controller.text);
-      
+
       if (barnizFte) total += _limpiar(costoBarnizController.text);
       if (barnizRev) total += _limpiar(costoBarnizController.text);
 
@@ -1107,23 +1110,29 @@ void calcularCostoTotalGeneral() {
         total += _limpiar(costoGranTotalTintasPortadaController.text);
         total += _limpiar(costoTotalPlacasPortadaController.text);
         total += _limpiar(costoTotalPlacas790PortadaController.text);
-        if (barnizFtePortada) total += _limpiar(costoBarnizPortadaController.text);
-        if (barnizRevPortada) total += _limpiar(costoBarnizPortadaController.text);
+        if (barnizFtePortada)
+          total += _limpiar(costoBarnizPortadaController.text);
+        if (barnizRevPortada)
+          total += _limpiar(costoBarnizPortadaController.text);
       }
     }
 
     // ACABADOS UV Y LAMINADOS
     if (barnizUV) {
-      for (var c in acabadosCostoTotalControllers.values) total += _limpiar(c.text);
+      for (var c in acabadosCostoTotalControllers.values)
+        total += _limpiar(c.text);
     }
     if (portada && barnizUVPortada) {
-      for (var c in acabadosPortadaCostoTotalControllers.values) total += _limpiar(c.text);
+      for (var c in acabadosPortadaCostoTotalControllers.values)
+        total += _limpiar(c.text);
     }
     if (laminadosActivo) {
-      for (var c in laminadosCostoTotalControllers.values) total += _limpiar(c.text);
+      for (var c in laminadosCostoTotalControllers.values)
+        total += _limpiar(c.text);
     }
     if (portada && laminadosPortada) {
-      for (var c in laminadosPortadaCostoTotalControllers.values) total += _limpiar(c.text);
+      for (var c in laminadosPortadaCostoTotalControllers.values)
+        total += _limpiar(c.text);
     }
 
     // OTROS MÓDULOS
@@ -1137,18 +1146,20 @@ void calcularCostoTotalGeneral() {
     }
     if (embalaje) {
       for (int i = 0; i < embalajeTotalControllers.length; i++) {
-        if (embalajeActivoItems[i]) total += _limpiar(embalajeTotalControllers[i].text);
+        if (embalajeActivoItems[i])
+          total += _limpiar(embalajeTotalControllers[i].text);
       }
     }
     if (acabadosEspeciales) {
-      for (var c in acabadosEspecialesCostoTotalControllers) total += _limpiar(c.text);
+      for (var c in acabadosEspecialesCostoTotalControllers)
+        total += _limpiar(c.text);
     }
 
     // SETEAR COSTO TOTAL CON COMAS
     costoTotalController.text = _f.format(total);
   }
 
-void _calcularUtilidadYFinal(double costoBase) {
+  void _calcularUtilidadYFinal(double costoBase) {
     double margen = _limpiar(margenController.text) / 100;
     double descuento = _limpiar(descuentoController.text) / 100;
     double cantidad = _limpiar(cantidadImpresionController.text);
@@ -1571,9 +1582,15 @@ void _calcularUtilidadYFinal(double costoBase) {
       tintaReverso: int.tryParse(tintasRevController.text) ?? 0,
       cantidadImpresiones: int.tryParse(cantidadImpresionController.text) ?? 0,
       totalPliegos: int.tryParse(totalPliegosController.text) ?? 0,
-      precioSinIva: double.tryParse(precioDescuentoController.text.replaceAll(',', '')) ?? 0.0,
-      precioUnitario: double.tryParse(precioUnitarioController.text.replaceAll(',', '')) ?? 0.0,
-      precioConIva: double.tryParse(precioConIvaController.text.replaceAll(',', '')) ?? 0.0,
+      precioSinIva:
+          double.tryParse(precioDescuentoController.text.replaceAll(',', '')) ??
+          0.0,
+      precioUnitario:
+          double.tryParse(precioUnitarioController.text.replaceAll(',', '')) ??
+          0.0,
+      precioConIva:
+          double.tryParse(precioConIvaController.text.replaceAll(',', '')) ??
+          0.0,
       status: statusFinal,
       configClientes: mapClientes,
       configPliegos: mapPliegos,
@@ -2058,15 +2075,17 @@ void _calcularUtilidadYFinal(double costoBase) {
                 valorInicialFrente: configuracionFrente,
                 valorInicialVuelta: configuracionVuelta,
                 onConfiguracionFrenteChanged: (valor) {
-                    setState(() { // <--- Agrega setState
-                      configuracionFrente = valor;
-                    });
-                  },
-                  onConfiguracionVueltaChanged: (valor) {
-                    setState(() { // <--- Agrega setState
-                      configuracionVuelta = valor;
-                    });
-                  },
+                  setState(() {
+                    // <--- Agrega setState
+                    configuracionFrente = valor;
+                  });
+                },
+                onConfiguracionVueltaChanged: (valor) {
+                  setState(() {
+                    // <--- Agrega setState
+                    configuracionVuelta = valor;
+                  });
+                },
               ),
             ],
 
@@ -2187,12 +2206,12 @@ void _calcularUtilidadYFinal(double costoBase) {
                     costoUnitBarnizRevPortadaController,
                 onBarnizFteChanged: (v) => setState(() => barnizFtePortada = v),
                 onBarnizRevChanged: (v) => setState(() => barnizRevPortada = v),
-                valorInicialFrente: configuracionFrentePortada, 
-                valorInicialVuelta: configuracionVueltaPortada, 
+                valorInicialFrente: configuracionFrentePortada,
+                valorInicialVuelta: configuracionVueltaPortada,
                 onConfiguracionFrenteChanged: (valor) {
-                    setState(() {
-                      configuracionFrentePortada = valor;
-                    });
+                  setState(() {
+                    configuracionFrentePortada = valor;
+                  });
                 },
 
                 onConfiguracionVueltaChanged: (valor) {
@@ -2333,7 +2352,7 @@ void _calcularUtilidadYFinal(double costoBase) {
               onRecalcular: () {
                 // 1. Recolecta todos los costos de los paneles
                 calcularCostoTotalGeneral();
-                
+
                 // 2. Procesa la utilidad basada en el número limpio
                 double costoBaseLimpio = _limpiar(costoTotalController.text);
                 _calcularUtilidadYFinal(costoBaseLimpio);

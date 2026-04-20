@@ -7,6 +7,7 @@ import '../widgets/tabla.dart';
 import 'cotizacion-plana/cotizacion_plana.dart';
 import 'modals/pdf.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import '../orden de trabajo/ordenTrabajo.dart';
 
 class CatalogoCotizacionesScreen extends ConsumerWidget {
   const CatalogoCotizacionesScreen({super.key});
@@ -237,6 +238,73 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                         const SnackBar(
                           content: Text(
                             'Selecciona una cotización para generar PDF',
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                ),
+                Boton(
+                  icon: Icons.assignment,
+                  label: "Generar OT",
+                  onPressed: () async {
+                    if (seleccionado != null) {
+                      // Construir la cotización con el estatus actualizado
+                      final cotizacionActualizada = Cotizacion(
+                        id: seleccionado.id,
+                        folio: seleccionado.folio,
+                        fechaCreacion: seleccionado.fechaCreacion,
+                        clienteId: seleccionado.clienteId,
+                        usuarioId: seleccionado.usuarioId,
+                        descripcion: seleccionado.descripcion,
+                        anchoMedida: seleccionado.anchoMedida,
+                        altoMedida: seleccionado.altoMedida,
+                        tintaFrontal: seleccionado.tintaFrontal,
+                        tintaReverso: seleccionado.tintaReverso,
+                        cantidadImpresiones: seleccionado.cantidadImpresiones,
+                        totalPliegos: seleccionado.totalPliegos,
+                        precioSinIva: seleccionado.precioSinIva,
+                        precioUnitario: seleccionado.precioUnitario,
+                        precioConIva: seleccionado.precioConIva,
+                        status:
+                            'Orden de Trabajo', // <--- Se actualiza el estatus
+                        configClientes: seleccionado.configClientes,
+                        configPliegos: seleccionado.configPliegos,
+                        configDatosPapel: seleccionado.configDatosPapel,
+                        configCostoPapel: seleccionado.configCostoPapel,
+                        configMaquina: seleccionado.configMaquina,
+                        configAcabados: seleccionado.configAcabados,
+                        configLaminado: seleccionado.configLaminado,
+                        configSuaje: seleccionado.configSuaje,
+                        configGrabado: seleccionado.configGrabado,
+                        configSerigrafia: seleccionado.configSerigrafia,
+                        configEmbalaje: seleccionado.configEmbalaje,
+                        configCostoTotal: seleccionado.configCostoTotal,
+                        configAcabadosEspeciales:
+                            seleccionado.configAcabadosEspeciales,
+                        configCorte: seleccionado.configCorte,
+                      );
+
+                      // Actualizar en la BD
+                      await ref
+                          .read(cotizacionesProvider.notifier)
+                          .actualizarCotizacion(cotizacionActualizada);
+
+                      if (context.mounted) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => OrdenTrabajoScreen(
+                              cotizacionId: seleccionado.id!,
+                            ),
+                          ),
+                        );
+                      }
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Selecciona una cotización para generar la Orden de Trabajo',
                           ),
                         ),
                       );

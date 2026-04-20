@@ -8,25 +8,52 @@ class SerigrafiaSection extends ConsumerWidget {
   const SerigrafiaSection({super.key});
 
   // Función para abrir el diálogo de ColorPicker
-  Future<bool> _colorPickerDialog(BuildContext context, WidgetRef ref, Color currentColor) async {
+  Future<bool> _colorPickerDialog(
+    BuildContext context,
+    WidgetRef ref,
+    Color currentColor,
+  ) async {
     return ColorPicker(
       color: currentColor,
       onColorChanged: (Color color) {
         ref.read(ordenTrabajoProvider).updateSerigrafiaColor(color);
       },
-      width: 40, height: 40, borderRadius: 4, spacing: 5, runSpacing: 5, wheelDiameter: 155,
-      heading: Text('Selecciona el color', style: Theme.of(context).textTheme.titleSmall),
+      width: 40,
+      height: 40,
+      borderRadius: 4,
+      spacing: 5,
+      runSpacing: 5,
+      wheelDiameter: 155,
+      heading: Text(
+        'Selecciona el color',
+        style: Theme.of(context).textTheme.titleSmall,
+      ),
       subheading: Text('Tonos', style: Theme.of(context).textTheme.titleSmall),
-      wheelSubheading: Text('Color personalizado', style: Theme.of(context).textTheme.titleSmall),
-      showMaterialName: true, showColorName: true, showColorCode: true,
-      copyPasteBehavior: const ColorPickerCopyPasteBehavior(longPressMenu: true),
+      wheelSubheading: Text(
+        'Color personalizado',
+        style: Theme.of(context).textTheme.titleSmall,
+      ),
+      showMaterialName: true,
+      showColorName: true,
+      showColorCode: true,
+      copyPasteBehavior: const ColorPickerCopyPasteBehavior(
+        longPressMenu: true,
+      ),
       pickerTypeLabels: const <ColorPickerType, String>{
-        ColorPickerType.both: 'Ambos', ColorPickerType.primary: 'Primario', ColorPickerType.accent: 'Acento',
-        ColorPickerType.bw: 'B&N', ColorPickerType.custom: 'Personalizado', ColorPickerType.wheel: 'Rueda',
+        ColorPickerType.both: 'Ambos',
+        ColorPickerType.primary: 'Primario',
+        ColorPickerType.accent: 'Acento',
+        ColorPickerType.bw: 'B&N',
+        ColorPickerType.custom: 'Personalizado',
+        ColorPickerType.wheel: 'Rueda',
       },
     ).showPickerDialog(
       context,
-      constraints: const BoxConstraints(minHeight: 480, minWidth: 300, maxWidth: 320),
+      constraints: const BoxConstraints(
+        minHeight: 480,
+        minWidth: 300,
+        maxWidth: 320,
+      ),
     );
   }
 
@@ -47,7 +74,10 @@ class SerigrafiaSection extends ConsumerWidget {
               children: [
                 const Icon(Icons.palette, color: Colors.purple),
                 const SizedBox(width: 8),
-                const Text("7. SERIGRAFÍA", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const Text(
+                  "7. SERIGRAFÍA",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
               ],
             ),
             const Divider(),
@@ -58,16 +88,25 @@ class SerigrafiaSection extends ConsumerWidget {
                 Expanded(
                   flex: 2,
                   child: _buildInput(
-                    "PROYECTO", "Nombre del proyecto...", 
-                    onChanged: (v) => controller.updateSerigrafiaGeneral('proyecto', v)
+                    "PROYECTO",
+                    "Nombre del proyecto...",
+                    controller.serigrafiaProyecto,
+                    onChanged: (v) =>
+                        controller.updateSerigrafiaGeneral('proyecto', v),
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   flex: 1,
                   child: _buildInput(
-                    "PIEZAS SOLICITADAS", "0", esNumero: true, 
-                    onChanged: (v) => controller.updateSerigrafiaGeneral('piezas', v)
+                    "PIEZAS SOLICITADAS",
+                    "0",
+                    controller.serigrafiaPiezas > 0
+                        ? controller.serigrafiaPiezas.toString()
+                        : "",
+                    esNumero: true,
+                    onChanged: (v) =>
+                        controller.updateSerigrafiaGeneral('piezas', v),
                   ),
                 ),
               ],
@@ -85,23 +124,54 @@ class SerigrafiaSection extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("CONFIGURACIÓN DE COLOR", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.purple)),
+                  const Text(
+                    "CONFIGURACIÓN DE COLOR",
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.purple,
+                    ),
+                  ),
                   Row(
                     children: [
-                      Radio<String>(value: 'pantone', groupValue: controller.serigrafiaModo, onChanged: (v) => controller.updateSerigrafiaModo(v!)),
-                      const Text("PANTONE / TEXTO", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      Radio<String>(
+                        value: 'pantone',
+                        groupValue: controller.serigrafiaModo,
+                        onChanged: (v) => controller.updateSerigrafiaModo(v!),
+                      ),
+                      const Text(
+                        "PANTONE / TEXTO",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(width: 16),
-                      Radio<String>(value: 'directo', groupValue: controller.serigrafiaModo, onChanged: (v) => controller.updateSerigrafiaModo(v!)),
-                      const Text("COLOR DIRECTO", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      Radio<String>(
+                        value: 'directo',
+                        groupValue: controller.serigrafiaModo,
+                        onChanged: (v) => controller.updateSerigrafiaModo(v!),
+                      ),
+                      const Text(
+                        "COLOR DIRECTO",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
-                  
+
                   // Modo Pantone (Texto libre)
                   if (controller.serigrafiaModo == 'pantone')
-                    TextField(
+                    TextFormField(
+                      key: ValueKey(controller.serigrafiaPantoneCode),
+                      initialValue: controller.serigrafiaPantoneCode,
                       decoration: const InputDecoration(
                         hintText: 'Ej: Pantone 293 C, Blanco Mate...',
-                        isDense: true, filled: true, fillColor: Colors.white,
+                        isDense: true,
+                        filled: true,
+                        fillColor: Colors.white,
                         border: OutlineInputBorder(),
                       ),
                       style: const TextStyle(fontSize: 13),
@@ -114,22 +184,37 @@ class SerigrafiaSection extends ConsumerWidget {
                       children: [
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: () => _colorPickerDialog(context, ref, controller.serigrafiaColorDirecto),
+                            onPressed: () => _colorPickerDialog(
+                              context,
+                              ref,
+                              controller.serigrafiaColorDirecto,
+                            ),
                             icon: const Icon(Icons.color_lens),
                             label: const Text("Abrir Paleta de Colores"),
-                            style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.purple),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: Colors.purple,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 16),
                         Container(
-                          width: 45, height: 45,
+                          width: 45,
+                          height: 45,
                           decoration: BoxDecoration(
                             color: controller.serigrafiaColorDirecto,
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(color: Colors.black26),
-                            boxShadow: [BoxShadow(color: controller.serigrafiaColorDirecto.withOpacity(0.4), blurRadius: 4, offset: const Offset(0, 2))]
+                            boxShadow: [
+                              BoxShadow(
+                                color: controller.serigrafiaColorDirecto
+                                    .withOpacity(0.4),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
-                        )
+                        ),
                       ],
                     ),
                 ],
@@ -142,8 +227,11 @@ class SerigrafiaSection extends ConsumerWidget {
               children: [
                 Expanded(
                   child: _buildInput(
-                    "DETALLE DE MARCOS", "Descripción o medidas...", 
-                    onChanged: (v) => controller.updateSerigrafiaGeneral('marcos', v)
+                    "DETALLE DE MARCOS",
+                    "Descripción o medidas...",
+                    controller.serigrafiaMarcos,
+                    onChanged: (v) =>
+                        controller.updateSerigrafiaGeneral('marcos', v),
                   ),
                 ),
               ],
@@ -151,31 +239,68 @@ class SerigrafiaSection extends ConsumerWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                const Text("ESTADO DEL MARCO: ", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
-                _buildCheck("Existente", controller.serigrafiaMarcoExistente, (v) => controller.updateSerigrafiaGeneral('marcoExistente', v!)),
-                _buildCheck("Nuevo", controller.serigrafiaMarcoNuevo, (v) => controller.updateSerigrafiaGeneral('marcoNuevo', v!)),
+                const Text(
+                  "ESTADO DEL MARCO: ",
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
+                ),
+                _buildCheck(
+                  "Existente",
+                  controller.serigrafiaMarcoExistente,
+                  (v) =>
+                      controller.updateSerigrafiaGeneral('marcoExistente', v!),
+                ),
+                _buildCheck(
+                  "Nuevo",
+                  controller.serigrafiaMarcoNuevo,
+                  (v) => controller.updateSerigrafiaGeneral('marcoNuevo', v!),
+                ),
               ],
             ),
-            
+
             const Divider(height: 24),
 
             // --- 4. RESPONSABLE (Romosso / Maquilador) ---
-            const Text("RESPONSABLE DEL PROCESO", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+            const Text(
+              "RESPONSABLE DEL PROCESO",
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
             Wrap(
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                _buildCheck("Romosso", controller.serigrafiaEsRomosso, (v) => controller.updateSerigrafiaGeneral('romosso', v!)),
-                _buildCheck("Maquilador", controller.serigrafiaEsMaquilador, (v) => controller.updateSerigrafiaGeneral('maquilador', v!)),
-                
+                _buildCheck(
+                  "Romosso",
+                  controller.serigrafiaEsRomosso,
+                  (v) => controller.updateSerigrafiaGeneral('romosso', v!),
+                ),
+                _buildCheck(
+                  "Maquilador",
+                  controller.serigrafiaEsMaquilador,
+                  (v) => controller.updateSerigrafiaGeneral('maquilador', v!),
+                ),
+
                 // Cuadro condicional de Maquilador
                 if (controller.serigrafiaEsMaquilador)
                   SizedBox(
                     width: 250,
-                    child: TextField(
-                      onChanged: (v) => controller.updateSerigrafiaGeneral('nombreMaquila', v),
+                    child: TextFormField(
+                      key: ValueKey(controller.serigrafiaNombreMaquila),
+                      initialValue: controller.serigrafiaNombreMaquila,
+                      onChanged: (v) => controller.updateSerigrafiaGeneral(
+                        'nombreMaquila',
+                        v,
+                      ),
                       decoration: const InputDecoration(
                         labelText: "Nombre de quien maquila",
-                        isDense: true, border: OutlineInputBorder(),
+                        isDense: true,
+                        border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.business, size: 18),
                       ),
                       style: const TextStyle(fontSize: 13),
@@ -184,28 +309,45 @@ class SerigrafiaSection extends ConsumerWidget {
               ],
             ),
             // --- NOTAS / INSTRUCCIONES EXTRAS ---
-            const Text("NOTAS / INSTRUCCIONES EXTRAS", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+            const Text(
+              "NOTAS / INSTRUCCIONES EXTRAS",
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
             const SizedBox(height: 4),
-            TextField(
+            TextFormField(
+              key: ValueKey(controller.serigrafiaNotas),
+              initialValue: controller.serigrafiaNotas,
               maxLines: 3,
-              onChanged: (v) => ref.read(ordenTrabajoProvider).updateSerigrafiaGeneral('notas', v),
+              onChanged: (v) => ref
+                  .read(ordenTrabajoProvider)
+                  .updateSerigrafiaGeneral('notas', v),
               decoration: InputDecoration(
-                hintText: "Ej: Serigrafía a mano, digital, colores específicos...",
+                hintText:
+                    "Ej: Serigrafía a mano, digital, colores específicos...",
                 isDense: true,
                 filled: true,
                 fillColor: Colors.yellow[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.yellow[600]!, width: 0.5)
+                  borderSide: BorderSide(
+                    color: Colors.yellow[600]!,
+                    width: 0.5,
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.yellow[600]!, width: 0.5)
+                  borderSide: BorderSide(
+                    color: Colors.yellow[600]!,
+                    width: 0.5,
+                  ),
                 ),
               ),
               style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
             ),
-
           ],
         ),
       ),
@@ -213,17 +355,33 @@ class SerigrafiaSection extends ConsumerWidget {
   }
 
   // Helpers para ahorrar código
-  Widget _buildInput(String label, String hint, {bool esNumero = false, required Function(String) onChanged}) {
+  Widget _buildInput(
+    String label,
+    String hint,
+    String initialValue, {
+    bool esNumero = false,
+    required Function(String) onChanged,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey,
+          ),
+        ),
         const SizedBox(height: 4),
-        TextField(
+        TextFormField(
+          key: ValueKey(initialValue),
+          initialValue: initialValue,
           onChanged: onChanged,
           keyboardType: esNumero ? TextInputType.number : TextInputType.text,
           decoration: InputDecoration(
-            hintText: hint, isDense: true,
+            hintText: hint,
+            isDense: true,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
           ),
           style: const TextStyle(fontSize: 13),
@@ -238,8 +396,15 @@ class SerigrafiaSection extends ConsumerWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
-          Checkbox(value: value, onChanged: onChanged, activeColor: Colors.purple),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+          ),
+          Checkbox(
+            value: value,
+            onChanged: onChanged,
+            activeColor: Colors.purple,
+          ),
         ],
       ),
     );

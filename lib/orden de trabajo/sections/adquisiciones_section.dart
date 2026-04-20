@@ -23,12 +23,22 @@ class AdquisicionesSection extends ConsumerWidget {
               children: [
                 const Icon(Icons.shopping_cart, color: Colors.teal),
                 const SizedBox(width: 8),
-                const Text("1. ADQUISICIONES", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const Text(
+                  "1. ADQUISICIONES",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
               ],
             ),
             const Divider(),
-            
-            const Text("MATERIALES REQUERIDOS", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.teal)),
+
+            const Text(
+              "MATERIALES REQUERIDOS",
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: Colors.teal,
+              ),
+            ),
             const SizedBox(height: 8),
 
             // --- LISTA DINÁMICA DE MATERIALES ---
@@ -36,7 +46,10 @@ class AdquisicionesSection extends ConsumerWidget {
               children: controller.materials.map((material) {
                 return Container(
                   margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.teal[50],
                     border: Border.all(color: Colors.teal[200]!),
@@ -58,9 +71,14 @@ class AdquisicionesSection extends ConsumerWidget {
                           onChanged: (v) => material.nombre = v,
                         ),
                       ),
-                      
-                      Container(height: 30, width: 1, color: Colors.teal[200], margin: const EdgeInsets.symmetric(horizontal: 4)),
-                      
+
+                      Container(
+                        height: 30,
+                        width: 1,
+                        color: Colors.teal[200],
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                      ),
+
                       // CAMPO 2: PROVEEDOR
                       Expanded(
                         flex: 2,
@@ -76,33 +94,49 @@ class AdquisicionesSection extends ConsumerWidget {
                         ),
                       ),
 
-                      Container(height: 30, width: 1, color: Colors.teal[200], margin: const EdgeInsets.symmetric(horizontal: 4)),
-                      
+                      Container(
+                        height: 30,
+                        width: 1,
+                        color: Colors.teal[200],
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                      ),
+
                       // CAMPO 3: CANTIDAD
                       Expanded(
                         flex: 1,
                         child: TextFormField(
                           // Para que no muestre un "0" inicial si está vacío
-                          initialValue: material.cantidad == 0 ? '' : material.cantidad.toString(),
+                          initialValue: material.cantidad == 0
+                              ? ''
+                              : material.cantidad.toString(),
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
                             hintText: "Cant.",
                             isDense: true,
                             border: InputBorder.none,
                           ),
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.teal),
-                          onChanged: (v) => material.cantidad = int.tryParse(v) ?? 0,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.teal,
+                          ),
+                          onChanged: (v) =>
+                              material.cantidad = int.tryParse(v) ?? 0,
                         ),
                       ),
 
                       // BOTÓN DE BORRAR
                       IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
+                        icon: const Icon(
+                          Icons.delete,
+                          color: Colors.redAccent,
+                          size: 20,
+                        ),
                         tooltip: "Borrar material",
                         onPressed: () => controller.removeMaterial(material.id),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
-                      )
+                      ),
                     ],
                   ),
                 );
@@ -110,12 +144,18 @@ class AdquisicionesSection extends ConsumerWidget {
             ),
 
             const SizedBox(height: 8),
-            
+
             // Botón para agregar más materiales
             TextButton.icon(
               onPressed: () => controller.addMaterial(),
               icon: const Icon(Icons.add_circle_outline, color: Colors.teal),
-              label: const Text("Agregar Material", style: TextStyle(color: Colors.teal, fontWeight: FontWeight.bold)),
+              label: const Text(
+                "Agregar Material",
+                style: TextStyle(
+                  color: Colors.teal,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
 
             const SizedBox(height: 16),
@@ -123,28 +163,43 @@ class AdquisicionesSection extends ConsumerWidget {
             const SizedBox(height: 12),
 
             // --- NOTAS / INSTRUCCIONES EXTRAS ---
-            const Text("NOTAS / INSTRUCCIONES EXTRAS", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+            const Text(
+              "NOTAS / INSTRUCCIONES EXTRAS",
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
             const SizedBox(height: 4),
             TextField(
-              maxLines: 3, 
-              onChanged: (v) => ref.read(ordenTrabajoProvider).updateAdquisiciones('notas', v), 
+              maxLines: 3,
+              onChanged: (v) => ref
+                  .read(ordenTrabajoProvider)
+                  .updateAdquisiciones('notas', v),
               decoration: InputDecoration(
-                hintText: "Escribe aquí especificaciones de compra, tiempos de entrega o detalles de crédito...",
+                hintText:
+                    "Escribe aquí especificaciones de compra, tiempos de entrega o detalles de crédito...",
                 isDense: true,
                 filled: true,
-                fillColor: Colors.yellow[50], 
+                fillColor: Colors.yellow[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.yellow[600]!, width: 0.5)
+                  borderSide: BorderSide(
+                    color: Colors.yellow[600]!,
+                    width: 0.5,
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.yellow[600]!, width: 0.5)
+                  borderSide: BorderSide(
+                    color: Colors.yellow[600]!,
+                    width: 0.5,
+                  ),
                 ),
               ),
               style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
             ),
-
           ],
         ),
       ),
