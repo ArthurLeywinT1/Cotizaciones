@@ -16,6 +16,7 @@ import 'cotizacion-plana/cotizacion_plana.dart';
 import 'cotizacion_screen.dart';
 import 'login.dart';
 import '../orden de trabajo/ordenTrabajo.dart';
+import '../orden de trabajo/catalogo_OT.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -70,8 +71,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         return 'Catálogo de Cotizaciones';
       case 'cotizacion_plana':
         return 'Catálogo de Cotización Plana';
+      case 'catalogo_ot':
+        return 'Catálogo de Órdenes de Trabajo';
       case 'OrdenTrabajo':
-        return 'Ordenes de Trabajo';
+        return 'Crear / Editar Orden de Trabajo';
       default:
         return 'Romosso - Cotizador - Usuario: ${usuarioNombre ?? 'Desconocido'}';
     }
@@ -101,8 +104,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         return CotizacionPlanaScreen(
           onNavigateToCatalog: () => _abrirPantalla('catalogo_cotizaciones'),
         );
+      case 'catalogo_ot':
+        return const CatalogoOTScreen();
       case 'OrdenTrabajo':
-        return const OrdenTrabajoScreen();
+        return const OrdenTrabajoScreen(cotizacionId: '');
       default:
         return _buildDashboard();
     }
@@ -209,9 +214,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ],
                       onSelected: _abrirPantalla,
                     ),
-                    BarraItem(
-                      texto: 'Ordenes de Trabajo',
-                      onTap: () => _abrirPantalla('OrdenTrabajo'),
+
+                    BarraDropdown(
+                      titulo: "Órdenes de Trabajo",
+                      opciones: const [
+                        PopupMenuItem(
+                          value: "catalogo_ot",
+                          child: Text("Catálogo de Órdenes de Trabajo"),
+                        ),
+                        PopupMenuItem(
+                          value: "OrdenTrabajo",
+                          child: Text("Crear Orden de Trabajo"),
+                        ),
+                      ],
+                      onSelected: _abrirPantalla,
                     ),
                   ],
                 ),

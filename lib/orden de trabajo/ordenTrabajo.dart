@@ -110,6 +110,61 @@ class _OrdenTrabajoScreenState extends ConsumerState<OrdenTrabajoScreen> {
               const EmbalajeSection(),
             if (controller.activeSections['logistica'] == true)
               const LogisticaSection(),
+
+            const SizedBox(height: 32),
+            SizedBox(
+              height: 50,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.save),
+                label: const Text(
+                  "Guardar Orden de Trabajo",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                onPressed: () async {
+                  FocusScope.of(context).unfocus();
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Guardando Orden de Trabajo...'),
+                    ),
+                  );
+
+                  final exito = await ref
+                      .read(ordenTrabajoProvider.notifier)
+                      .guardarOrdenTrabajo();
+
+                  if (!context.mounted) return;
+
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+                  if (exito) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('✅ Orden de Trabajo Guardada con Éxito'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          '❌ Error al guardar la Orden de Trabajo. Revisa tu conexión.',
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+              ),
+            ),
+            const SizedBox(height: 40),
           ],
         ),
       ),

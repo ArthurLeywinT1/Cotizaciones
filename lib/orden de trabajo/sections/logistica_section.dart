@@ -8,11 +8,9 @@ class LogisticaSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    
-
     return Card(
-      elevation: 4, 
-      margin: const EdgeInsets.only(bottom: 30), 
+      elevation: 4,
+      margin: const EdgeInsets.only(bottom: 30),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: Colors.deepOrange[200]!, width: 1),
@@ -25,14 +23,21 @@ class LogisticaSection extends ConsumerWidget {
             // --- ENCABEZADO ---
             Row(
               children: [
-                Icon(Icons.local_shipping, color: Colors.deepOrange[700], size: 28),
+                Icon(
+                  Icons.local_shipping,
+                  color: Colors.deepOrange[700],
+                  size: 28,
+                ),
                 const SizedBox(width: 8),
-                const Text("11. LOGÍSTICA Y DESPACHO", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                const Text(
+                  "11. LOGÍSTICA Y DESPACHO",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
               ],
             ),
             const Divider(thickness: 1.5),
             const SizedBox(height: 8),
-            
+
             // --- BLOQUE 1: FECHA Y TRANSPORTE ---
             Row(
               children: [
@@ -47,19 +52,35 @@ class LogisticaSection extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("FECHA MÁX. DE ENTREGA", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.deepOrange)),
+                        const Text(
+                          "FECHA MÁX. DE ENTREGA",
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.deepOrange,
+                          ),
+                        ),
                         const SizedBox(height: 8),
                         TextField(
-                          onChanged: (v) => ref.read(ordenTrabajoProvider).updateLogistica('fecha', v),
+                          onChanged: (v) => ref
+                              .read(ordenTrabajoProvider)
+                              .updateLogistica('fecha', v),
                           decoration: const InputDecoration(
                             hintText: "DD/MM/AAAA",
                             isDense: true,
                             filled: true,
                             fillColor: Colors.white,
                             border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.calendar_today, size: 18, color: Colors.deepOrange),
+                            prefixIcon: Icon(
+                              Icons.calendar_today,
+                              size: 18,
+                              color: Colors.deepOrange,
+                            ),
                           ),
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -70,10 +91,19 @@ class LogisticaSection extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("TIPO DE TRANSPORTE", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+                      const Text(
+                        "TIPO DE TRANSPORTE",
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      ),
                       const SizedBox(height: 4),
                       TextField(
-                        onChanged: (v) => ref.read(ordenTrabajoProvider).updateLogistica('transporte', v),
+                        onChanged: (v) => ref
+                            .read(ordenTrabajoProvider)
+                            .updateLogistica('transporte', v),
                         decoration: const InputDecoration(
                           hintText: "Ej: Camioneta 3.5 Ton, Paquetería...",
                           isDense: true,
@@ -86,7 +116,7 @@ class LogisticaSection extends ConsumerWidget {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
 
             // --- BLOQUE 2: DIRECCIÓN Y TOTAL A ENTREGAR ---
@@ -99,16 +129,29 @@ class LogisticaSection extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("DIRECCIÓN DE ENTREGA", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+                      const Text(
+                        "DIRECCIÓN DE ENTREGA",
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      ),
                       const SizedBox(height: 4),
                       TextField(
                         maxLines: 2,
-                        onChanged: (v) => ref.read(ordenTrabajoProvider).updateLogistica('direccion', v),
+                        onChanged: (v) => ref
+                            .read(ordenTrabajoProvider)
+                            .updateLogistica('direccion', v),
                         decoration: const InputDecoration(
-                          hintText: "Dirección completa, referencias, horarios...",
+                          hintText:
+                              "Dirección completa, referencias, horarios...",
                           isDense: true,
                           border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.location_on, color: Colors.grey),
+                          prefixIcon: Icon(
+                            Icons.location_on,
+                            color: Colors.grey,
+                          ),
                         ),
                         style: const TextStyle(fontSize: 13),
                       ),
@@ -116,18 +159,27 @@ class LogisticaSection extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 16),
-                
+
                 // TOTAL A ENTREGAR (Resaltado, flex: 1)
                 Expanded(
                   flex: 1,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("TOTAL A ENTREGAR", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.deepOrange)),
+                      const Text(
+                        "TOTAL A ENTREGAR",
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.deepOrange,
+                        ),
+                      ),
                       const SizedBox(height: 4),
                       TextField(
                         keyboardType: TextInputType.number,
-                        onChanged: (v) => ref.read(ordenTrabajoProvider).updateLogistica('total', v),
+                        onChanged: (v) => ref
+                            .read(ordenTrabajoProvider)
+                            .updateLogistica('total', v),
                         decoration: InputDecoration(
                           hintText: "0",
                           isDense: true,
@@ -135,11 +187,17 @@ class LogisticaSection extends ConsumerWidget {
                           fillColor: Colors.deepOrange[50], // Fondo naranjita
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Colors.deepOrange[200]!)
+                            borderSide: BorderSide(
+                              color: Colors.deepOrange[200]!,
+                            ),
                           ),
                         ),
                         // Letra más grande y en negritas para que resalte
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.deepOrange),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.deepOrange,
+                        ),
                         textAlign: TextAlign.center, // Centramos el número
                       ),
                     ],
@@ -147,49 +205,45 @@ class LogisticaSection extends ConsumerWidget {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 24),
             // --- NOTAS / INSTRUCCIONES EXTRAS ---
-            const Text("NOTAS / INSTRUCCIONES EXTRAS", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+            const Text(
+              "NOTAS / INSTRUCCIONES EXTRAS",
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
             const SizedBox(height: 4),
             TextField(
               maxLines: 3,
-              onChanged: (v) => ref.read(ordenTrabajoProvider).updateLogistica('notas', v),
+              onChanged: (v) =>
+                  ref.read(ordenTrabajoProvider).updateLogistica('notas', v),
               decoration: InputDecoration(
-                hintText: "Ej: instrucciones para la entrega, detalles de la dirección, cuidado especial para el transporte...",
+                hintText:
+                    "Ej: instrucciones para la entrega, detalles de la dirección, cuidado especial para el transporte...",
                 isDense: true,
                 filled: true,
                 fillColor: Colors.yellow[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.yellow[600]!, width: 0.5)
+                  borderSide: BorderSide(
+                    color: Colors.yellow[600]!,
+                    width: 0.5,
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.yellow[600]!, width: 0.5)
+                  borderSide: BorderSide(
+                    color: Colors.yellow[600]!,
+                    width: 0.5,
+                  ),
                 ),
               ),
               style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
             ),
-
-            // --- BOTÓN FINAL SIMULADO ---
-            SizedBox(
-              width: double.infinity,
-              height: 48, // Un poquito más alto
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Guardando Orden de Trabajo...'), backgroundColor: Colors.green),
-                  );
-                },
-                icon: const Icon(Icons.save, color: Colors.white),
-                label: const Text("GUARDAR ORDEN DE TRABAJO", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepOrange[600],
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-              ),
-            )
           ],
         ),
       ),

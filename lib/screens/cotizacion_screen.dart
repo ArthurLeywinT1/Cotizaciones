@@ -249,7 +249,6 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                   label: "Generar OT",
                   onPressed: () async {
                     if (seleccionado != null) {
-                      // Construir la cotización con el estatus actualizado
                       final cotizacionActualizada = Cotizacion(
                         id: seleccionado.id,
                         folio: seleccionado.folio,
@@ -266,8 +265,7 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                         precioSinIva: seleccionado.precioSinIva,
                         precioUnitario: seleccionado.precioUnitario,
                         precioConIva: seleccionado.precioConIva,
-                        status:
-                            'Orden de Trabajo', // <--- Se actualiza el estatus
+                        status: 'Orden de Trabajo',
                         configClientes: seleccionado.configClientes,
                         configPliegos: seleccionado.configPliegos,
                         configDatosPapel: seleccionado.configDatosPapel,
@@ -285,7 +283,6 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                         configCorte: seleccionado.configCorte,
                       );
 
-                      // Actualizar en la BD
                       await ref
                           .read(cotizacionesProvider.notifier)
                           .actualizarCotizacion(cotizacionActualizada);

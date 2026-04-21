@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/cotizacion_model.dart';
+import '../models/ordenTrabajo_model.dart';
+import '../services/ordenTrabajo_service.dart';
 import 'cotizacion_provider.dart';
 
 // ==========================================
@@ -56,7 +58,11 @@ class AcabadoManualItem {
 // 2. EL CONTROLADOR (El que maneja la lógica)
 // ==========================================
 class OrdenTrabajoController extends ChangeNotifier {
-  String orderId = "S/F";
+  final OrdenTrabajoService _service = OrdenTrabajoService();
+
+  String orderId = "S/F"; // Número de orden simulado
+  String currentCotizacionId = "";
+  String? ordenTrabajoDbId;
 
   // --- Visibilidad de Secciones (Filtros superiores) ---
   Map<String, bool> activeSections = {
@@ -78,30 +84,33 @@ class OrdenTrabajoController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void cargarDatosPorId(String id, WidgetRef ref) {
-    final cotizacionesState = ref.read(cotizacionesProvider);
+  Future<void> cargarDatosPorId(String id, WidgetRef ref) async {
+    currentCotizacionId = id;
 
+    final ordenGuardada = await _service.obtenerOrdenPorCotizacionId(id);
+
+    if (ordenGuardada != null) {
+      ordenTrabajoDbId = ordenGuardada.id;
+      print("✅ Orden existente encontrada en DB. Lista para actualizar.");
+    } else {
+      ordenTrabajoDbId = null;
+      print("ℹ️ Orden nueva. Se creará un nuevo registro.");
+    }
+
+    final cotizacionesState = ref.read(cotizacionesProvider);
     try {
       final cotizacion = cotizacionesState.cotizaciones.firstWhere(
         (c) => c.id == id,
       );
       cargarDatosDeCotizacion(cotizacion);
     } catch (e) {
-      print(
-        "⚠️ Error: No se encontró la cotización con ID $id en la base de datos.",
-      );
+      print("⚠️ Error: No se encontró la cotización con ID $id en memoria.");
     }
   }
 
   void cargarDatosDeCotizacion(Cotizacion? cotizacion) {
-    if (cotizacion == null) {
-      print(
-        "⚠️ No se recibió ninguna cotización para cargar en Orden de Trabajo.",
-      );
-      return;
-    }
+    if (cotizacion == null) return;
 
-    print("✅ Cargando datos de la cotización: ${cotizacion.folio ?? 'S/F'}");
     orderId = cotizacion.folio ?? "S/F";
 
     materials.clear();
@@ -116,25 +125,20 @@ class OrdenTrabajoController extends ChangeNotifier {
             cantidad: cantidad,
           ),
         );
-        print("   -> Material agregado: $nombre ($cantidad)");
       }
     }
 
     try {
       if (cotizacion.configDatosPapel != null) {
         final dpInt = cotizacion.configDatosPapel!["interior"];
-        if (dpInt != null &&
-            dpInt["nombre"] != null &&
-            dpInt["nombre"].toString().isNotEmpty) {
+        if (dpInt != null && dpInt["nombre"]?.toString().isNotEmpty == true) {
           agregarMaterial(
             'Papel Int: ${dpInt["nombre"]} - ${dpInt["peso"] ?? ""}',
             cotizacion.totalPliegos,
           );
         }
         final dpPort = cotizacion.configDatosPapel!["portada"];
-        if (dpPort != null &&
-            dpPort["nombre"] != null &&
-            dpPort["nombre"].toString().isNotEmpty) {
+        if (dpPort != null && dpPort["nombre"]?.toString().isNotEmpty == true) {
           final pliegosPortada =
               int.tryParse(
                 cotizacion.configPliegos?["portada"]?["totalPliegos"]
@@ -230,9 +234,7 @@ class OrdenTrabajoController extends ChangeNotifier {
 
       if (cotizacion.configSuaje != null &&
           cotizacion.configSuaje!["suajeActivo"] == true) {
-        bool seCuentaConSuaje =
-            cotizacion.configSuaje!["seCuentaConSuaje"] ?? false;
-        if (!seCuentaConSuaje) {
+        if (!(cotizacion.configSuaje!["seCuentaConSuaje"] ?? false)) {
           agregarMaterial(
             'Fabricación de Suaje Nuevo (${cotizacion.configSuaje!["tamanoSuaje"] ?? "S/M"})',
             1,
@@ -297,11 +299,9 @@ class OrdenTrabajoController extends ChangeNotifier {
             int.tryParse(pInt["cantidadPliegos"]?.toString() ?? "0") ?? 0;
         pliegosSobrantes =
             int.tryParse(pInt["pliegosSobrantes"]?.toString() ?? "0") ?? 0;
-
-        if (totalPliegos == 0) {
+        if (totalPliegos == 0)
           totalPliegos =
               int.tryParse(pInt["totalPliegos"]?.toString() ?? "0") ?? 0;
-        }
       }
 
       offsetPapelNecesario = (cantidadPliegos + pliegosSobrantes).toString();
@@ -327,7 +327,6 @@ class OrdenTrabajoController extends ChangeNotifier {
       }
 
       laminadoProyecto = cotizacion.descripcion;
-
       if (cotizacion.configLaminado != null) {
         final lamInt = cotizacion.configLaminado!["interior"];
         if (lamInt != null && lamInt["laminadosActivo"] == true) {
@@ -336,16 +335,14 @@ class OrdenTrabajoController extends ChangeNotifier {
             detalles.forEach((key, val) {
               if (val["frente"] == true) laminadoAplicacion['frente'] = true;
               if (val["vuelta"] == true) laminadoAplicacion['vuelta'] = true;
-              if (val["frente"] == true || val["vuelta"] == true) {
+              if (val["frente"] == true || val["vuelta"] == true)
                 laminadoNotas += "- $key\n";
-              }
             });
           }
         }
       }
 
       suajeProyecto = cotizacion.descripcion;
-
       if (cotizacion.configSuaje != null &&
           cotizacion.configSuaje!["suajeActivo"] == true) {
         final sj = cotizacion.configSuaje!;
@@ -367,7 +364,6 @@ class OrdenTrabajoController extends ChangeNotifier {
 
       grabadoProyecto = cotizacion.descripcion;
       grabadoPiezas = cotizacion.cantidadImpresiones;
-
       if (cotizacion.configGrabado != null &&
           cotizacion.configGrabado!["grabadoActivo"] == true) {
         final gr = cotizacion.configGrabado!;
@@ -377,20 +373,6 @@ class OrdenTrabajoController extends ChangeNotifier {
       acabadoProyecto = cotizacion.descripcion;
       acabadoCantidad = 0;
       acabadoDescripcion = '';
-
-      List<String> descripcionesBD = [];
-      if (cotizacion.configAcabados != null) {
-        final acInt = cotizacion.configAcabados!["interior"];
-        if (acInt != null && acInt["barnizUV"] == true) {
-          descripcionesBD.add("Barniz UV Interior");
-        }
-        final acPort = cotizacion.configAcabados!["portada"];
-        if (acPort != null && acPort["barnizUV"] == true) {
-          descripcionesBD.add("Barniz UV Portada");
-        }
-      }
-      acabadoDescripcion = descripcionesBD.join(" + ");
-
       acabadosManuales.clear();
 
       if (cotizacion.configAcabadosEspeciales != null &&
@@ -418,10 +400,9 @@ class OrdenTrabajoController extends ChangeNotifier {
         if (em != null && em.isNotEmpty) {
           embalajeTipo = em.map((e) => e["item"].toString()).join(", ");
           int totalCajas = 0;
-          for (var item in em) {
+          for (var item in em)
             totalCajas +=
                 int.tryParse(item["cantidad"]?.toString() ?? "0") ?? 0;
-          }
           embalajeCantidadCajas = totalCajas;
         }
       }
@@ -554,7 +535,7 @@ class OrdenTrabajoController extends ChangeNotifier {
   }
 
   void updateLaminadoGeneral(String campo, String valor) {
-    if (campo == 'proyecto') laminadoProyecto = valor; // <--- Actualizar
+    if (campo == 'proyecto') laminadoProyecto = valor;
     if (campo == 'notas') laminadoNotas = valor;
   }
 
@@ -729,6 +710,135 @@ class OrdenTrabajoController extends ChangeNotifier {
     if (campo == 'transporte') logisticaTransporte = valor;
     if (campo == 'total') logisticaTotalEntregar = int.tryParse(valor) ?? 0;
     if (campo == 'notas') logisticaNotas = valor;
+  }
+
+  Future<bool> guardarOrdenTrabajo() async {
+    if (currentCotizacionId.isEmpty) {
+      print("Error: No hay cotización vinculada para guardar esta OT.");
+      return false;
+    }
+
+    try {
+      final datosCompletos = {
+        "adquisiciones": {
+          "notas": adquisicionesNotas,
+          "materiales": materials
+              .map(
+                (m) => {
+                  "nombre": m.nombre,
+                  "proveedor": m.proveedor,
+                  "cantidad": m.cantidad,
+                },
+              )
+              .toList(),
+        },
+        "diseno": {
+          "notas": disenoNotas,
+          "tareas": designTasks.map((t) => {"desc": t.desc}).toList(),
+        },
+        "offset": {
+          "tipoTrabajo": offsetTipoTrabajo,
+          "piezasPedidas": offsetPiezasPedidas,
+          "papelNecesario": offsetPapelNecesario,
+          "papelLlegara": offsetPapelLlegara,
+          "tintas": offsetData,
+          "notas": offsetNotas,
+        },
+        "corte": {
+          "notas": corteNotas,
+          "procesos": cuts
+              .map(
+                (c) => {
+                  "tipo": c.tipo,
+                  "desc": c.desc,
+                  "despuesDe": c.despuesDe,
+                  "fecha": c.fecha,
+                },
+              )
+              .toList(),
+        },
+        "laminados": {
+          "proyecto": laminadoProyecto,
+          "aplicacion": laminadoAplicacion,
+          "maquinaChica": laminadoMaquinaChica,
+          "maquinaGrande": laminadoMaquinaGrande,
+          "notas": laminadoNotas,
+        },
+        "suaje": {
+          "proyecto": suajeProyecto,
+          "pliegos": suajePliegos,
+          "esRomosso": suajeEsRomosso,
+          "esMaquilador": suajeEsMaquilador,
+          "nombreMaquila": suajeNombreMaquila,
+          "marcoExistente": suajeMarcoExistente,
+          "marcoNuevo": suajeMarcoNuevo,
+          "notas": suajeNotas,
+        },
+        "serigrafia": {
+          "proyecto": serigrafiaProyecto,
+          "piezas": serigrafiaPiezas,
+          "marcos": serigrafiaMarcos,
+          "marcoExistente": serigrafiaMarcoExistente,
+          "marcoNuevo": serigrafiaMarcoNuevo,
+          "esRomosso": serigrafiaEsRomosso,
+          "esMaquilador": serigrafiaEsMaquilador,
+          "nombreMaquila": serigrafiaNombreMaquila,
+          "modoColor": serigrafiaModo,
+          "pantoneCode": serigrafiaPantoneCode,
+          "colorDirecto": serigrafiaColorDirecto.value,
+          "notas": serigrafiaNotas,
+        },
+        "grabado": {
+          "proyecto": grabadoProyecto,
+          "placas": grabadoPlacas,
+          "piezas": grabadoPiezas,
+          "esRomosso": grabadoEsRomosso,
+          "esMaquilador": grabadoEsMaquilador,
+          "nombreMaquila": grabadoNombreMaquila,
+          "notas": grabadoNotas,
+        },
+        "acabado": {
+          "proyecto": acabadoProyecto,
+          "descripcionBD": acabadoDescripcion,
+          "cantidadBD": acabadoCantidad,
+          "notas": acabadoNotas,
+          "manuales": acabadosManuales
+              .map((a) => {"desc": a.desc, "piezas": a.piezas})
+              .toList(),
+        },
+        "embalaje": {
+          "tipo": embalajeTipo,
+          "cantidadCajas": embalajeCantidadCajas,
+          "notas": embalajeNotas,
+        },
+        "logistica": {
+          "fechaEntrega": logisticaFechaEntrega,
+          "direccion": logisticaDireccion,
+          "transporte": logisticaTransporte,
+          "totalEntregar": logisticaTotalEntregar,
+          "notas": logisticaNotas,
+        },
+      };
+
+      final orden = OrdenTrabajo(
+        id: ordenTrabajoDbId,
+        cotizacionId: currentCotizacionId,
+        estatus: 'En Proceso',
+        datosCompletos: datosCompletos,
+      );
+
+      bool exito;
+      if (ordenTrabajoDbId == null) {
+        exito = await _service.crearOrden(orden);
+      } else {
+        exito = await _service.actualizarOrden(orden);
+      }
+
+      return exito;
+    } catch (e) {
+      print("Error Crítico al intentar guardar la Orden de Trabajo: $e");
+      return false;
+    }
   }
 }
 
