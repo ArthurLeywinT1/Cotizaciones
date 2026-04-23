@@ -20,7 +20,7 @@ class EmbalajeSection extends ConsumerWidget {
               children: [
                 const Icon(Icons.inventory, color: Colors.brown),
                 const SizedBox(width: 8),
-                const Text("10. EMBALAJE", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const Text("11. EMBALAJE", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               ],
             ),
             const Divider(),

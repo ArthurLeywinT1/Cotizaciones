@@ -13,6 +13,7 @@ import 'sections/grabado_section.dart';
 import 'sections/acabado_section.dart';
 import 'sections/embalaje_section.dart';
 import 'sections/logistica_section.dart';
+import 'sections/barnizuvsection.dart';
 
 class OrdenTrabajoScreen extends ConsumerStatefulWidget {
   final String? cotizacionId;
@@ -100,12 +101,14 @@ class _OrdenTrabajoScreenState extends ConsumerState<OrdenTrabajoScreen> {
               const LaminadosSection(),
             if (controller.activeSections['suaje'] == true)
               const SuajeSection(),
-            if (controller.activeSections['grabado'] == true)
-              const GrabadoSection(),
             if (controller.activeSections['serigrafia'] == true)
               const SerigrafiaSection(),
+            if (controller.activeSections['grabado'] == true)
+              const GrabadoSection(),
             if (controller.activeSections['acabado'] == true)
               const AcabadoSection(),
+            if (controller.activeSections['barniz'] == true)
+              const BarnizUVSection(),
             if (controller.activeSections['embalaje'] == true)
               const EmbalajeSection(),
             if (controller.activeSections['logistica'] == true)

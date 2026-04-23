@@ -3,11 +3,52 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/orden_trabajo_provider.dart';
 
-class LogisticaSection extends ConsumerWidget {
+class LogisticaSection extends ConsumerStatefulWidget {
   const LogisticaSection({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LogisticaSection> createState() => _LogisticaSectionState();
+}
+
+class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
+  // Controlador para mostrar la fecha en el TextField
+  final TextEditingController _fechaController = TextEditingController();
+
+  @override
+  void dispose() {
+    _fechaController.dispose();
+    super.dispose();
+  }
+
+  // Función para mostrar el calendario
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(), // Opcional: evita seleccionar fechas pasadas
+      lastDate: DateTime(2030),
+      helpText: 'SELECCIONA LA FECHA DE ENTREGA',
+    );
+
+    if (picked != null) {
+      // Formateamos la fecha a DD/MM/AAAA manualmente
+      String dia = picked.day.toString().padLeft(2, '0');
+      String mes = picked.month.toString().padLeft(2, '0');
+      String anio = picked.year.toString();
+      String fechaFormateada = "$dia/$mes/$anio";
+
+      // Actualizamos el campo de texto en la pantalla
+      setState(() {
+        _fechaController.text = fechaFormateada;
+      });
+
+      // Guardamos la fecha en tu provider usando tu método original
+      ref.read(ordenTrabajoProvider).updateLogistica('fecha', fechaFormateada);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Card(
       elevation: 4,
       margin: const EdgeInsets.only(bottom: 30),
@@ -61,10 +102,11 @@ class LogisticaSection extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(height: 8),
+                        // TEXTFIELD MODIFICADO PARA EL CALENDARIO
                         TextField(
-                          onChanged: (v) => ref
-                              .read(ordenTrabajoProvider)
-                              .updateLogistica('fecha', v),
+                          controller: _fechaController,
+                          readOnly: true, // Bloquea el teclado nativo
+                          onTap: () => _selectDate(context), // Abre el calendario
                           decoration: const InputDecoration(
                             hintText: "DD/MM/AAAA",
                             isDense: true,
@@ -123,7 +165,7 @@ class LogisticaSection extends ConsumerWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // DIRECCIÓN (Más ancha, flex: 2)
+                // DIRECCIÓN
                 Expanded(
                   flex: 2,
                   child: Column(
@@ -144,8 +186,7 @@ class LogisticaSection extends ConsumerWidget {
                             .read(ordenTrabajoProvider)
                             .updateLogistica('direccion', v),
                         decoration: const InputDecoration(
-                          hintText:
-                              "Dirección completa, referencias, horarios...",
+                          hintText: "Dirección completa, referencias, horarios...",
                           isDense: true,
                           border: OutlineInputBorder(),
                           prefixIcon: Icon(
@@ -160,7 +201,7 @@ class LogisticaSection extends ConsumerWidget {
                 ),
                 const SizedBox(width: 16),
 
-                // TOTAL A ENTREGAR (Resaltado, flex: 1)
+                // TOTAL A ENTREGAR
                 Expanded(
                   flex: 1,
                   child: Column(
@@ -184,7 +225,7 @@ class LogisticaSection extends ConsumerWidget {
                           hintText: "0",
                           isDense: true,
                           filled: true,
-                          fillColor: Colors.deepOrange[50], // Fondo naranjita
+                          fillColor: Colors.deepOrange[50],
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                             borderSide: BorderSide(
@@ -192,13 +233,12 @@ class LogisticaSection extends ConsumerWidget {
                             ),
                           ),
                         ),
-                        // Letra más grande y en negritas para que resalte
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Colors.deepOrange,
                         ),
-                        textAlign: TextAlign.center, // Centramos el número
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),

@@ -75,6 +75,7 @@ class OrdenTrabajoController extends ChangeNotifier {
     'grabado': true,
     'serigrafia': true,
     'acabado': true,
+    'barniz': false,
     'embalaje': true,
     'logistica': true,
   };
@@ -683,6 +684,37 @@ class OrdenTrabajoController extends ChangeNotifier {
 
   void removeAcabadoManual(String id) {
     acabadosManuales.removeWhere((a) => a.id == id);
+    notifyListeners();
+  }
+
+  // --- 10. BARNIZ UV ---
+  String barnizProyecto = '';
+  int barnizPliegos = 0;
+  Map<String, bool> barnizAplicacion = {'frente': false, 'vuelta': false};
+  bool barnizEsRomosso = true;
+  bool barnizEsMaquilador = false;
+  String barnizNombreMaquila = '';
+  String barnizNotas = '';
+
+  void updateBarnizGeneral(String campo, dynamic valor) {
+    if (campo == 'proyecto') barnizProyecto = valor;
+    if (campo == 'pliegos') barnizPliegos = int.tryParse(valor.toString()) ?? 0;
+    if (campo == 'nombreMaquila') barnizNombreMaquila = valor;
+    if (campo == 'notas') barnizNotas = valor;
+
+    if (campo == 'romosso') {
+      barnizEsRomosso = valor;
+      if (valor) barnizEsMaquilador = false;
+    }
+    if (campo == 'maquilador') {
+      barnizEsMaquilador = valor;
+      if (valor) barnizEsRomosso = false;
+    }
+    notifyListeners();
+  }
+
+  void updateBarnizAplicacion(String cara, bool value) {
+    barnizAplicacion[cara] = value;
     notifyListeners();
   }
 

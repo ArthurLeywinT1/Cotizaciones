@@ -29,6 +29,7 @@ class LaminadosSection extends ConsumerWidget {
             ),
             const Divider(),
 
+            // --- FILA 1: PROYECTO Y ACABADO ---
             Row(
               children: [
                 Expanded(
@@ -45,9 +46,7 @@ class LaminadosSection extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       TextFormField(
-                        key: ValueKey(
-                          controller.laminadoProyecto,
-                        ), // Reacciona a los cambios en el estado
+                        key: ValueKey(controller.laminadoProyecto),
                         initialValue: controller.laminadoProyecto,
                         onChanged: (v) => ref
                             .read(ordenTrabajoProvider)
@@ -104,6 +103,38 @@ class LaminadosSection extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
 
+            // --- NUEVA FILA: PLIEGOS ---
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "PLIEGOS",
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                TextFormField(
+                  // Asumiendo que tienes 'pliegos' en tu provider, si no, cámbialo por el campo correcto
+                  onChanged: (v) => ref
+                      .read(ordenTrabajoProvider)
+                      .updateLaminadoGeneral('pliegos', v),
+                  decoration: InputDecoration(
+                    hintText: 'Cantidad de pliegos...',
+                    isDense: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  keyboardType: TextInputType.number, // Teclado numérico
+                  style: const TextStyle(fontSize: 13),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
             // --- SECCIÓN DE CONFIGURACIÓN (Aplicación y Máquina) ---
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -113,9 +144,7 @@ class LaminadosSection extends ConsumerWidget {
                 border: Border.all(color: Colors.indigo[100]!),
               ),
               child: Column(
-                // Cambiamos a Column para organizar mejor las dos filas de opciones
                 children: [
-                  // Fila 1: Aplicación
                   Row(
                     children: [
                       const SizedBox(
@@ -146,7 +175,6 @@ class LaminadosSection extends ConsumerWidget {
                     ],
                   ),
                   const Divider(color: Colors.indigo, thickness: 0.2),
-                  // Fila 2: Máquina
                   Row(
                     children: [
                       const SizedBox(
@@ -177,6 +205,8 @@ class LaminadosSection extends ConsumerWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+
             // --- NOTAS / INSTRUCCIONES EXTRAS ---
             const Text(
               "NOTAS / INSTRUCCIONES EXTRAS",
@@ -221,7 +251,6 @@ class LaminadosSection extends ConsumerWidget {
     );
   }
 
-  // Pequeño widget para no repetir código de checkbox
   Widget _buildCheck(
     BuildContext context,
     String label,
