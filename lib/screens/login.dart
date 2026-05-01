@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
 import 'home.dart';
+import 'package:cotizador/screens/usuariospantallas/home_operario.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -29,9 +30,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           .login(usuarioController.text.trim(), contrasenaController.text);
 
       if (success && mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
+        // Obtenemos el usuario y su permiso desde el provider
+        final usuarioLogueado = ref.read(authProvider).usuario;
+        final permiso = usuarioLogueado?.tipoUsuario?.toLowerCase() ?? 'operario';
+
+        if (permiso == 'admin') {
+          // Si es admin, va al Home original
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+        } else {
+          // Si es cualquier otro permiso, va a la plantilla genérica
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => HomeOperarioScreen(area: permiso),
+            ),
+          );
+        }
       }
     }
   }
@@ -86,7 +101,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       },
                     ),
                     const SizedBox(height: 24),
-
                     if (authState.error != null && authState.error!.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 16),
@@ -99,7 +113,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           textAlign: TextAlign.center,
                         ),
                       ),
-
                     authState.isLoading
                         ? const CircularProgressIndicator()
                         : ElevatedButton(
