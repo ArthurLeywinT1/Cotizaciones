@@ -80,38 +80,47 @@ class CatalogoOTScreen extends ConsumerWidget {
                       DataColumn(label: Text('Fecha Entrega')),
 
                       DataColumn(label: Text('Estatus Adq.')),
+                      DataColumn(label: Text('Incidente Adq.')),
                       DataColumn(label: Text('Inicio Adq.')),
                       DataColumn(label: Text('Fin Adq.')),
 
                       DataColumn(label: Text('Estatus PrePrensa')),
+                      DataColumn(label: Text('Incidente PrePrensa')),
                       DataColumn(label: Text('Inicio PrePrensa')),
                       DataColumn(label: Text('Fin PrePrensa')),
 
                       DataColumn(label: Text('Estatus Offset')),
+                      DataColumn(label: Text('Incidente Offset')),
                       DataColumn(label: Text('Inicio Offset')),
                       DataColumn(label: Text('Fin Offset')),
 
                       DataColumn(label: Text('Estatus Corte')),
+                      DataColumn(label: Text('Incidente Corte')),
                       DataColumn(label: Text('Inicio Corte')),
                       DataColumn(label: Text('Fin Corte')),
 
                       DataColumn(label: Text('Estatus Laminado')),
+                      DataColumn(label: Text('Incidente Laminado')),
                       DataColumn(label: Text('Inicio Laminado')),
                       DataColumn(label: Text('Fin Laminado')),
 
                       DataColumn(label: Text('Estatus Suaje')),
+                      DataColumn(label: Text('Incidente Suaje')),
                       DataColumn(label: Text('Inicio Suaje')),
                       DataColumn(label: Text('Fin Suaje')),
 
                       DataColumn(label: Text('Estatus Acabado')),
+                      DataColumn(label: Text('Incidente Acabado')),
                       DataColumn(label: Text('Inicio Acabado')),
                       DataColumn(label: Text('Fin Acabado')),
 
                       DataColumn(label: Text('Estatus Embalaje')),
+                      DataColumn(label: Text('Incidente Embalaje')),
                       DataColumn(label: Text('Inicio Embalaje')),
                       DataColumn(label: Text('Fin Embalaje')),
 
                       DataColumn(label: Text('Estatus Logística')),
+                      DataColumn(label: Text('Incidente Logística')),
                       DataColumn(label: Text('Inicio Logística')),
                       DataColumn(label: Text('Fin Logística')),
                     ],
@@ -144,38 +153,49 @@ class CatalogoOTScreen extends ConsumerWidget {
                           DataCell(Text(orden['fecha_entrega'] ?? '')),
 
                           DataCell(Text(orden['estatus_adquisiciones'] ?? '-')),
+                          DataCell(
+                            Text(orden['incidente_adquisiciones'] ?? '-'),
+                          ),
                           DataCell(Text(orden['inicio_adquisiciones'] ?? '-')),
                           DataCell(Text(orden['fin_adquisiciones'] ?? '-')),
 
                           DataCell(Text(orden['estatus_preprensa'] ?? '-')),
+                          DataCell(Text(orden['incidente_preprensa'] ?? '-')),
                           DataCell(Text(orden['inicio_preprensa'] ?? '-')),
                           DataCell(Text(orden['fin_preprensa'] ?? '-')),
 
                           DataCell(Text(orden['estatus_offset'] ?? '-')),
+                          DataCell(Text(orden['incidente_offset'] ?? '-')),
                           DataCell(Text(orden['inicio_offset'] ?? '-')),
                           DataCell(Text(orden['fin_offset'] ?? '-')),
 
                           DataCell(Text(orden['estatus_corte'] ?? '-')),
+                          DataCell(Text(orden['incidente_corte'] ?? '-')),
                           DataCell(Text(orden['inicio_corte'] ?? '-')),
                           DataCell(Text(orden['fin_corte'] ?? '-')),
 
                           DataCell(Text(orden['estatus_laminado'] ?? '-')),
+                          DataCell(Text(orden['incidente_laminado'] ?? '-')),
                           DataCell(Text(orden['inicio_laminado'] ?? '-')),
                           DataCell(Text(orden['fin_laminado'] ?? '-')),
 
                           DataCell(Text(orden['estatus_suaje'] ?? '-')),
+                          DataCell(Text(orden['incidente_suaje'] ?? '-')),
                           DataCell(Text(orden['inicio_suaje'] ?? '-')),
                           DataCell(Text(orden['fin_suaje'] ?? '-')),
 
                           DataCell(Text(orden['estatus_acabado'] ?? '-')),
+                          DataCell(Text(orden['incidente_acabado'] ?? '-')),
                           DataCell(Text(orden['inicio_acabado'] ?? '-')),
                           DataCell(Text(orden['fin_acabado'] ?? '-')),
 
                           DataCell(Text(orden['estatus_embalaje'] ?? '-')),
+                          DataCell(Text(orden['incidente_embalaje'] ?? '-')),
                           DataCell(Text(orden['inicio_embalaje'] ?? '-')),
                           DataCell(Text(orden['fin_embalaje'] ?? '-')),
 
                           DataCell(Text(orden['estatus_logistica'] ?? '-')),
+                          DataCell(Text(orden['incidente_logistica'] ?? '-')),
                           DataCell(Text(orden['inicio_logistica'] ?? '-')),
                           DataCell(Text(orden['fin_logistica'] ?? '-')),
                         ],
