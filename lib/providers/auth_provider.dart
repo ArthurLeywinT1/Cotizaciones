@@ -40,31 +40,18 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<bool> login(String usuario, String contrasena) async {
     state = state.copyWith(isLoading: true, error: null);
 
-    if (state.error != null) {
-      state = const AuthState(isLoading: true, usuario: null, error: null);
-    }
-
     try {
       final authService = ref.read(authServiceProvider);
-
       final usuarioAutenticado = await authService.login(usuario, contrasena);
 
       if (usuarioAutenticado != null) {
-        if (authService.esAdmin(usuarioAutenticado)) {
-          state = state.copyWith(
-            isLoading: false,
-            usuario: usuarioAutenticado,
-            error: null,
-          );
-          return true;
-        } else {
-          state = const AuthState(
-            isLoading: false,
-            usuario: null,
-            error: 'Solo los administradores pueden iniciar sesión.',
-          );
-          return false;
-        }
+        // Ahora permitimos que cualquier usuario autenticado guarde su estado
+        state = state.copyWith(
+          isLoading: false,
+          usuario: usuarioAutenticado,
+          error: null,
+        );
+        return true;
       } else {
         state = const AuthState(
           isLoading: false,
