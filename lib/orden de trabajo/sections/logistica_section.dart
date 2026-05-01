@@ -80,7 +80,6 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
   @override
   Widget build(BuildContext context) {
     // Controlador para mostrar la fecha en el TextField
-    final controller = ref.watch(ordenTrabajoProvider);
 
     return Card(
       elevation: 4,
