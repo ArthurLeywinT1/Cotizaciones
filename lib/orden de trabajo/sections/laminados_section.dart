@@ -46,19 +46,25 @@ class LaminadosSection extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       TextFormField(
-                        key: ValueKey(controller.laminadoProyecto),
+                        key: ValueKey(
+                          "laminado_proyecto_${controller.sessionKey}",
+                        ),
                         initialValue: controller.laminadoProyecto,
-                        onChanged: (v) => ref
-                            .read(ordenTrabajoProvider)
-                            .updateLaminadoGeneral('proyecto', v),
+                        readOnly: true,
+                        onChanged: null,
                         decoration: InputDecoration(
                           hintText: 'Ej: Portada, Tarjetas...',
                           isDense: true,
+                          filled: true,
+                          fillColor: Colors.grey[200],
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        style: const TextStyle(fontSize: 13),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.black54,
+                        ),
                       ),
                     ],
                   ),
@@ -84,7 +90,14 @@ class LaminadosSection extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        value: 'Brillante',
+                        value:
+                            [
+                              'Brillante',
+                              'Mate',
+                              'Otro',
+                            ].contains(controller.laminadoAcabado)
+                            ? controller.laminadoAcabado
+                            : 'Brillante',
                         items: ['Brillante', 'Mate', 'Otro'].map((String val) {
                           return DropdownMenuItem(
                             value: val,
@@ -94,7 +107,13 @@ class LaminadosSection extends ConsumerWidget {
                             ),
                           );
                         }).toList(),
-                        onChanged: (val) {},
+                        onChanged: (val) {
+                          if (val != null) {
+                            ref
+                                .read(ordenTrabajoProvider)
+                                .updateLaminadoGeneral('acabado', val);
+                          }
+                        },
                       ),
                     ],
                   ),
@@ -118,18 +137,22 @@ class LaminadosSection extends ConsumerWidget {
                 const SizedBox(height: 4),
                 TextFormField(
                   // Asumiendo que tienes 'pliegos' en tu provider, si no, cámbialo por el campo correcto
-                  onChanged: (v) => ref
-                      .read(ordenTrabajoProvider)
-                      .updateLaminadoGeneral('pliegos', v),
+                  initialValue: controller.laminadoPliegos > 0
+                      ? controller.laminadoPliegos.toString()
+                      : '',
+                  readOnly: true,
+                  onChanged: null,
                   decoration: InputDecoration(
                     hintText: 'Cantidad de pliegos...',
                     isDense: true,
+                    filled: true,
+                    fillColor: Colors.grey[200],
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                   keyboardType: TextInputType.number, // Teclado numérico
-                  style: const TextStyle(fontSize: 13),
+                  style: const TextStyle(fontSize: 13, color: Colors.black54),
                 ),
               ],
             ),
@@ -217,7 +240,9 @@ class LaminadosSection extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 4),
-            TextField(
+            TextFormField(
+              key: ValueKey("laminado_notas_${controller.sessionKey}"),
+              initialValue: controller.laminadoNotas,
               maxLines: 3,
               onChanged: (v) => ref
                   .read(ordenTrabajoProvider)

@@ -36,6 +36,8 @@ class AcabadoSection extends ConsumerWidget {
               "PROYECTO",
               "Nombre del proyecto...",
               controller.acabadoProyecto,
+              "acabado_proyecto_${controller.sessionKey}",
+              readOnly: true,
               onChanged: (v) =>
                   ref.read(ordenTrabajoProvider).updateAcabado('proyecto', v),
             ),
@@ -79,7 +81,9 @@ class AcabadoSection extends ConsumerWidget {
                       Expanded(
                         flex: 2,
                         child: TextFormField(
-                          key: ValueKey("desc_${acabado.id}"),
+                          key: ValueKey(
+                            "acabado_desc_${acabado.id}_${controller.sessionKey}",
+                          ),
                           initialValue: acabado.desc,
                           decoration: const InputDecoration(
                             hintText: "Ej: Poner fajilla...",
@@ -103,9 +107,10 @@ class AcabadoSection extends ConsumerWidget {
                       Expanded(
                         flex: 1,
                         child: TextFormField(
-                          key: ValueKey("piezas_${acabado.id}"),
-                          initialValue: acabado
-                              .piezas, // Ya es seguro contra errores de memoria
+                          key: ValueKey(
+                            "acabado_piezas_${acabado.id}_${controller.sessionKey}",
+                          ),
+                          initialValue: acabado.piezas,
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
                             hintText: "Piezas",
@@ -170,7 +175,7 @@ class AcabadoSection extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             TextFormField(
-              key: ValueKey(controller.acabadoNotas),
+              key: ValueKey("acabado_notas_${controller.sessionKey}"),
               initialValue: controller.acabadoNotas,
               maxLines: 3,
               onChanged: (v) =>
@@ -208,8 +213,10 @@ class AcabadoSection extends ConsumerWidget {
   Widget _buildInput(
     String label,
     String hint,
-    String initialValue, {
+    String initialValue,
+    String fieldKey, {
     bool esNumero = false,
+    bool readOnly = false,
     Color? colorFondo,
     required Function(String) onChanged,
   }) {
@@ -226,18 +233,24 @@ class AcabadoSection extends ConsumerWidget {
         ),
         const SizedBox(height: 4),
         TextFormField(
-          key: ValueKey(initialValue),
+          key: ValueKey(fieldKey),
           initialValue: initialValue,
-          onChanged: onChanged,
+          readOnly: readOnly,
+          onChanged: readOnly ? null : onChanged,
           keyboardType: esNumero ? TextInputType.number : TextInputType.text,
           decoration: InputDecoration(
             hintText: hint,
             isDense: true,
-            filled: colorFondo != null,
-            fillColor: colorFondo,
+            filled: readOnly || colorFondo != null,
+            fillColor: readOnly
+                ? Colors.grey[200]
+                : (colorFondo ?? Colors.white),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
           ),
-          style: const TextStyle(fontSize: 13),
+          style: TextStyle(
+            fontSize: 13,
+            color: readOnly ? Colors.black54 : Colors.black,
+          ),
         ),
       ],
     );

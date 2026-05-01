@@ -37,7 +37,9 @@ class SuajeSection extends ConsumerWidget {
                   child: _buildInput(
                     "PROYECTO",
                     "Nombre del proyecto...",
-                    controller.suajeProyecto, // <--- Valor inicial inyectado
+                    controller.suajeProyecto,
+                    "suaje_proyecto_${controller.sessionKey}", // <--- Valor inicial inyectado
+                    readOnly: true,
                     onChanged: (v) => controller.updateSuaje('proyecto', v),
                   ),
                 ),
@@ -49,8 +51,10 @@ class SuajeSection extends ConsumerWidget {
                     "0",
                     controller.suajePliegos > 0
                         ? controller.suajePliegos.toString()
-                        : "", // <--- Valor inicial inyectado
+                        : "",
+                    "suaje_pliegos_${controller.sessionKey}", // <--- Valor inicial inyectado
                     esNumero: true,
+                    readOnly: true,
                     onChanged: (v) => controller.updateSuaje('pliegos', v),
                   ),
                 ),
@@ -88,7 +92,7 @@ class SuajeSection extends ConsumerWidget {
                     width: 250,
                     child: TextFormField(
                       key: ValueKey(
-                        controller.suajeNombreMaquila,
+                        "suaje_nombre_maquila_${controller.sessionKey}",
                       ), // <--- Key reactiva
                       initialValue:
                           controller.suajeNombreMaquila, // <--- Valor inicial
@@ -143,7 +147,9 @@ class SuajeSection extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             TextFormField(
-              key: ValueKey(controller.suajeNotas), // <--- Key reactiva
+              key: ValueKey(
+                "suaje_notas_extras_${controller.sessionKey}",
+              ), // <--- Key reactiva
               initialValue: controller.suajeNotas, // <--- Valor inicial
               maxLines: 3,
               onChanged: (v) =>
@@ -181,8 +187,10 @@ class SuajeSection extends ConsumerWidget {
   Widget _buildInput(
     String label,
     String hint,
-    String initialValue, {
+    String initialValue,
+    String fieldKey, {
     bool esNumero = false,
+    bool readOnly = false,
     required Function(String) onChanged,
   }) {
     return Column(
@@ -199,17 +207,23 @@ class SuajeSection extends ConsumerWidget {
         const SizedBox(height: 4),
         TextFormField(
           key: ValueKey(
-            initialValue,
+            fieldKey,
           ), // <--- Permite actualizar el campo si llegan nuevos datos
           initialValue: initialValue,
-          onChanged: onChanged,
+          readOnly: readOnly,
+          onChanged: readOnly ? null : onChanged,
           keyboardType: esNumero ? TextInputType.number : TextInputType.text,
           decoration: InputDecoration(
             hintText: hint,
             isDense: true,
+            filled: readOnly,
+            fillColor: readOnly ? Colors.grey[200] : Colors.white,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
           ),
-          style: const TextStyle(fontSize: 13),
+          style: TextStyle(
+            fontSize: 13,
+            color: readOnly ? Colors.black54 : Colors.black,
+          ),
         ),
       ],
     );

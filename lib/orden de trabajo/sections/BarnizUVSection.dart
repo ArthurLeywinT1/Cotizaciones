@@ -35,22 +35,43 @@ class BarnizUVSection extends ConsumerWidget {
               children: [
                 Expanded(
                   flex: 2,
-                  child: _buildLabel("PROYECTO", TextFormField(
-                    initialValue: controller.barnizProyecto,
-                    onChanged: (v) => controller.updateBarnizGeneral('proyecto', v),
-                    decoration: _inputStyle('Ej: Contraportada...'),
-                    style: const TextStyle(fontSize: 13),
-                  )),
+                  child: _buildLabel(
+                    "PROYECTO",
+                    TextFormField(
+                      key: ValueKey("barniz_proyecto_${controller.sessionKey}"),
+                      initialValue: controller.barnizProyecto,
+                      readOnly: true,
+                      onChanged: null,
+                      decoration: _inputStyle(
+                        'Ej: Contraportada...',
+                        readOnly: true,
+                      ),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: _buildLabel("PLIEGOS", TextFormField(
-                    initialValue: controller.barnizPliegos.toString(),
-                    onChanged: (v) => controller.updateBarnizGeneral('pliegos', v),
-                    decoration: _inputStyle('Cant.'),
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(fontSize: 13),
-                  )),
+                  child: _buildLabel(
+                    "PLIEGOS",
+                    TextFormField(
+                      key: ValueKey("barniz_pliegos_${controller.sessionKey}"),
+                      initialValue: controller.barnizPliegos > 0
+                          ? controller.barnizPliegos.toString()
+                          : '',
+                      readOnly: true,
+                      onChanged: null,
+                      decoration: _inputStyle('Cant.', readOnly: true),
+                      keyboardType: TextInputType.number,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -70,10 +91,20 @@ class BarnizUVSection extends ConsumerWidget {
                   Row(
                     children: [
                       _buildTitle("APLICACIÓN:"),
-                      _buildCheck("Frente", controller.barnizAplicacion['frente']!, 
-                        (v) => controller.updateBarnizAplicacion('frente', v!)),
-                      _buildCheck("Vuelta", controller.barnizAplicacion['vuelta']!, 
-                        (v) => controller.updateBarnizAplicacion('vuelta', v!)),
+                      _buildCheck(
+                        "Frente",
+                        controller.barnizAplicacion['frente']!,
+                        (v) => ref
+                            .read(ordenTrabajoProvider)
+                            .updateBarnizAplicacion('frente', v!),
+                      ),
+                      _buildCheck(
+                        "Vuelta",
+                        controller.barnizAplicacion['vuelta']!,
+                        (v) => ref
+                            .read(ordenTrabajoProvider)
+                            .updateBarnizAplicacion('vuelta', v!),
+                      ),
                     ],
                   ),
                   const Divider(color: Colors.orange, thickness: 0.2),
@@ -82,10 +113,20 @@ class BarnizUVSection extends ConsumerWidget {
                   Row(
                     children: [
                       _buildTitle("PRODUCCIÓN:"),
-                      _buildCheck("Romosso", controller.barnizEsRomosso, 
-                        (v) => controller.updateBarnizGeneral('romosso', v!)),
-                      _buildCheck("Maquilador", controller.barnizEsMaquilador, 
-                        (v) => controller.updateBarnizGeneral('maquilador', v!)),
+                      _buildCheck(
+                        "Romosso",
+                        controller.barnizEsRomosso,
+                        (v) => ref
+                            .read(ordenTrabajoProvider)
+                            .updateBarnizGeneral('romosso', v!),
+                      ),
+                      _buildCheck(
+                        "Maquilador",
+                        controller.barnizEsMaquilador,
+                        (v) => ref
+                            .read(ordenTrabajoProvider)
+                            .updateBarnizGeneral('maquilador', v!),
+                      ),
                     ],
                   ),
 
@@ -93,12 +134,14 @@ class BarnizUVSection extends ConsumerWidget {
                   if (controller.barnizEsMaquilador) ...[
                     const SizedBox(height: 8),
                     TextFormField(
+                      key: ValueKey("barniz_maquila_${controller.sessionKey}"),
                       initialValue: controller.barnizNombreMaquila,
-                      onChanged: (v) => controller.updateBarnizGeneral('nombreMaquila', v),
-                      decoration: _inputStyle('¿Quién lo maquila?').copyWith(
-                        fillColor: Colors.white,
-                        filled: true,
-                      ),
+                      onChanged: (v) => ref
+                          .read(ordenTrabajoProvider)
+                          .updateBarnizGeneral('nombreMaquila', v),
+                      decoration: _inputStyle(
+                        '¿Quién lo maquila?',
+                      ).copyWith(fillColor: Colors.white, filled: true),
                       style: const TextStyle(fontSize: 13),
                     ),
                     const SizedBox(height: 8),
@@ -109,15 +152,24 @@ class BarnizUVSection extends ConsumerWidget {
             const SizedBox(height: 16),
 
             // --- NOTAS ---
-            _buildLabel("NOTAS / INSTRUCCIONES EXTRAS", TextField(
-              maxLines: 2,
-              onChanged: (v) => controller.updateBarnizGeneral('notas', v),
-              decoration: _inputStyle('Instrucciones...').copyWith(
-                filled: true,
-                fillColor: Colors.yellow[50],
+            _buildLabel(
+              "NOTAS / INSTRUCCIONES EXTRAS",
+              TextFormField(
+                key: ValueKey("barniz_notas_${controller.sessionKey}"),
+                initialValue: controller.barnizNotas,
+                maxLines: 2,
+                onChanged: (v) => ref
+                    .read(ordenTrabajoProvider)
+                    .updateBarnizGeneral('notas', v),
+                decoration: _inputStyle(
+                  'Instrucciones...',
+                ).copyWith(filled: true, fillColor: Colors.yellow[50]),
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
-              style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
-            )),
+            ),
           ],
         ),
       ),
@@ -125,21 +177,41 @@ class BarnizUVSection extends ConsumerWidget {
   }
 
   // --- MÉTODOS DE ESTILO ---
-  InputDecoration _inputStyle(String hint) => InputDecoration(
-    hintText: hint, isDense: true,
-    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-  );
+  InputDecoration _inputStyle(String hint, {bool readOnly = false}) =>
+      InputDecoration(
+        hintText: hint,
+        isDense: true,
+        filled: readOnly,
+        fillColor: readOnly ? Colors.grey[200] : null,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+      );
 
   Widget _buildLabel(String label, Widget child) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
-      const SizedBox(height: 4), child,
+      Text(
+        label,
+        style: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          color: Colors.grey,
+        ),
+      ),
+      const SizedBox(height: 4),
+      child,
     ],
   );
 
-  Widget _buildTitle(String title) => SizedBox(width: 90,
-    child: Text(title, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.orange[800])),
+  Widget _buildTitle(String title) => SizedBox(
+    width: 90,
+    child: Text(
+      title,
+      style: TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.bold,
+        color: Colors.orange[800],
+      ),
+    ),
   );
 
   Widget _buildCheck(String label, bool val, Function(bool?) onCh) => Row(

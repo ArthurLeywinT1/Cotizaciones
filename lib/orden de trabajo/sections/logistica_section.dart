@@ -12,11 +12,41 @@ class LogisticaSection extends ConsumerStatefulWidget {
 
 class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
   // Controlador para mostrar la fecha en el TextField
-  final TextEditingController _fechaController = TextEditingController();
+  late TextEditingController _fechaController;
+  late TextEditingController _transporteController;
+  late TextEditingController _direccionController;
+  late TextEditingController _totalController;
+  late TextEditingController _notasController;
+
+  @override
+  void initState() {
+    super.initState();
+    final controller = ref.read(ordenTrabajoProvider);
+
+    _fechaController = TextEditingController(
+      text: controller.logisticaFechaEntrega,
+    );
+    _transporteController = TextEditingController(
+      text: controller.logisticaTransporte,
+    );
+    _direccionController = TextEditingController(
+      text: controller.logisticaDireccion,
+    );
+    _totalController = TextEditingController(
+      text: controller.logisticaTotalEntregar > 0
+          ? controller.logisticaTotalEntregar.toString()
+          : '',
+    );
+    _notasController = TextEditingController(text: controller.logisticaNotas);
+  }
 
   @override
   void dispose() {
     _fechaController.dispose();
+    _transporteController.dispose();
+    _direccionController.dispose();
+    _totalController.dispose();
+    _notasController.dispose();
     super.dispose();
   }
 
@@ -49,6 +79,9 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
 
   @override
   Widget build(BuildContext context) {
+    // Controlador para mostrar la fecha en el TextField
+    final controller = ref.watch(ordenTrabajoProvider);
+
     return Card(
       elevation: 4,
       margin: const EdgeInsets.only(bottom: 30),
@@ -106,7 +139,8 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
                         TextField(
                           controller: _fechaController,
                           readOnly: true, // Bloquea el teclado nativo
-                          onTap: () => _selectDate(context), // Abre el calendario
+                          onTap: () =>
+                              _selectDate(context), // Abre el calendario
                           decoration: const InputDecoration(
                             hintText: "DD/MM/AAAA",
                             isDense: true,
@@ -143,6 +177,7 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
                       ),
                       const SizedBox(height: 4),
                       TextField(
+                        controller: _transporteController,
                         onChanged: (v) => ref
                             .read(ordenTrabajoProvider)
                             .updateLogistica('transporte', v),
@@ -181,12 +216,14 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
                       ),
                       const SizedBox(height: 4),
                       TextField(
+                        controller: _direccionController,
                         maxLines: 2,
                         onChanged: (v) => ref
                             .read(ordenTrabajoProvider)
                             .updateLogistica('direccion', v),
                         decoration: const InputDecoration(
-                          hintText: "Dirección completa, referencias, horarios...",
+                          hintText:
+                              "Dirección completa, referencias, horarios...",
                           isDense: true,
                           border: OutlineInputBorder(),
                           prefixIcon: Icon(
@@ -212,31 +249,27 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
-                          color: Colors.deepOrange,
+                          color: Colors.grey,
                         ),
                       ),
                       const SizedBox(height: 4),
                       TextField(
-                        keyboardType: TextInputType.number,
-                        onChanged: (v) => ref
-                            .read(ordenTrabajoProvider)
-                            .updateLogistica('total', v),
+                        controller: _totalController,
+                        readOnly: true,
                         decoration: InputDecoration(
                           hintText: "0",
                           isDense: true,
                           filled: true,
-                          fillColor: Colors.deepOrange[50],
+                          fillColor: Colors.grey[200],
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(
-                              color: Colors.deepOrange[200]!,
-                            ),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
                           ),
                         ),
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.deepOrange,
+                          color: Colors.black54,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -247,6 +280,7 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
             ),
 
             const SizedBox(height: 24),
+
             // --- NOTAS / INSTRUCCIONES EXTRAS ---
             const Text(
               "NOTAS / INSTRUCCIONES EXTRAS",
@@ -258,6 +292,7 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
             ),
             const SizedBox(height: 4),
             TextField(
+              controller: _notasController,
               maxLines: 3,
               onChanged: (v) =>
                   ref.read(ordenTrabajoProvider).updateLogistica('notas', v),

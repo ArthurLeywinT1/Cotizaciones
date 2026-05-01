@@ -50,127 +50,140 @@ class _OrdenTrabajoScreenState extends ConsumerState<OrdenTrabajoScreen> {
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // 1. Selector de Secciones (Filtros)
-            Card(
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: controller.activeSections.keys.map((key) {
-                    final isActive = controller.activeSections[key]!;
-                    return FilterChip(
-                      label: Text(
-                        key.toUpperCase(),
-                        style: const TextStyle(
-                          fontSize: 10,
+      body: controller.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // 1. Selector de Secciones (Filtros)
+                  Card(
+                    elevation: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
+                        children: controller.activeSections.keys.map((key) {
+                          final isActive = controller.activeSections[key]!;
+                          return FilterChip(
+                            label: Text(
+                              key.toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            selected: isActive,
+                            onSelected: (_) => controller.toggleSection(key),
+                            selectedColor: Theme.of(
+                              context,
+                            ).colorScheme.primaryContainer,
+                            checkmarkColor: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Renderizado Condicional de las Hojas (Secciones)
+                  if (controller.activeSections['adquisiciones'] == true)
+                    const AdquisicionesSection(),
+                  if (controller.activeSections['diseño'] == true)
+                    const DisenoSection(),
+                  if (controller.activeSections['offset'] == true)
+                    const OffsetSection(),
+                  if (controller.activeSections['corte'] == true)
+                    const CorteSection(),
+                  if (controller.activeSections['laminados'] == true)
+                    const LaminadosSection(),
+                  if (controller.activeSections['suaje'] == true)
+                    const SuajeSection(),
+                  if (controller.activeSections['serigrafia'] == true)
+                    const SerigrafiaSection(),
+                  if (controller.activeSections['grabado'] == true)
+                    const GrabadoSection(),
+                  if (controller.activeSections['acabado'] == true)
+                    const AcabadoSection(),
+                  if (controller.activeSections['barniz'] == true)
+                    const BarnizUVSection(),
+                  if (controller.activeSections['embalaje'] == true)
+                    const EmbalajeSection(),
+                  if (controller.activeSections['logistica'] == true)
+                    const LogisticaSection(),
+
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onPrimary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      icon: const Icon(Icons.save),
+                      label: const Text(
+                        "Guardar Orden de Trabajo",
+                        style: TextStyle(
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      selected: isActive,
-                      onSelected: (_) => controller.toggleSection(key),
-                      selectedColor: Theme.of(
-                        context,
-                      ).colorScheme.primaryContainer,
-                      checkmarkColor: Theme.of(
-                        context,
-                      ).colorScheme.onPrimaryContainer,
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
+                      onPressed: () async {
+                        FocusScope.of(context).unfocus();
 
-            // Renderizado Condicional de las Hojas (Secciones)
-            if (controller.activeSections['adquisiciones'] == true)
-              const AdquisicionesSection(),
-            if (controller.activeSections['diseño'] == true)
-              const DisenoSection(),
-            if (controller.activeSections['offset'] == true)
-              const OffsetSection(),
-            if (controller.activeSections['corte'] == true)
-              const CorteSection(),
-            if (controller.activeSections['laminados'] == true)
-              const LaminadosSection(),
-            if (controller.activeSections['suaje'] == true)
-              const SuajeSection(),
-            if (controller.activeSections['serigrafia'] == true)
-              const SerigrafiaSection(),
-            if (controller.activeSections['grabado'] == true)
-              const GrabadoSection(),
-            if (controller.activeSections['acabado'] == true)
-              const AcabadoSection(),
-            if (controller.activeSections['barniz'] == true)
-              const BarnizUVSection(),
-            if (controller.activeSections['embalaje'] == true)
-              const EmbalajeSection(),
-            if (controller.activeSections['logistica'] == true)
-              const LogisticaSection(),
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Guardando Orden de Trabajo...'),
+                          ),
+                        );
 
-            const SizedBox(height: 32),
-            SizedBox(
-              height: 50,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                icon: const Icon(Icons.save),
-                label: const Text(
-                  "Guardar Orden de Trabajo",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                onPressed: () async {
-                  FocusScope.of(context).unfocus();
+                        final exito = await ref
+                            .read(ordenTrabajoProvider.notifier)
+                            .guardarOrdenTrabajo();
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Guardando Orden de Trabajo...'),
+                        if (!context.mounted) return;
+
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+                        if (exito) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Orden de Trabajo Guardada con Éxito',
+                              ),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+
+                          if (Navigator.canPop(context)) {
+                            Navigator.pop(context);
+                          }
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Error al guardar la Orden de Trabajo. Revisa tu conexión.',
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      },
                     ),
-                  );
-
-                  final exito = await ref
-                      .read(ordenTrabajoProvider.notifier)
-                      .guardarOrdenTrabajo();
-
-                  if (!context.mounted) return;
-
-                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
-                  if (exito) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('✅ Orden de Trabajo Guardada con Éxito'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          '❌ Error al guardar la Orden de Trabajo. Revisa tu conexión.',
-                        ),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                },
+                  ),
+                  const SizedBox(height: 40),
+                ],
               ),
             ),
-            const SizedBox(height: 40),
-          ],
-        ),
-      ),
     );
   }
 }

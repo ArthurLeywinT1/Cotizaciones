@@ -36,6 +36,8 @@ class GrabadoSection extends ConsumerWidget {
               "PROYECTO",
               "Nombre del proyecto de grabado...",
               controller.grabadoProyecto,
+              "grabado_proyecto_${controller.sessionKey}",
+              readOnly: true,
               onChanged: (v) =>
                   ref.read(ordenTrabajoProvider).updateGrabado('proyecto', v),
             ),
@@ -50,6 +52,8 @@ class GrabadoSection extends ConsumerWidget {
                     "PLACAS A UTILIZAR",
                     "Descripción de placas...",
                     controller.grabadoPlacas,
+                    "grabado_placas_${controller.sessionKey}",
+                    readOnly: true,
                     onChanged: (v) => ref
                         .read(ordenTrabajoProvider)
                         .updateGrabado('placas', v),
@@ -64,7 +68,9 @@ class GrabadoSection extends ConsumerWidget {
                     controller.grabadoPiezas > 0
                         ? controller.grabadoPiezas.toString()
                         : "",
+                    "grabado_piezas_${controller.sessionKey}",
                     esNumero: true,
+                    readOnly: true,
                     onChanged: (v) => ref
                         .read(ordenTrabajoProvider)
                         .updateGrabado('piezas', v),
@@ -108,7 +114,9 @@ class GrabadoSection extends ConsumerWidget {
                   SizedBox(
                     width: 250,
                     child: TextFormField(
-                      key: ValueKey(controller.grabadoNombreMaquila),
+                      key: ValueKey(
+                        "grabado_nombre_maquila_${controller.sessionKey}",
+                      ),
                       initialValue: controller.grabadoNombreMaquila,
                       onChanged: (v) => ref
                           .read(ordenTrabajoProvider)
@@ -140,7 +148,7 @@ class GrabadoSection extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             TextFormField(
-              key: ValueKey(controller.grabadoNotas),
+              key: ValueKey("grabado_notas_extras_${controller.sessionKey}"),
               initialValue: controller.grabadoNotas,
               maxLines: 3,
               onChanged: (v) =>
@@ -178,8 +186,10 @@ class GrabadoSection extends ConsumerWidget {
   Widget _buildInput(
     String label,
     String hint,
-    String initialValue, {
+    String initialValue,
+    String fieldKey, {
     bool esNumero = false,
+    bool readOnly = false,
     required Function(String) onChanged,
   }) {
     return Column(
@@ -195,16 +205,22 @@ class GrabadoSection extends ConsumerWidget {
         ),
         const SizedBox(height: 4),
         TextFormField(
-          key: ValueKey(initialValue),
+          key: ValueKey(fieldKey),
           initialValue: initialValue,
-          onChanged: onChanged,
+          readOnly: readOnly,
+          onChanged: readOnly ? null : onChanged,
           keyboardType: esNumero ? TextInputType.number : TextInputType.text,
           decoration: InputDecoration(
             hintText: hint,
             isDense: true,
+            filled: readOnly,
+            fillColor: readOnly ? Colors.grey[200] : Colors.white,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
           ),
-          style: const TextStyle(fontSize: 13),
+          style: TextStyle(
+            fontSize: 13,
+            color: readOnly ? Colors.black54 : Colors.black,
+          ),
         ),
       ],
     );

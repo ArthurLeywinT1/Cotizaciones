@@ -91,6 +91,8 @@ class SerigrafiaSection extends ConsumerWidget {
                     "PROYECTO",
                     "Nombre del proyecto...",
                     controller.serigrafiaProyecto,
+                    "serigrafia_proyecto_${controller.sessionKey}",
+                    readOnly: true,
                     onChanged: (v) =>
                         controller.updateSerigrafiaGeneral('proyecto', v),
                   ),
@@ -104,7 +106,9 @@ class SerigrafiaSection extends ConsumerWidget {
                     controller.serigrafiaPiezas > 0
                         ? controller.serigrafiaPiezas.toString()
                         : "",
+                    "serigrafia_piezas_${controller.sessionKey}",
                     esNumero: true,
+                    readOnly: true,
                     onChanged: (v) =>
                         controller.updateSerigrafiaGeneral('piezas', v),
                   ),
@@ -165,7 +169,9 @@ class SerigrafiaSection extends ConsumerWidget {
                   // Modo Pantone (Texto libre)
                   if (controller.serigrafiaModo == 'pantone')
                     TextFormField(
-                      key: ValueKey(controller.serigrafiaPantoneCode),
+                      key: ValueKey(
+                        "serigrafia_pantone_code_${controller.sessionKey}",
+                      ), // <--- Llave blindada
                       initialValue: controller.serigrafiaPantoneCode,
                       decoration: const InputDecoration(
                         hintText: 'Ej: Pantone 293 C, Blanco Mate...',
@@ -230,6 +236,7 @@ class SerigrafiaSection extends ConsumerWidget {
                     "DETALLE DE MARCOS",
                     "Descripción o medidas...",
                     controller.serigrafiaMarcos,
+                    "serigrafia_marcos_${controller.sessionKey}",
                     onChanged: (v) =>
                         controller.updateSerigrafiaGeneral('marcos', v),
                   ),
@@ -291,7 +298,9 @@ class SerigrafiaSection extends ConsumerWidget {
                   SizedBox(
                     width: 250,
                     child: TextFormField(
-                      key: ValueKey(controller.serigrafiaNombreMaquila),
+                      key: ValueKey(
+                        "serigrafia_nombre_maquila_${controller.sessionKey}",
+                      ),
                       initialValue: controller.serigrafiaNombreMaquila,
                       onChanged: (v) => controller.updateSerigrafiaGeneral(
                         'nombreMaquila',
@@ -319,7 +328,7 @@ class SerigrafiaSection extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             TextFormField(
-              key: ValueKey(controller.serigrafiaNotas),
+              key: ValueKey("serigrafia_notas_extras_${controller.sessionKey}"),
               initialValue: controller.serigrafiaNotas,
               maxLines: 3,
               onChanged: (v) => ref
@@ -358,8 +367,10 @@ class SerigrafiaSection extends ConsumerWidget {
   Widget _buildInput(
     String label,
     String hint,
-    String initialValue, {
+    String initialValue,
+    String fieldKey, {
     bool esNumero = false,
+    bool readOnly = false,
     required Function(String) onChanged,
   }) {
     return Column(
@@ -375,16 +386,22 @@ class SerigrafiaSection extends ConsumerWidget {
         ),
         const SizedBox(height: 4),
         TextFormField(
-          key: ValueKey(initialValue),
+          key: ValueKey(fieldKey),
           initialValue: initialValue,
-          onChanged: onChanged,
+          readOnly: readOnly,
+          onChanged: readOnly ? null : onChanged,
           keyboardType: esNumero ? TextInputType.number : TextInputType.text,
           decoration: InputDecoration(
             hintText: hint,
             isDense: true,
+            filled: readOnly,
+            fillColor: readOnly ? Colors.grey[200] : Colors.white,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
           ),
-          style: const TextStyle(fontSize: 13),
+          style: TextStyle(
+            fontSize: 13,
+            color: readOnly ? Colors.black54 : Colors.black,
+          ),
         ),
       ],
     );

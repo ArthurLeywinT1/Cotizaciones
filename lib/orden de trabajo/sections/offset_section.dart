@@ -41,6 +41,8 @@ class OffsetSection extends ConsumerWidget {
                   "Ej: Catálogo, Caja...",
                   200,
                   controller.offsetTipoTrabajo,
+                  "offset_tipo_trabajo_${controller.sessionKey}",
+                  readOnly: true,
                   onChanged: (v) => ref
                       .read(ordenTrabajoProvider)
                       .updateOffsetTexto('tipo', v),
@@ -52,7 +54,9 @@ class OffsetSection extends ConsumerWidget {
                   controller.offsetPiezasPedidas > 0
                       ? controller.offsetPiezasPedidas.toString()
                       : "",
+                  "offset_piezas_pedidas_${controller.sessionKey}",
                   esNumero: true,
+                  readOnly: true,
                   onChanged: (v) => ref
                       .read(ordenTrabajoProvider)
                       .updateOffsetTexto('piezas', v),
@@ -62,6 +66,8 @@ class OffsetSection extends ConsumerWidget {
                   "Ej: 1500 pliegos",
                   150,
                   controller.offsetPapelNecesario,
+                  "offset_papel_necesario_${controller.sessionKey}",
+                  readOnly: true,
                   onChanged: (v) => ref
                       .read(ordenTrabajoProvider)
                       .updateOffsetTexto('necesario', v),
@@ -71,6 +77,8 @@ class OffsetSection extends ConsumerWidget {
                   "Ej: 1600 pliegos",
                   150,
                   controller.offsetPapelLlegara,
+                  "offset_papel_llegara_${controller.sessionKey}",
+                  readOnly: true,
                   onChanged: (v) => ref
                       .read(ordenTrabajoProvider)
                       .updateOffsetTexto('llegara', v),
@@ -97,6 +105,7 @@ class OffsetSection extends ConsumerWidget {
               'frente',
               'FRENTE',
               controller.offsetData['frente'],
+              controller.sessionKey,
             ),
             const Divider(height: 16),
             // Fila de Vuelta
@@ -106,6 +115,7 @@ class OffsetSection extends ConsumerWidget {
               'vuelta',
               'VUELTA',
               controller.offsetData['vuelta'],
+              controller.sessionKey,
             ),
 
             const SizedBox(height: 16),
@@ -123,7 +133,7 @@ class OffsetSection extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             TextFormField(
-              key: ValueKey(controller.offsetNotas),
+              key: ValueKey("offset_notas_extras_${controller.sessionKey}"),
               initialValue: controller.offsetNotas,
               maxLines: 3,
               onChanged: (v) =>
@@ -162,8 +172,10 @@ class OffsetSection extends ConsumerWidget {
     String label,
     String hint,
     double width,
-    String initialValue, {
+    String initialValue,
+    String fieldKey, {
     bool esNumero = false,
+    bool readOnly = false,
     required Function(String) onChanged,
   }) {
     return SizedBox(
@@ -181,20 +193,24 @@ class OffsetSection extends ConsumerWidget {
           ),
           const SizedBox(height: 4),
           TextFormField(
-            key: ValueKey(
-              initialValue,
-            ), // <--- Crucial para que Riverpod actualice el campo al recibir BD
+            key: ValueKey(fieldKey),
             initialValue: initialValue,
-            onChanged: onChanged,
+            readOnly: readOnly,
+            onChanged: readOnly ? null : onChanged,
             keyboardType: esNumero ? TextInputType.number : TextInputType.text,
             decoration: InputDecoration(
               hintText: hint,
               isDense: true,
+              filled: readOnly,
+              fillColor: readOnly ? Colors.grey[200] : Colors.white,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            style: const TextStyle(fontSize: 13),
+            style: TextStyle(
+              fontSize: 13,
+              color: readOnly ? Colors.black54 : Colors.black,
+            ),
           ),
         ],
       ),
@@ -208,6 +224,7 @@ class OffsetSection extends ConsumerWidget {
     String caraKey,
     String label,
     Map<String, dynamic> data,
+    String sessionKey,
   ) {
     return Wrap(
       crossAxisAlignment: WrapCrossAlignment.center,
@@ -247,8 +264,8 @@ class OffsetSection extends ConsumerWidget {
             width: 150,
             margin: const EdgeInsets.only(left: 8, top: 4),
             child: TextFormField(
-              key: ValueKey(data['tinta_esp']), // <--- Key
-              initialValue: data['tinta_esp'] ?? '', // <--- Valor Inicial
+              key: ValueKey("offset_tinta_esp_${caraKey}_$sessionKey"),
+              initialValue: data['tinta_esp'] ?? '',
               onChanged: (v) => ref
                   .read(ordenTrabajoProvider)
                   .updateOffsetInk(caraKey, 'tinta_esp', v),

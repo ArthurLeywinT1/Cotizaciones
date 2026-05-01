@@ -60,6 +60,8 @@ class AcabadoManualItem {
 class OrdenTrabajoController extends ChangeNotifier {
   final OrdenTrabajoService _service = OrdenTrabajoService();
 
+  bool isLoading = false;
+  String sessionKey = '';
   String orderId = "S/F"; // Número de orden simulado
   String currentCotizacionId = "";
   String? ordenTrabajoDbId;
@@ -75,7 +77,7 @@ class OrdenTrabajoController extends ChangeNotifier {
     'grabado': true,
     'serigrafia': true,
     'acabado': true,
-    'barniz': false,
+    'barniz': true,
     'embalaje': true,
     'logistica': true,
   };
@@ -86,6 +88,10 @@ class OrdenTrabajoController extends ChangeNotifier {
   }
 
   Future<void> cargarDatosPorId(String id, WidgetRef ref) async {
+    sessionKey = DateTime.now().millisecondsSinceEpoch.toString();
+    isLoading = true;
+    notifyListeners();
+
     currentCotizacionId = id;
 
     final ordenGuardada = await _service.obtenerOrdenPorCotizacionId(id);
@@ -93,19 +99,186 @@ class OrdenTrabajoController extends ChangeNotifier {
     if (ordenGuardada != null) {
       ordenTrabajoDbId = ordenGuardada.id;
       print("✅ Orden existente encontrada en DB. Lista para actualizar.");
+      _cargarDesdeBaseDeDatos(ordenGuardada.datosCompletos);
     } else {
       ordenTrabajoDbId = null;
       print("ℹ️ Orden nueva. Se creará un nuevo registro.");
+      final cotizacionesState = ref.read(cotizacionesProvider);
+      try {
+        final cotizacion = cotizacionesState.cotizaciones.firstWhere(
+          (c) => c.id == id,
+        );
+        cargarDatosDeCotizacion(cotizacion);
+      } catch (e) {
+        print("⚠️ Error: No se encontró la cotización con ID $id en memoria.");
+      }
     }
 
-    final cotizacionesState = ref.read(cotizacionesProvider);
-    try {
-      final cotizacion = cotizacionesState.cotizaciones.firstWhere(
-        (c) => c.id == id,
-      );
-      cargarDatosDeCotizacion(cotizacion);
-    } catch (e) {
-      print("⚠️ Error: No se encontró la cotización con ID $id en memoria.");
+    isLoading = false;
+    notifyListeners();
+  }
+
+  void _cargarDesdeBaseDeDatos(Map<String, dynamic> dbData) {
+    if (dbData['activeSections'] != null) {
+      activeSections = Map<String, bool>.from(dbData['activeSections']);
+    }
+
+    if (dbData['adquisiciones'] != null) {
+      adquisicionesNotas = dbData['adquisiciones']['notas'] ?? '';
+      materials.clear();
+      for (var m in (dbData['adquisiciones']['materiales'] as List? ?? [])) {
+        materials.add(
+          MaterialItem(
+            id:
+                DateTime.now().millisecondsSinceEpoch.toString() +
+                m.hashCode.toString(),
+            nombre: m['nombre'] ?? '',
+            proveedor: m['proveedor'] ?? '',
+            cantidad: m['cantidad'] ?? 0,
+          ),
+        );
+      }
+    }
+    if (dbData['diseno'] != null) {
+      disenoNotas = dbData['diseno']['notas'] ?? '';
+      designTasks.clear();
+      for (var t in (dbData['diseno']['tareas'] as List? ?? [])) {
+        designTasks.add(
+          DesignTask(
+            id:
+                DateTime.now().millisecondsSinceEpoch.toString() +
+                t.hashCode.toString(),
+            desc: t['desc'] ?? '',
+          ),
+        );
+      }
+    }
+
+    if (dbData['offset'] != null) {
+      offsetTipoTrabajo = dbData['offset']['tipoTrabajo'] ?? '';
+      offsetPiezasPedidas = dbData['offset']['piezasPedidas'] ?? 0;
+      offsetPapelNecesario = dbData['offset']['papelNecesario'] ?? '';
+      offsetPapelLlegara = dbData['offset']['papelLlegara'] ?? '';
+      offsetNotas = dbData['offset']['notas'] ?? '';
+      if (dbData['offset']['tintas'] != null) {
+        final tintasDb = dbData['offset']['tintas'] as Map<String, dynamic>;
+        offsetData = {
+          'frente': Map<String, dynamic>.from(tintasDb['frente'] ?? {}),
+          'vuelta': Map<String, dynamic>.from(tintasDb['vuelta'] ?? {}),
+        };
+      }
+    }
+
+    if (dbData['corte'] != null) {
+      corteNotas = dbData['corte']['notas'] ?? '';
+      cuts.clear();
+      for (var c in (dbData['corte']['procesos'] as List? ?? [])) {
+        cuts.add(
+          CutProcess(
+            id:
+                DateTime.now().millisecondsSinceEpoch.toString() +
+                c.hashCode.toString(),
+            tipo: c['tipo'] ?? '',
+            desc: c['desc'] ?? '',
+            despuesDe: c['despuesDe'] ?? 'Offset',
+            fecha: c['fecha'] ?? '',
+          ),
+        );
+      }
+    }
+    if (dbData['laminados'] != null) {
+      laminadoProyecto = dbData['laminados']['proyecto'] ?? '';
+      laminadoAcabado = dbData['laminados']['acabado'] ?? 'Brillante';
+      laminadoPliegos =
+          int.tryParse(dbData['laminados']['pliegos']?.toString() ?? '0') ?? 0;
+      laminadoMaquinaChica = dbData['laminados']['maquinaChica'] ?? false;
+      laminadoMaquinaGrande = dbData['laminados']['maquinaGrande'] ?? false;
+      laminadoNotas = dbData['laminados']['notas'] ?? '';
+      if (dbData['laminados']['aplicacion'] != null) {
+        laminadoAplicacion = Map<String, bool>.from(
+          dbData['laminados']['aplicacion'],
+        );
+      }
+    }
+    if (dbData['suaje'] != null) {
+      suajeProyecto = dbData['suaje']['proyecto'] ?? '';
+      suajePliegos = dbData['suaje']['pliegos'] ?? 0;
+      suajeEsRomosso = dbData['suaje']['esRomosso'] ?? false;
+      suajeEsMaquilador = dbData['suaje']['esMaquilador'] ?? false;
+      suajeNombreMaquila = dbData['suaje']['nombreMaquila'] ?? '';
+      suajeMarcoExistente = dbData['suaje']['marcoExistente'] ?? false;
+      suajeMarcoNuevo = dbData['suaje']['marcoNuevo'] ?? false;
+      suajeNotas = dbData['suaje']['notas'] ?? '';
+    }
+    if (dbData['serigrafia'] != null) {
+      serigrafiaProyecto = dbData['serigrafia']['proyecto'] ?? '';
+      serigrafiaPiezas = dbData['serigrafia']['piezas'] ?? 0;
+      serigrafiaMarcos = dbData['serigrafia']['marcos'] ?? '';
+      serigrafiaMarcoExistente =
+          dbData['serigrafia']['marcoExistente'] ?? false;
+      serigrafiaMarcoNuevo = dbData['serigrafia']['marcoNuevo'] ?? false;
+      serigrafiaEsRomosso = dbData['serigrafia']['esRomosso'] ?? false;
+      serigrafiaEsMaquilador = dbData['serigrafia']['esMaquilador'] ?? false;
+      serigrafiaNombreMaquila = dbData['serigrafia']['nombreMaquila'] ?? '';
+      serigrafiaModo = dbData['serigrafia']['modoColor'] ?? 'pantone';
+      serigrafiaPantoneCode = dbData['serigrafia']['pantoneCode'] ?? '';
+      if (dbData['serigrafia']['colorDirecto'] != null) {
+        serigrafiaColorDirecto = Color(dbData['serigrafia']['colorDirecto']);
+      }
+      serigrafiaNotas = dbData['serigrafia']['notas'] ?? '';
+    }
+    if (dbData['grabado'] != null) {
+      grabadoProyecto = dbData['grabado']['proyecto'] ?? '';
+      grabadoPlacas = dbData['grabado']['placas'] ?? '';
+      grabadoPiezas = dbData['grabado']['piezas'] ?? 0;
+      grabadoEsRomosso = dbData['grabado']['esRomosso'] ?? false;
+      grabadoEsMaquilador = dbData['grabado']['esMaquilador'] ?? false;
+      grabadoNombreMaquila = dbData['grabado']['nombreMaquila'] ?? '';
+      grabadoNotas = dbData['grabado']['notas'] ?? '';
+    }
+    if (dbData['barniz'] != null) {
+      barnizProyecto = dbData['barniz']['proyecto'] ?? '';
+      barnizPliegos =
+          int.tryParse(dbData['barniz']['pliegos']?.toString() ?? '0') ?? 0;
+      barnizEsRomosso = dbData['barniz']['esRomosso'] ?? true;
+      barnizEsMaquilador = dbData['barniz']['esMaquilador'] ?? false;
+      barnizNombreMaquila = dbData['barniz']['nombreMaquila'] ?? '';
+      barnizNotas = dbData['barniz']['notas'] ?? '';
+      if (dbData['barniz']['aplicacion'] != null) {
+        barnizAplicacion = Map<String, bool>.from(
+          dbData['barniz']['aplicacion'],
+        );
+      }
+    }
+    if (dbData['acabado'] != null) {
+      acabadoProyecto = dbData['acabado']['proyecto'] ?? '';
+      acabadoDescripcion = dbData['acabado']['descripcionBD'] ?? '';
+      acabadoCantidad = dbData['acabado']['cantidadBD'] ?? 0;
+      acabadoNotas = dbData['acabado']['notas'] ?? '';
+      acabadosManuales.clear();
+      for (var a in (dbData['acabado']['manuales'] as List? ?? [])) {
+        acabadosManuales.add(
+          AcabadoManualItem(
+            id:
+                DateTime.now().millisecondsSinceEpoch.toString() +
+                a.hashCode.toString(),
+            desc: a['desc'] ?? '',
+            piezas: a['piezas']?.toString() ?? '',
+          ),
+        );
+      }
+    }
+    if (dbData['embalaje'] != null) {
+      embalajeTipo = dbData['embalaje']['tipo'] ?? '';
+      embalajeCantidadCajas = dbData['embalaje']['cantidadCajas'] ?? 0;
+      embalajeNotas = dbData['embalaje']['notas'] ?? '';
+    }
+    if (dbData['logistica'] != null) {
+      logisticaFechaEntrega = dbData['logistica']['fechaEntrega'] ?? '';
+      logisticaDireccion = dbData['logistica']['direccion'] ?? '';
+      logisticaTransporte = dbData['logistica']['transporte'] ?? '';
+      logisticaTotalEntregar = dbData['logistica']['totalEntregar'] ?? 0;
+      logisticaNotas = dbData['logistica']['notas'] ?? '';
     }
   }
 
@@ -284,8 +457,6 @@ class OrdenTrabajoController extends ChangeNotifier {
         }
       }
 
-      disenoNotas = 'Revisar archivos para: ${cotizacion.descripcion}';
-
       offsetTipoTrabajo = cotizacion.descripcion;
       offsetPiezasPedidas = cotizacion.cantidadImpresiones;
 
@@ -311,7 +482,6 @@ class OrdenTrabajoController extends ChangeNotifier {
       if (cotizacion.configMaquina != null &&
           cotizacion.configMaquina!["interior"] != null) {
         final mq = cotizacion.configMaquina!["interior"];
-        offsetNotas = "Máquina: ${mq['nombreMaquina'] ?? 'No especificada'}";
 
         int fte = int.tryParse(mq['tintasFte']?.toString() ?? '0') ?? 0;
         int rev = int.tryParse(mq['tintasRev']?.toString() ?? '0') ?? 0;
@@ -328,6 +498,8 @@ class OrdenTrabajoController extends ChangeNotifier {
       }
 
       laminadoProyecto = cotizacion.descripcion;
+      laminadoAcabado = 'Brillante';
+      laminadoPliegos = cotizacion.totalPliegos;
       if (cotizacion.configLaminado != null) {
         final lamInt = cotizacion.configLaminado!["interior"];
         if (lamInt != null && lamInt["laminadosActivo"] == true) {
@@ -336,8 +508,25 @@ class OrdenTrabajoController extends ChangeNotifier {
             detalles.forEach((key, val) {
               if (val["frente"] == true) laminadoAplicacion['frente'] = true;
               if (val["vuelta"] == true) laminadoAplicacion['vuelta'] = true;
-              if (val["frente"] == true || val["vuelta"] == true)
-                laminadoNotas += "- $key\n";
+            });
+          }
+        }
+      }
+
+      barnizProyecto = cotizacion.descripcion;
+      barnizPliegos = cotizacion.totalPliegos;
+      barnizEsRomosso = true;
+      barnizEsMaquilador = false;
+      barnizNombreMaquila = '';
+      barnizAplicacion = {'frente': false, 'vuelta': false};
+      if (cotizacion.configAcabados != null) {
+        final acInt = cotizacion.configAcabados!["interior"];
+        if (acInt != null && acInt["barnizUV"] == true) {
+          final detalles = acInt["detalles"];
+          if (detalles != null) {
+            detalles.forEach((key, val) {
+              if (val["frente"] == true) barnizAplicacion['frente'] = true;
+              if (val["vuelta"] == true) barnizAplicacion['vuelta'] = true;
             });
           }
         }
@@ -407,11 +596,15 @@ class OrdenTrabajoController extends ChangeNotifier {
           embalajeCantidadCajas = totalCajas;
         }
       }
+
+      logisticaFechaEntrega = '';
+      logisticaDireccion = '';
+      logisticaTransporte = '';
+      logisticaTotalEntregar = cotizacion.cantidadImpresiones;
+      logisticaNotas = '';
     } catch (e) {
       print("⚠️ Error al parsear los datos de la cotización: $e");
     }
-
-    notifyListeners();
   }
 
   // ==========================================
@@ -519,6 +712,8 @@ class OrdenTrabajoController extends ChangeNotifier {
 
   // --- 5. LAMINADOS ---
   String laminadoProyecto = '';
+  String laminadoAcabado = 'Brillante';
+  int laminadoPliegos = 0;
   Map<String, bool> laminadoAplicacion = {'frente': false, 'vuelta': false};
   bool laminadoMaquinaChica = false;
   bool laminadoMaquinaGrande = false;
@@ -535,9 +730,13 @@ class OrdenTrabajoController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateLaminadoGeneral(String campo, String valor) {
+  void updateLaminadoGeneral(String campo, dynamic valor) {
     if (campo == 'proyecto') laminadoProyecto = valor;
+    if (campo == 'acabado') laminadoAcabado = valor;
+    if (campo == 'pliegos')
+      laminadoPliegos = int.tryParse(valor.toString()) ?? 0;
     if (campo == 'notas') laminadoNotas = valor;
+    notifyListeners();
   }
 
   // --- 6. SUAJE ---
@@ -742,6 +941,7 @@ class OrdenTrabajoController extends ChangeNotifier {
     if (campo == 'transporte') logisticaTransporte = valor;
     if (campo == 'total') logisticaTotalEntregar = int.tryParse(valor) ?? 0;
     if (campo == 'notas') logisticaNotas = valor;
+    notifyListeners();
   }
 
   Future<bool> guardarOrdenTrabajo() async {
@@ -752,6 +952,7 @@ class OrdenTrabajoController extends ChangeNotifier {
 
     try {
       final datosCompletos = {
+        "activeSections": activeSections,
         "adquisiciones": {
           "notas": adquisicionesNotas,
           "materiales": materials
@@ -791,6 +992,8 @@ class OrdenTrabajoController extends ChangeNotifier {
         },
         "laminados": {
           "proyecto": laminadoProyecto,
+          "acabado": laminadoAcabado,
+          "pliegos": laminadoPliegos,
           "aplicacion": laminadoAplicacion,
           "maquinaChica": laminadoMaquinaChica,
           "maquinaGrande": laminadoMaquinaGrande,
@@ -838,6 +1041,15 @@ class OrdenTrabajoController extends ChangeNotifier {
               .map((a) => {"desc": a.desc, "piezas": a.piezas})
               .toList(),
         },
+        "barniz": {
+          "proyecto": barnizProyecto,
+          "pliegos": barnizPliegos,
+          "aplicacion": barnizAplicacion,
+          "esRomosso": barnizEsRomosso,
+          "esMaquilador": barnizEsMaquilador,
+          "nombreMaquila": barnizNombreMaquila,
+          "notas": barnizNotas,
+        },
         "embalaje": {
           "tipo": embalajeTipo,
           "cantidadCajas": embalajeCantidadCajas,
@@ -877,8 +1089,7 @@ class OrdenTrabajoController extends ChangeNotifier {
 // ==========================================
 // 3. EL PROVIDER DE RIVERPOD
 // ==========================================
-final ordenTrabajoProvider = ChangeNotifierProvider<OrdenTrabajoController>((
-  ref,
-) {
-  return OrdenTrabajoController();
-});
+final ordenTrabajoProvider =
+    ChangeNotifierProvider.autoDispose<OrdenTrabajoController>((ref) {
+      return OrdenTrabajoController();
+    });

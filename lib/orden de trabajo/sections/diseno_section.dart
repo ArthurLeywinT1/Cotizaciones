@@ -23,12 +23,22 @@ class DisenoSection extends ConsumerWidget {
               children: [
                 const Icon(Icons.design_services, color: Colors.indigo),
                 const SizedBox(width: 8),
-                const Text("2. DISEÑO Y PRE-PRENSA", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const Text(
+                  "2. DISEÑO Y PRE-PRENSA",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
               ],
             ),
             const Divider(),
-            
-            const Text("TAREAS DE DISEÑO REQUERIDAS", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.indigo)),
+
+            const Text(
+              "TAREAS DE DISEÑO REQUERIDAS",
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: Colors.indigo,
+              ),
+            ),
             const SizedBox(height: 8),
 
             // --- LISTA DINÁMICA DE TAREAS ---
@@ -36,7 +46,10 @@ class DisenoSection extends ConsumerWidget {
               children: controller.designTasks.map((task) {
                 return Container(
                   margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.indigo[50],
                     border: Border.all(color: Colors.indigo[200]!),
@@ -47,9 +60,13 @@ class DisenoSection extends ConsumerWidget {
                       // CAMPO: DESCRIPCIÓN DE LA TAREA
                       Expanded(
                         child: TextFormField(
+                          key: ValueKey(
+                            "diseno_task_${task.id}_${controller.sessionKey}",
+                          ),
                           initialValue: task.desc,
                           decoration: const InputDecoration(
-                            hintText: "Ej: Ajustar rebases, revisar tipografías...",
+                            hintText:
+                                "Ej: Ajustar rebases, revisar tipografías...",
                             isDense: true,
                             border: InputBorder.none,
                           ),
@@ -57,15 +74,19 @@ class DisenoSection extends ConsumerWidget {
                           onChanged: (v) => task.desc = v,
                         ),
                       ),
-                      
+
                       // BOTÓN DE BORRAR
                       IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
+                        icon: const Icon(
+                          Icons.delete,
+                          color: Colors.redAccent,
+                          size: 20,
+                        ),
                         tooltip: "Borrar tarea",
                         onPressed: () => controller.removeDesignTask(task.id),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
-                      )
+                      ),
                     ],
                   ),
                 );
@@ -73,12 +94,18 @@ class DisenoSection extends ConsumerWidget {
             ),
 
             const SizedBox(height: 8),
-            
+
             // Botón para agregar más tareas
             TextButton.icon(
               onPressed: () => controller.addDesignTask(),
               icon: const Icon(Icons.add_circle_outline, color: Colors.indigo),
-              label: const Text("Agregar Tarea", style: TextStyle(color: Colors.indigo, fontWeight: FontWeight.bold)),
+              label: const Text(
+                "Agregar Tarea",
+                style: TextStyle(
+                  color: Colors.indigo,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
 
             const SizedBox(height: 16),
@@ -86,28 +113,44 @@ class DisenoSection extends ConsumerWidget {
             const SizedBox(height: 12),
 
             // --- NOTAS / INSTRUCCIONES EXTRAS ---
-            const Text("NOTAS / INSTRUCCIONES EXTRAS", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+            const Text(
+              "NOTAS / INSTRUCCIONES EXTRAS",
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
             const SizedBox(height: 4),
-            TextField(
-              maxLines: 3, 
-              onChanged: (v) => ref.read(ordenTrabajoProvider).updateDiseno('notas', v), 
+            TextFormField(
+              key: ValueKey("diseno_notas_${controller.sessionKey}"),
+              initialValue: controller.disenoNotas,
+              maxLines: 3,
+              onChanged: (v) =>
+                  ref.read(ordenTrabajoProvider).updateDiseno('notas', v),
               decoration: InputDecoration(
-                hintText: "Escribe aquí links a la nube, nombres de archivos originales, perfiles de color...",
+                hintText:
+                    "Escribe aquí links a la nube, nombres de archivos originales, perfiles de color...",
                 isDense: true,
                 filled: true,
-                fillColor: Colors.yellow[50], 
+                fillColor: Colors.yellow[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.yellow[600]!, width: 0.5)
+                  borderSide: BorderSide(
+                    color: Colors.yellow[600]!,
+                    width: 0.5,
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.yellow[600]!, width: 0.5)
+                  borderSide: BorderSide(
+                    color: Colors.yellow[600]!,
+                    width: 0.5,
+                  ),
                 ),
               ),
               style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
             ),
-
           ],
         ),
       ),

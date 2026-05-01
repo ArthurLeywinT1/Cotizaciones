@@ -61,6 +61,9 @@ class AdquisicionesSection extends ConsumerWidget {
                       Expanded(
                         flex: 2,
                         child: TextFormField(
+                          key: ValueKey(
+                            "adq_nom_${material.id}_${controller.sessionKey}",
+                          ),
                           initialValue: material.nombre,
                           decoration: const InputDecoration(
                             hintText: "Descripción del material...",
@@ -83,6 +86,9 @@ class AdquisicionesSection extends ConsumerWidget {
                       Expanded(
                         flex: 2,
                         child: TextFormField(
+                          key: ValueKey(
+                            "adq_prov_${material.id}_${controller.sessionKey}",
+                          ),
                           initialValue: material.proveedor,
                           decoration: const InputDecoration(
                             hintText: "Proveedor sugerido...",
@@ -106,6 +112,9 @@ class AdquisicionesSection extends ConsumerWidget {
                         flex: 1,
                         child: TextFormField(
                           // Para que no muestre un "0" inicial si está vacío
+                          key: ValueKey(
+                            "adq_cant_${material.id}_${controller.sessionKey}",
+                          ),
                           initialValue: material.cantidad == 0
                               ? ''
                               : material.cantidad.toString(),
@@ -172,7 +181,9 @@ class AdquisicionesSection extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 4),
-            TextField(
+            TextFormField(
+              key: ValueKey("adq_notas_${controller.sessionKey}"),
+              initialValue: controller.adquisicionesNotas,
               maxLines: 3,
               onChanged: (v) => ref
                   .read(ordenTrabajoProvider)
