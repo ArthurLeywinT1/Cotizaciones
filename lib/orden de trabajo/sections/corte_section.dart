@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/orden_trabajo_provider.dart';
+import 'section_buttons.dart';
 
 class CorteSection extends ConsumerWidget {
   const CorteSection({super.key});
@@ -230,6 +231,12 @@ class CorteSection extends ConsumerWidget {
                 ),
               ),
               style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
+            ),
+            // --- BOTONES (OCULTOS) ---
+            // Usamos Visibility con false para que no ocupen espacio ni se vean
+            const Visibility(
+              visible: false, 
+              child: SectionButtons(),
             ),
           ],
         ),

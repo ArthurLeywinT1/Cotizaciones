@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/orden_trabajo_provider.dart';
+import 'section_buttons.dart';
 
 class GrabadoSection extends ConsumerWidget {
   const GrabadoSection({super.key});
@@ -222,6 +223,12 @@ class GrabadoSection extends ConsumerWidget {
             color: readOnly ? Colors.black54 : Colors.black,
           ),
         ),
+        // --- BOTONES (OCULTOS) ---
+            // Usamos Visibility con false para que no ocupen espacio ni se vean
+            const Visibility(
+              visible: false, 
+              child: SectionButtons(),
+            ),
       ],
     );
   }
