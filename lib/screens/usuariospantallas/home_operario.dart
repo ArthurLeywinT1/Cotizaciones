@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/auth_provider.dart';
 import '/providers/theme_provider.dart';
+import '/providers/operario_provider.dart';
 import '/widgets/barra.dart';
 import '/screens/login.dart';
-import '/widgets/tabla.dart'; 
+import '../../orden de trabajo/ordenTrabajo.dart';
+import 'catalogo_operario.dart';
 
 class HomeOperarioScreen extends ConsumerStatefulWidget {
   final String area; // Recibe: offset, diseño, corte, etc.
@@ -39,14 +41,19 @@ class _HomeOperarioScreenState extends ConsumerState<HomeOperarioScreen> {
           : ThemeData.light(useMaterial3: true),
       child: Scaffold(
         appBar: AppBar(
-          title: Text('ÁREA: ${widget.area.toUpperCase()} - ${usuario?.usuario ?? 'Operario'}'),
+          title: Text(
+            'ÁREA: ${widget.area.toUpperCase()} - ${usuario?.nombre ?? 'Operario'}',
+          ),
           elevation: 2,
           actions: [
             IconButton(
               icon: Icon(
-                themeMode == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode,
+                themeMode == ThemeMode.dark
+                    ? Icons.light_mode
+                    : Icons.dark_mode,
               ),
               onPressed: () => ref.read(themeProvider.notifier).toggleTheme(),
+              tooltip: 'Modo oscuro',
             ),
             IconButton(
               icon: const Icon(Icons.logout),
@@ -81,11 +88,9 @@ class _HomeOperarioScreenState extends ConsumerState<HomeOperarioScreen> {
                 ],
               ),
             ),
-            
+
             // CUERPO DE LA PANTALLA
-            Expanded(
-              child: _buildContenidoPrincipal(),
-            ),
+            Expanded(child: _buildContenidoPrincipal()),
           ],
         ),
       ),
@@ -93,6 +98,8 @@ class _HomeOperarioScreenState extends ConsumerState<HomeOperarioScreen> {
   }
 
   Widget _buildContenidoPrincipal() {
+    final seleccionada = ref.watch(otOperarioSeleccionadaProvider);
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -103,7 +110,9 @@ class _HomeOperarioScreenState extends ConsumerState<HomeOperarioScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                _verHistorial ? "HISTORIAL DE ÓRDENES" : "PENDIENTES POR PROCESAR",
+                _verHistorial
+                    ? "HISTORIAL DE ÓRDENES"
+                    : "PENDIENTES POR PROCESAR",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -121,40 +130,13 @@ class _HomeOperarioScreenState extends ConsumerState<HomeOperarioScreen> {
             ],
           ),
           const Divider(height: 30),
-          
+
           // ESPACIO PARA LA TABLA
           Expanded(
-            child: _buildTablaDeDatos(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTablaDeDatos() {
-    // Aquí es donde harás el ref.watch de tu provider de base de datos
-    // pasando widget.area y _verHistorial como filtros.
-    
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            _verHistorial ? Icons.history : Icons.assignment_late,
-            size: 60,
-            color: Colors.grey.withOpacity(0.5),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            _verHistorial 
-              ? "Cargando órdenes terminadas de ${widget.area}..."
-              : "Cargando órdenes pendientes de ${widget.area}...",
-            style: const TextStyle(color: Colors.grey, fontSize: 16),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            "Conectando con Neon PostgreSQL...",
-            style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+            child: TablaOperarioScreen(
+              area: widget.area,
+              verHistorial: _verHistorial,
+            ),
           ),
         ],
       ),
