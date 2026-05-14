@@ -4,6 +4,7 @@ import '../providers/catalogoOT_provider.dart';
 import '../widgets/boton.dart';
 import '../widgets/tabla.dart';
 import '../orden de trabajo/ordenTrabajo.dart';
+import '../screens/modals/incidente_admin.dart';
 
 class CatalogoOTScreen extends ConsumerWidget {
   const CatalogoOTScreen({super.key});
@@ -131,8 +132,9 @@ class CatalogoOTScreen extends ConsumerWidget {
 
                       String formatearFecha(dynamic fecha) {
                         if (fecha == null) return '-';
-                        if (fecha is DateTime)
+                        if (fecha is DateTime) {
                           return '${fecha.day}/${fecha.month}/${fecha.year}';
+                        }
                         return fecha.toString().split(' ')[0];
                       }
 
@@ -203,11 +205,15 @@ class CatalogoOTScreen extends ConsumerWidget {
                     }).toList(),
                   ),
           ),
+
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
             color: Colors.grey.shade200,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 16,
+              runSpacing: 16,
               children: [
                 Boton(
                   icon: Icons.edit,
@@ -234,6 +240,17 @@ class CatalogoOTScreen extends ConsumerWidget {
                         ),
                       );
                     }
+                  },
+                ),
+                Boton(
+                  icon: Icons.warning_amber_rounded,
+                  label: "Incidentes",
+                  isDestructive: true,
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => const BandejaIncidentesDialog(),
+                    );
                   },
                 ),
                 Boton(
