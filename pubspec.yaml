@@ -21,6 +21,7 @@ dependencies:
   printing: ^5.14.3
   file_picker: ^10.3.10
   flex_color_picker: ^3.5.0
+  flutter_screenutil: ^5.9.3
   
 
 dev_dependencies:
