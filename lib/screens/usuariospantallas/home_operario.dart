@@ -33,6 +33,9 @@ class _HomeOperarioScreenState extends ConsumerState<HomeOperarioScreen> {
     final usuario = authState.usuario;
     final themeMode = ref.watch(themeProvider);
 
+    // MEDIDA EN TIEMPO REAL: Evaluamos el ancho de la ventana actual de la app
+    final bool esDesktop = MediaQuery.of(context).size.width > 650;
+
     return Theme(
       data: themeMode == ThemeMode.dark
           ? ThemeData.dark(useMaterial3: true)
@@ -57,34 +60,60 @@ class _HomeOperarioScreenState extends ConsumerState<HomeOperarioScreen> {
         ),
         body: Column(
           children: [
-            // BARRA DE TAREAS DINÁMICA
+            // BARRA DE TAREAS ADAPTATIVA
+            // Si la ventana es grande, muestra tus pestañas tradicionales. Si es tamaño móvil, usa botones más estilizados.
             Container(
               color: Theme.of(context).colorScheme.surfaceVariant,
-              height: 45,
+              height: esDesktop ? 45 : 55, // Un poco más alto en móvil para que sea fácil tocar con el dedo
               width: double.infinity,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                children: [
-                  BarraItem(
-                    texto: 'Órdenes Pendientes',
-                    onTap: () {
-                      setState(() => _verHistorial = false);
-                    },
+              child: esDesktop 
+                ? ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    children: [
+                      BarraItem(
+                        texto: 'Órdenes Pendientes',
+                        onTap: () => setState(() => _verHistorial = false),
+                      ),
+                      BarraItem(
+                        texto: 'Historial de Trabajo',
+                        onTap: () => setState(() => _verHistorial = true),
+                      ),
+                    ],
+                  )
+                : Row( // En tamaño compacto dividimos la barra a la mitad para que no requiera scroll horizontal
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          onTap: () => setState(() => _verHistorial = false),
+                          child: Container(
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              border: Border(bottom: BorderSide(color: !_verHistorial ? Colors.blue : Colors.transparent, width: 3))
+                            ),
+                            child: const Text('Pendientes', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: InkWell(
+                          onTap: () => setState(() => _verHistorial = true),
+                          child: Container(
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              border: Border(bottom: BorderSide(color: _verHistorial ? Colors.blue : Colors.transparent, width: 3))
+                            ),
+                            child: const Text('Historial', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  BarraItem(
-                    texto: 'Historial de Trabajo',
-                    onTap: () {
-                      setState(() => _verHistorial = true);
-                    },
-                  ),
-                ],
-              ),
             ),
             
             // CUERPO DE LA PANTALLA
             Expanded(
-              child: _buildContenidoPrincipal(),
+              child: _buildContenidoPrincipal(esDesktop),
             ),
           ],
         ),
@@ -92,34 +121,29 @@ class _HomeOperarioScreenState extends ConsumerState<HomeOperarioScreen> {
     );
   }
 
-  Widget _buildContenidoPrincipal() {
+  Widget _buildContenidoPrincipal(bool esDesktop) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Título dinámico según el botón presionado
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                _verHistorial ? "HISTORIAL DE ÓRDENES" : "PENDIENTES POR PROCESAR",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: _verHistorial ? Colors.blueGrey : Colors.blue,
-                ),
+          // TÍTULO ADAPTATIVO: Row para PC y Column para celular si la ventana se encoge
+          esDesktop 
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildTituloTexto(),
+                  _buildEstadoChip(),
+                ],
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildTituloTexto(),
+                  const SizedBox(height: 8),
+                  _buildEstadoChip(),
+                ],
               ),
-              // Indicador visual de qué lista estás viendo
-              Chip(
-                label: Text(_verHistorial ? "Finalizado" : "En Proceso"),
-                avatar: Icon(
-                  _verHistorial ? Icons.check_circle : Icons.pending,
-                  size: 18,
-                ),
-              ),
-            ],
-          ),
           const Divider(height: 30),
           
           // ESPACIO PARA LA TABLA
@@ -131,10 +155,28 @@ class _HomeOperarioScreenState extends ConsumerState<HomeOperarioScreen> {
     );
   }
 
+  Widget _buildTituloTexto() {
+    return Text(
+      _verHistorial ? "HISTORIAL DE ÓRDENES" : "PENDIENTES POR PROCESAR",
+      style: TextStyle(
+        fontSize: 18, // Reducido ligeramente de 20 a 18 para optimizar espacio
+        fontWeight: FontWeight.bold,
+        color: _verHistorial ? Colors.blueGrey : Colors.blue,
+      ),
+    );
+  }
+
+  Widget _buildEstadoChip() {
+    return Chip(
+      label: Text(_verHistorial ? "Finalizado" : "En Proceso"),
+      avatar: Icon(
+        _verHistorial ? Icons.check_circle : Icons.pending,
+        size: 18,
+      ),
+    );
+  }
+
   Widget _buildTablaDeDatos() {
-    // Aquí es donde harás el ref.watch de tu provider de base de datos
-    // pasando widget.area y _verHistorial como filtros.
-    
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -147,14 +189,16 @@ class _HomeOperarioScreenState extends ConsumerState<HomeOperarioScreen> {
           const SizedBox(height: 16),
           Text(
             _verHistorial 
-              ? "Cargando órdenes terminadas de ${widget.area}..."
-              : "Cargando órdenes pendientes de ${widget.area}...",
+                ? "Cargando órdenes terminadas de ${widget.area}..."
+                : "Cargando órdenes pendientes de ${widget.area}...",
             style: const TextStyle(color: Colors.grey, fontSize: 16),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
           const Text(
             "Conectando con Neon PostgreSQL...",
             style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
