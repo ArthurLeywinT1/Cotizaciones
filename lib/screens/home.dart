@@ -76,7 +76,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       case 'OrdenTrabajo':
         return 'Crear / Editar Orden de Trabajo';
       default:
-        return 'Romosso - Cotizador - Usuario: ${usuarioNombre ?? 'Desconocido'}';
+        return 'Romosso - Cotizador';
     }
   }
 
@@ -119,6 +119,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final usuario = authState.usuario;
     final themeMode = ref.watch(themeProvider);
 
+    // 1. CONDICIÓN ADAPTATIVA: Si la pantalla mide más de 750px de ancho, asumimos Escritorio/PC
+    final bool esDesktop = MediaQuery.of(context).size.width > 750;
+
     return WillPopScope(
       onWillPop: () async {
         if (pantallaActual.isNotEmpty) {
@@ -133,12 +136,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             : ThemeData.light(useMaterial3: true),
         child: Scaffold(
           appBar: AppBar(
+            // En móvil ponemos el botón de hamburguesa si estamos en el inicio, o la flecha de atrás si hay una subpantalla abierta
             leading: pantallaActual.isNotEmpty
                 ? IconButton(
                     icon: const Icon(Icons.arrow_back),
                     onPressed: _volverPrincipal,
                   )
-                : null,
+                : (!esDesktop 
+                    ? Builder(
+                        builder: (context) => IconButton(
+                          icon: const Icon(Icons.menu),
+                          onPressed: () => Scaffold.of(context).openDrawer(),
+                        ),
+                      )
+                    : null),
             title: Text(_getTitulo(usuario?.usuario)),
             actions: [
               IconButton(
@@ -159,79 +170,117 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ],
           ),
-          body: Column(
-            children: [
-              Container(
-                color: Theme.of(context).colorScheme.surfaceVariant,
-                height: 45,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
+          
+          // 2. MENÚ PARA MÓVIL (DRAWER): Solo existirá físicamente si estamos en celular (no gasta memoria en PC)
+          drawer: !esDesktop ? Drawer(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                DrawerHeader(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                  ),
+                  child: Text(
+                    'Menú Cotizador\nUsuario: ${usuario?.usuario ?? 'Admin'}',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.person),
+                  title: const Text('Usuarios'),
+                  onTap: () { Navigator.pop(context); _abrirPantalla('usuarios'); },
+                ),
+                ExpansionTile(
+                  leading: const Icon(Icons.folder),
+                  title: const Text('Catálogos'),
                   children: [
-                    BarraItem(
-                      texto: 'Usuarios',
-                      onTap: () => _abrirPantalla('usuarios'),
-                    ),
-                    BarraDropdown(
-                      titulo: "Catálogos",
-                      opciones: const [
-                        PopupMenuItem(
-                          value: "clientes",
-                          child: Text("Clientes"),
-                        ),
-                        PopupMenuItem(
-                          value: "proveedores",
-                          child: Text("Proveedores"),
-                        ),
-                        PopupMenuItem(value: "papeles", child: Text("Papeles")),
-                        PopupMenuItem(
-                          value: "descuentos",
-                          child: Text("Descuentos Papel"),
-                        ),
-                        PopupMenuItem(
-                          value: "maquinas",
-                          child: Text("Máquinas"),
-                        ),
-                        PopupMenuItem(value: "extras", child: Text("Extras")),
-                      ],
-                      onSelected: _abrirPantalla,
-                    ),
-                    BarraItem(
-                      texto: 'Segmentación',
-                      onTap: () => _abrirPantalla('segmentacion'),
-                    ),
-                    BarraDropdown(
-                      titulo: "Cotizaciones",
-                      opciones: const [
-                        PopupMenuItem(
-                          value: "catalogo_cotizaciones",
-                          child: Text("Catálogo de Cotizaciones"),
-                        ),
-                        PopupMenuItem(
-                          value: "cotizacion_plana",
-                          child: Text("Crear Cotización Plana"),
-                        ),
-                      ],
-                      onSelected: _abrirPantalla,
-                    ),
-
-                    BarraDropdown(
-                      titulo: "Órdenes de Trabajo",
-                      opciones: const [
-                        PopupMenuItem(
-                          value: "catalogo_ot",
-                          child: Text("Catálogo de Órdenes de Trabajo"),
-                        ),
-                        PopupMenuItem(
-                          value: "OrdenTrabajo",
-                          child: Text("Crear Orden de Trabajo"),
-                        ),
-                      ],
-                      onSelected: _abrirPantalla,
-                    ),
+                    ListTile(title: const Text('Clientes'), onTap: () { Navigator.pop(context); _abrirPantalla('clientes'); }),
+                    ListTile(title: const Text('Proveedores'), onTap: () { Navigator.pop(context); _abrirPantalla('proveedores'); }),
+                    ListTile(title: const Text('Papeles'), onTap: () { Navigator.pop(context); _abrirPantalla('papeles'); }),
+                    ListTile(title: const Text('Descuentos Papel'), onTap: () { Navigator.pop(context); _abrirPantalla('descuentos'); }),
+                    ListTile(title: const Text('Máquinas'), onTap: () { Navigator.pop(context); _abrirPantalla('maquinas'); }),
+                    ListTile(title: const Text('Extras'), onTap: () { Navigator.pop(context); _abrirPantalla('extras'); }),
                   ],
                 ),
-              ),
+                ListTile(
+                  leading: const Icon(Icons.layers),
+                  title: const Text('Segmentación'),
+                  onTap: () { Navigator.pop(context); _abrirPantalla('segmentacion'); },
+                ),
+                ExpansionTile(
+                  leading: const Icon(Icons.request_quote),
+                  title: const Text('Cotizaciones'),
+                  children: [
+                    ListTile(title: const Text('Catálogo'), onTap: () { Navigator.pop(context); _abrirPantalla('catalogo_cotizaciones'); }),
+                    ListTile(title: const Text('Crear Plana'), onTap: () { Navigator.pop(context); _abrirPantalla('cotizacion_plana'); }),
+                  ],
+                ),
+                ExpansionTile(
+                  leading: const Icon(Icons.assignment),
+                  title: const Text('Órdenes de Trabajo'),
+                  children: [
+                    ListTile(title: const Text('Catálogo'), onTap: () { Navigator.pop(context); _abrirPantalla('catalogo_ot'); }),
+                    ListTile(title: const Text('Crear Orden'), onTap: () { Navigator.pop(context); _abrirPantalla('OrdenTrabajo'); }),
+                  ],
+                ),
+              ],
+            ),
+          ) : null,
+          
+          body: Column(
+            children: [
+              // 3. MENÚ PARA PC: Solo se dibuja si la pantalla es de Escritorio
+              if (esDesktop)
+                Container(
+                  color: Theme.of(context).colorScheme.surfaceVariant,
+                  height: 45,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    children: [
+                      BarraItem(
+                        texto: 'Usuarios',
+                        onTap: () => _abrirPantalla('usuarios'),
+                      ),
+                      BarraDropdown(
+                        titulo: "Catálogos",
+                        opciones: const [
+                          PopupMenuItem(value: "clientes", child: Text("Clientes")),
+                          PopupMenuItem(value: "proveedores", child: Text("Proveedores")),
+                          PopupMenuItem(value: "papeles", child: Text("Papeles")),
+                          PopupMenuItem(value: "descuentos", child: Text("Descuentos Papel")),
+                          PopupMenuItem(value: "maquinas", child: Text("Máquinas")),
+                          PopupMenuItem(value: "extras", child: Text("Extras")),
+                        ],
+                        onSelected: _abrirPantalla,
+                      ),
+                      BarraItem(
+                        texto: 'Segmentación',
+                        onTap: () => _abrirPantalla('segmentacion'),
+                      ),
+                      BarraDropdown(
+                        titulo: "Cotizaciones",
+                        opciones: const [
+                          PopupMenuItem(value: "catalogo_cotizaciones", child: Text("Catálogo de Cotizaciones")),
+                          PopupMenuItem(value: "cotizacion_plana", child: Text("Crear Cotización Plana")),
+                        ],
+                        onSelected: _abrirPantalla,
+                      ),
+                      BarraDropdown(
+                        titulo: "Órdenes de Trabajo",
+                        opciones: const [
+                          PopupMenuItem(value: "catalogo_ot", child: Text("Catálogo de Órdenes de Trabajo")),
+                          PopupMenuItem(value: "OrdenTrabajo", child: Text("Crear Orden de Trabajo")),
+                        ],
+                        onSelected: _abrirPantalla,
+                      ),
+                    ],
+                  ),
+                ),
+                
               Expanded(child: _construirPantallaActual()),
             ],
           ),

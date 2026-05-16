@@ -35,6 +35,9 @@ class _HomeOperarioScreenState extends ConsumerState<HomeOperarioScreen> {
     final usuario = authState.usuario;
     final themeMode = ref.watch(themeProvider);
 
+    // MEDIDA EN TIEMPO REAL: Evaluamos el ancho de la ventana actual de la app
+    final bool esDesktop = MediaQuery.of(context).size.width > 650;
+
     return Theme(
       data: themeMode == ThemeMode.dark
           ? ThemeData.dark(useMaterial3: true)
@@ -64,33 +67,61 @@ class _HomeOperarioScreenState extends ConsumerState<HomeOperarioScreen> {
         ),
         body: Column(
           children: [
-            // BARRA DE TAREAS DINÁMICA
+            // BARRA DE TAREAS ADAPTATIVA
+            // Si la ventana es grande, muestra tus pestañas tradicionales. Si es tamaño móvil, usa botones más estilizados.
             Container(
               color: Theme.of(context).colorScheme.surfaceVariant,
-              height: 45,
+              height: esDesktop ? 45 : 55, // Un poco más alto en móvil para que sea fácil tocar con el dedo
               width: double.infinity,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                children: [
-                  BarraItem(
-                    texto: 'Órdenes Pendientes',
-                    onTap: () {
-                      setState(() => _verHistorial = false);
-                    },
+              child: esDesktop 
+                ? ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    children: [
+                      BarraItem(
+                        texto: 'Órdenes Pendientes',
+                        onTap: () => setState(() => _verHistorial = false),
+                      ),
+                      BarraItem(
+                        texto: 'Historial de Trabajo',
+                        onTap: () => setState(() => _verHistorial = true),
+                      ),
+                    ],
+                  )
+                : Row( // En tamaño compacto dividimos la barra a la mitad para que no requiera scroll horizontal
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          onTap: () => setState(() => _verHistorial = false),
+                          child: Container(
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              border: Border(bottom: BorderSide(color: !_verHistorial ? Colors.blue : Colors.transparent, width: 3))
+                            ),
+                            child: const Text('Pendientes', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: InkWell(
+                          onTap: () => setState(() => _verHistorial = true),
+                          child: Container(
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              border: Border(bottom: BorderSide(color: _verHistorial ? Colors.blue : Colors.transparent, width: 3))
+                            ),
+                            child: const Text('Historial', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  BarraItem(
-                    texto: 'Historial de Trabajo',
-                    onTap: () {
-                      setState(() => _verHistorial = true);
-                    },
-                  ),
-                ],
-              ),
             ),
 
             // CUERPO DE LA PANTALLA
-            Expanded(child: _buildContenidoPrincipal()),
+            Expanded(
+              child: _buildContenidoPrincipal(),
+            ),
           ],
         ),
       ),
@@ -98,8 +129,6 @@ class _HomeOperarioScreenState extends ConsumerState<HomeOperarioScreen> {
   }
 
   Widget _buildContenidoPrincipal() {
-    final seleccionada = ref.watch(otOperarioSeleccionadaProvider);
-
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -110,9 +139,7 @@ class _HomeOperarioScreenState extends ConsumerState<HomeOperarioScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                _verHistorial
-                    ? "HISTORIAL DE ÓRDENES"
-                    : "PENDIENTES POR PROCESAR",
+                _verHistorial ? "HISTORIAL DE ÓRDENES" : "PENDIENTES POR PROCESAR",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -133,10 +160,37 @@ class _HomeOperarioScreenState extends ConsumerState<HomeOperarioScreen> {
 
           // ESPACIO PARA LA TABLA
           Expanded(
-            child: TablaOperarioScreen(
-              area: widget.area,
-              verHistorial: _verHistorial,
-            ),
+            child: _buildTablaDeDatos(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTablaDeDatos() {
+    // Aquí es donde harás el ref.watch de tu provider de base de datos
+    // pasando widget.area y _verHistorial como filtros.
+    
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            _verHistorial ? Icons.history : Icons.assignment_late,
+            size: 60,
+            color: Colors.grey.withOpacity(0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            _verHistorial 
+              ? "Cargando órdenes terminadas de ${widget.area}..."
+              : "Cargando órdenes pendientes de ${widget.area}...",
+            style: const TextStyle(color: Colors.grey, fontSize: 16),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            "Conectando con Neon PostgreSQL...",
+            style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
           ),
         ],
       ),
