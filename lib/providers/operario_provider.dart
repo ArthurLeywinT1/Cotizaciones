@@ -37,8 +37,8 @@ class OperarioOTController extends StateNotifier<OperarioOTState> {
 
     try {
       String estatusFiltro = verHistorial
-          ? "ot.datos_completos->'$areaKey'->>'estatus' = 'Terminada'"
-          : "COALESCE(ot.datos_completos->'$areaKey'->>'estatus', 'Pendiente') != 'Terminada'";
+          ? "ot.datos_completos->'$areaKey'->>'estatus' = 'Fin'"
+          : "COALESCE(ot.datos_completos->'$areaKey'->>'estatus', 'Pendiente') != 'Fin'";
 
       final results = await _db.query(
         """
@@ -46,7 +46,7 @@ class OperarioOTController extends StateNotifier<OperarioOTState> {
           ot.id as ot_id,
           c.id as cotizacion_id,
           c.folio,
-          '' as no_orden,
+          ot.no_orden,
           ot.fecha_creacion,
           cl.razon_social as cliente,
           c.descripcion,
@@ -60,6 +60,7 @@ class OperarioOTController extends StateNotifier<OperarioOTState> {
         FROM ordenes_trabajo ot
         LEFT JOIN cotizaciones c ON ot.cotizacion_id::TEXT = c.id::TEXT
         LEFT JOIN clientes cl ON c.cliente_id::TEXT = cl.id::TEXT
+
         LEFT JOIN incidentes i ON i.orden_trabajo_id = ot.id AND i.area = @area
 
         WHERE COALESCE(ot.datos_completos->'activeSections'->>'$areaKey', 'true') = 'true'

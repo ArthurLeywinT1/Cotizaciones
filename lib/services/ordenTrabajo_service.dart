@@ -39,13 +39,14 @@ class OrdenTrabajoService {
     try {
       final rowsAffected = await _db.execute(
         """
-        INSERT INTO ordenes_trabajo (cotizacion_id, estatus, datos_completos)
-        VALUES (@cotizacionId, @estatus, CAST(@datosCompletos AS jsonb))
+        INSERT INTO ordenes_trabajo (cotizacion_id, estatus, datos_completos, fecha_entrega)
+        VALUES (@cotizacionId, @estatus, CAST(@datosCompletos AS jsonb), @fechaEntrega)
         """,
         params: {
           'cotizacionId': orden.cotizacionId,
           'estatus': orden.estatus,
           'datosCompletos': jsonEncode(orden.datosCompletos),
+          'fechaEntrega': orden.fechaEntrega,
         },
       );
 
@@ -68,13 +69,15 @@ class OrdenTrabajoService {
         """
         UPDATE ordenes_trabajo
         SET estatus = @estatus,
-            datos_completos = CAST(@datosCompletos AS jsonb)
+            datos_completos = CAST(@datosCompletos AS jsonb),
+            fecha_entrega = @fechaEntrega
         WHERE id = CAST(@id AS uuid)
         """,
         params: {
           'id': orden.id,
           'estatus': orden.estatus,
           'datosCompletos': jsonEncode(orden.datosCompletos),
+          'fechaEntrega': orden.fechaEntrega,
         },
       );
 

@@ -5,7 +5,6 @@ import '/providers/theme_provider.dart';
 import '/providers/operario_provider.dart';
 import '/widgets/barra.dart';
 import '/screens/login.dart';
-import '../../orden de trabajo/ordenTrabajo.dart';
 import 'catalogo_operario.dart';
 
 class HomeOperarioScreen extends ConsumerStatefulWidget {

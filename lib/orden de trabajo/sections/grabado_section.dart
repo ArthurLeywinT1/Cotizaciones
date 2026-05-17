@@ -5,7 +5,8 @@ import '../../providers/orden_trabajo_provider.dart';
 import 'section_buttons.dart';
 
 class GrabadoSection extends ConsumerWidget {
-  const GrabadoSection({super.key});
+  final bool modoProduccion;
+  const GrabadoSection({super.key, this.modoProduccion = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -177,6 +178,14 @@ class GrabadoSection extends ConsumerWidget {
               ),
               style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
             ),
+
+            if (modoProduccion) ...[
+              const Divider(height: 32, thickness: 1),
+              SectionButtons(
+                area: 'grabado',
+                ordenTrabajoId: controller.ordenTrabajoDbId ?? '',
+              ),
+            ],
           ],
         ),
       ),
@@ -224,11 +233,7 @@ class GrabadoSection extends ConsumerWidget {
           ),
         ),
         // --- BOTONES (OCULTOS) ---
-            // Usamos Visibility con false para que no ocupen espacio ni se vean
-            const Visibility(
-              visible: false, 
-              child: SectionButtons(),
-            ),
+        // Usamos Visibility con false para que no ocupen espacio ni se vean
       ],
     );
   }

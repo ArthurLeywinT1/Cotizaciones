@@ -5,7 +5,9 @@ import '../../providers/orden_trabajo_provider.dart';
 import 'section_buttons.dart';
 
 class LogisticaSection extends ConsumerStatefulWidget {
-  const LogisticaSection({super.key});
+  final bool modoProduccion;
+
+  const LogisticaSection({super.key, this.modoProduccion = false});
 
   @override
   ConsumerState<LogisticaSection> createState() => _LogisticaSectionState();
@@ -81,6 +83,7 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
   @override
   Widget build(BuildContext context) {
     // Controlador para mostrar la fecha en el TextField
+    final controller = ref.watch(ordenTrabajoProvider);
 
     return Card(
       elevation: 4,
@@ -162,7 +165,10 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
                     ),
                   ),
                 ),
+
                 const SizedBox(width: 16),
+
+                // --- BLOQUE 2: DIRECCIÓN Y TOTAL A ENTREGAR ---
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -196,11 +202,9 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
 
             const SizedBox(height: 16),
 
-            // --- BLOQUE 2: DIRECCIÓN Y TOTAL A ENTREGAR ---
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // DIRECCIÓN
                 Expanded(
                   flex: 2,
                   child: Column(
@@ -321,10 +325,13 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
             ),
             // --- BOTONES (OCULTOS) ---
             // Usamos Visibility con false para que no ocupen espacio ni se vean
-            const Visibility(
-              visible: false, 
-              child: SectionButtons(),
-            ),
+            if (widget.modoProduccion) ...[
+              const Divider(height: 32, thickness: 1),
+              SectionButtons(
+                area: 'logistica',
+                ordenTrabajoId: controller.ordenTrabajoDbId ?? '',
+              ),
+            ],
           ],
         ),
       ),

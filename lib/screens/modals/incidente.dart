@@ -101,7 +101,7 @@ class _IncidenteModalContentState extends ConsumerState<IncidenteModalContent> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            "Describe el problema detalladamente. Se enviará una notificación a la administración.",
+            "Describe el problema detalladamente.",
             style: TextStyle(fontSize: 13, color: Colors.black87),
           ),
           const SizedBox(height: 16),
@@ -154,7 +154,7 @@ class _IncidenteModalContentState extends ConsumerState<IncidenteModalContent> {
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    "Reporte enviado. Esperando respuesta de Administración.",
+                    "Reporte enviado.",
                     style: TextStyle(
                       color: Colors.orange,
                       fontWeight: FontWeight.bold,
