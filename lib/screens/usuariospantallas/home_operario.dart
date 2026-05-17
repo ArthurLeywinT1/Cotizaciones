@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/auth_provider.dart';
 import '/providers/theme_provider.dart';
-import '/providers/operario_provider.dart';
 import '/widgets/barra.dart';
 import '/screens/login.dart';
 import 'catalogo_operario.dart';
@@ -97,8 +96,6 @@ class _HomeOperarioScreenState extends ConsumerState<HomeOperarioScreen> {
   }
 
   Widget _buildContenidoPrincipal() {
-    final seleccionada = ref.watch(otOperarioSeleccionadaProvider);
-
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(

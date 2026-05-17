@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/operario_provider.dart';
-import '../../providers/incidente_provider.dart';
 import '../../widgets/tabla.dart';
 import '../../widgets/boton.dart';
 import '../../orden de trabajo/iniciarOrden.dart';
-import '../modals/incidente.dart';
 
 class TablaOperarioScreen extends ConsumerStatefulWidget {
   final String area;
@@ -44,40 +42,6 @@ class _TablaOperarioScreenState extends ConsumerState<TablaOperarioScreen> {
             .cargarOrdenesOperario(widget.area, widget.verHistorial);
       });
     }
-  }
-
-  void _mostrarModalIncidente(
-    BuildContext context,
-    Map<String, dynamic> ordenSeleccionada,
-  ) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("Incidente - Folio: ${ordenSeleccionada['folio']}"),
-          content: SizedBox(
-            width: 400,
-            child: IncidenteModalContent(
-              ordenTrabajoId: ordenSeleccionada['ot_id'],
-              area: widget.area,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                ref.read(incidenteProvider.notifier).limpiarIncidenteActual();
-                Navigator.of(context).pop();
-                ref
-                    .read(operarioOTProvider.notifier)
-                    .cargarOrdenesOperario(widget.area, widget.verHistorial);
-              },
-              child: const Text("Cerrar"),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override
