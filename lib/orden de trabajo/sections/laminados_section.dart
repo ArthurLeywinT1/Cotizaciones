@@ -1,3 +1,4 @@
+// lib/screens/sections/laminados_section.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/orden_trabajo_provider.dart';
@@ -52,20 +53,30 @@ class LaminadosSection extends ConsumerWidget {
                           "laminado_proyecto_${controller.sessionKey}",
                         ),
                         initialValue: controller.laminadoProyecto,
-                        readOnly: true,
-                        onChanged: null,
+                        readOnly: modoProduccion, // <--- DINÁMICO EN PRODUCCIÓN
+                        onChanged: modoProduccion
+                            ? null
+                            : (v) => ref
+                                .read(ordenTrabajoProvider)
+                                .updateLaminadoGeneral('proyecto', v),
                         decoration: InputDecoration(
                           hintText: 'Ej: Portada, Tarjetas...',
                           isDense: true,
                           filled: true,
-                          fillColor: Colors.grey[200],
+                          fillColor: modoProduccion ? Colors.grey[100] : Colors.white,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(
+                              color: modoProduccion ? Colors.grey[300]! : Colors.grey[400]!,
+                            ),
+                          ),
                         ),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
-                          color: Colors.black54,
+                          color: modoProduccion ? Colors.black54 : Colors.black,
                         ),
                       ),
                     ],
@@ -88,16 +99,23 @@ class LaminadosSection extends ConsumerWidget {
                       DropdownButtonFormField<String>(
                         decoration: InputDecoration(
                           isDense: true,
+                          filled: modoProduccion,
+                          fillColor: modoProduccion ? Colors.grey[100] : null,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(
+                              color: modoProduccion ? Colors.grey[300]! : Colors.grey[400]!,
+                            ),
+                          ),
                         ),
-                        value:
-                            [
-                              'Brillante',
-                              'Mate',
-                              'Otro',
-                            ].contains(controller.laminadoAcabado)
+                        value: [
+                          'Brillante',
+                          'Mate',
+                          'Otro',
+                        ].contains(controller.laminadoAcabado)
                             ? controller.laminadoAcabado
                             : 'Brillante',
                         items: ['Brillante', 'Mate', 'Otro'].map((String val) {
@@ -105,17 +123,22 @@ class LaminadosSection extends ConsumerWidget {
                             value: val,
                             child: Text(
                               val,
-                              style: const TextStyle(fontSize: 13),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: modoProduccion ? Colors.black54 : Colors.black,
+                              ),
                             ),
                           );
                         }).toList(),
-                        onChanged: (val) {
-                          if (val != null) {
-                            ref
-                                .read(ordenTrabajoProvider)
-                                .updateLaminadoGeneral('acabado', val);
-                          }
-                        },
+                        onChanged: modoProduccion // <--- DESACTIVADO EN PRODUCCIÓN
+                            ? null
+                            : (val) {
+                                if (val != null) {
+                                  ref
+                                      .read(ordenTrabajoProvider)
+                                      .updateLaminadoGeneral('acabado', val);
+                                }
+                              },
                       ),
                     ],
                   ),
@@ -138,23 +161,36 @@ class LaminadosSection extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4),
                 TextFormField(
-                  // Asumiendo que tienes 'pliegos' en tu provider, si no, cámbialo por el campo correcto
+                  key: ValueKey("laminado_pliegos_${controller.sessionKey}"),
                   initialValue: controller.laminadoPliegos > 0
                       ? controller.laminadoPliegos.toString()
                       : '',
-                  readOnly: true,
-                  onChanged: null,
+                  readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+                  onChanged: modoProduccion
+                      ? null
+                      : (v) => ref
+                          .read(ordenTrabajoProvider)
+                          .updateLaminadoGeneral('pliegos', v),
                   decoration: InputDecoration(
                     hintText: 'Cantidad de pliegos...',
                     isDense: true,
                     filled: true,
-                    fillColor: Colors.grey[200],
+                    fillColor: modoProduccion ? Colors.grey[100] : Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                        color: modoProduccion ? Colors.grey[300]! : Colors.grey[400]!,
+                      ),
+                    ),
                   ),
-                  keyboardType: TextInputType.number, // Teclado numérico
-                  style: const TextStyle(fontSize: 13, color: Colors.black54),
+                  keyboardType: TextInputType.number,
+                  style: TextStyle(
+                    fontSize: 13, 
+                    color: modoProduccion ? Colors.black54 : Colors.black,
+                  ),
                 ),
               ],
             ),
@@ -164,22 +200,24 @@ class LaminadosSection extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.indigo[50],
+                color: modoProduccion ? Colors.grey[50] : Colors.indigo[50],
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.indigo[100]!),
+                border: Border.all(
+                  color: modoProduccion ? Colors.grey[300]! : Colors.indigo[100]!,
+                ),
               ),
               child: Column(
                 children: [
                   Row(
                     children: [
-                      const SizedBox(
+                      SizedBox(
                         width: 100,
                         child: Text(
                           "APLICACIÓN:",
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: Colors.indigo,
+                            color: modoProduccion ? Colors.grey[600] : Colors.indigo,
                           ),
                         ),
                       ),
@@ -187,29 +225,38 @@ class LaminadosSection extends ConsumerWidget {
                         context,
                         "Frente",
                         controller.laminadoAplicacion['frente']!,
-                        (v) =>
-                            controller.updateLaminadoAplicacion('frente', v!),
+                        modoProduccion
+                            ? null // <--- DESACTIVADO EN PRODUCCIÓN
+                            : (v) => ref
+                                .read(ordenTrabajoProvider)
+                                .updateLaminadoAplicacion('frente', v!),
                       ),
                       _buildCheck(
                         context,
                         "Vuelta",
                         controller.laminadoAplicacion['vuelta']!,
-                        (v) =>
-                            controller.updateLaminadoAplicacion('vuelta', v!),
+                        modoProduccion
+                            ? null // <--- DESACTIVADO EN PRODUCCIÓN
+                            : (v) => ref
+                                .read(ordenTrabajoProvider)
+                                .updateLaminadoAplicacion('vuelta', v!),
                       ),
                     ],
                   ),
-                  const Divider(color: Colors.indigo, thickness: 0.2),
+                  Divider(
+                    color: modoProduccion ? Colors.grey[300] : Colors.indigo,
+                    thickness: 0.2,
+                  ),
                   Row(
                     children: [
-                      const SizedBox(
+                      SizedBox(
                         width: 100,
                         child: Text(
                           "MÁQUINA:",
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: Colors.indigo,
+                            color: modoProduccion ? Colors.grey[600] : Colors.indigo,
                           ),
                         ),
                       ),
@@ -217,13 +264,21 @@ class LaminadosSection extends ConsumerWidget {
                         context,
                         "Máquina Chica",
                         controller.laminadoMaquinaChica,
-                        (v) => controller.updateMaquinaLaminado('chica', v!),
+                        modoProduccion
+                            ? null // <--- DESACTIVADO EN PRODUCCIÓN
+                            : (v) => ref
+                                .read(ordenTrabajoProvider)
+                                .updateMaquinaLaminado('chica', v!),
                       ),
                       _buildCheck(
                         context,
                         "Máquina Grande",
                         controller.laminadoMaquinaGrande,
-                        (v) => controller.updateMaquinaLaminado('grande', v!),
+                        modoProduccion
+                            ? null // <--- DESACTIVADO EN PRODUCCIÓN
+                            : (v) => ref
+                                .read(ordenTrabajoProvider)
+                                .updateMaquinaLaminado('grande', v!),
                       ),
                     ],
                   ),
@@ -246,34 +301,41 @@ class LaminadosSection extends ConsumerWidget {
               key: ValueKey("laminado_notas_${controller.sessionKey}"),
               initialValue: controller.laminadoNotas,
               maxLines: 3,
-              onChanged: (v) => ref
-                  .read(ordenTrabajoProvider)
-                  .updateLaminadoGeneral('notas', v),
+              readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+              onChanged: modoProduccion
+                  ? null
+                  : (v) => ref
+                      .read(ordenTrabajoProvider)
+                      .updateLaminadoGeneral('notas', v),
               decoration: InputDecoration(
-                hintText:
-                    "Ej: Laminado mate, brillante, soft touch, cuidar que no se raye, dejar pinza libre...",
+                hintText: modoProduccion
+                    ? "Sin notas o especificaciones adicionales de laminado"
+                    : "Ej: Laminado mate, brillante, soft touch, cuidar que no se raye, dejar pinza libre...",
                 isDense: true,
                 filled: true,
-                fillColor: Colors.yellow[50],
+                fillColor: modoProduccion ? Colors.grey[100] : Colors.yellow[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: Colors.yellow[600]!,
+                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: Colors.yellow[600]!,
+                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
               ),
-              style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
+              style: TextStyle(
+                fontSize: 13, 
+                fontStyle: FontStyle.italic,
+                color: modoProduccion ? Colors.black54 : Colors.black,
+              ),
             ),
-            // --- BOTONES (OCULTOS) ---
-            // Usamos Visibility con false para que no ocupen espacio ni se vean
+
             if (modoProduccion) ...[
               const Divider(height: 32, thickness: 1),
               SectionButtons(
@@ -291,7 +353,7 @@ class LaminadosSection extends ConsumerWidget {
     BuildContext context,
     String label,
     bool value,
-    Function(bool?) onChanged,
+    Function(bool?)? onChanged,
   ) {
     return Padding(
       padding: const EdgeInsets.only(right: 16),
@@ -300,7 +362,11 @@ class LaminadosSection extends ConsumerWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              fontSize: 12, 
+              fontWeight: FontWeight.w500,
+              color: onChanged == null ? Colors.black54 : Colors.black,
+            ),
           ),
           Checkbox(
             value: value,

@@ -14,7 +14,6 @@ class LogisticaSection extends ConsumerStatefulWidget {
 }
 
 class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
-  // Controlador para mostrar la fecha en el TextField
   late TextEditingController _fechaController;
   late TextEditingController _transporteController;
   late TextEditingController _direccionController;
@@ -53,44 +52,45 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
     super.dispose();
   }
 
-  // Función para mostrar el calendario
   Future<void> _selectDate(BuildContext context) async {
+    // Si está en modo producción, se cancela la ejecución del calendario
+    if (widget.modoProduccion) return;
+
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime.now(), // Opcional: evita seleccionar fechas pasadas
+      firstDate: DateTime.now(),
       lastDate: DateTime(2030),
       helpText: 'SELECCIONA LA FECHA DE ENTREGA',
     );
 
     if (picked != null) {
-      // Formateamos la fecha a DD/MM/AAAA manualmente
       String dia = picked.day.toString().padLeft(2, '0');
       String mes = picked.month.toString().padLeft(2, '0');
       String anio = picked.year.toString();
       String fechaFormateada = "$dia/$mes/$anio";
 
-      // Actualizamos el campo de texto en la pantalla
       setState(() {
         _fechaController.text = fechaFormateada;
       });
 
-      // Guardamos la fecha en tu provider usando tu método original
       ref.read(ordenTrabajoProvider).updateLogistica('fecha', fechaFormateada);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Controlador para mostrar la fecha en el TextField
     final controller = ref.watch(ordenTrabajoProvider);
 
     return Card(
-      elevation: 4,
-      margin: const EdgeInsets.only(bottom: 30),
+      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.deepOrange[200]!, width: 1),
+        side:BorderSide(
+          color: widget.modoProduccion ? Colors.grey[300]! : Colors.deepOrange[200]!,
+          width: 1,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -102,18 +102,17 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
               children: [
                 Icon(
                   Icons.local_shipping,
-                  color: Colors.deepOrange[700],
-                  size: 28,
+                  color: widget.modoProduccion ? Colors.grey[700] : Colors.deepOrange[700],
+                  size: 24,
                 ),
                 const SizedBox(width: 8),
                 const Text(
                   "11. LOGÍSTICA Y DESPACHO",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ],
             ),
-            const Divider(thickness: 1.5),
-            const SizedBox(height: 8),
+            const Divider(),
 
             // --- BLOQUE 1: FECHA Y TRANSPORTE ---
             Row(
@@ -122,53 +121,57 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.deepOrange[50],
+                      color: widget.modoProduccion ? Colors.grey[50] : Colors.deepOrange[50],
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.deepOrange[100]!),
+                      border: Border.all(
+                        color: widget.modoProduccion ? Colors.grey[300]! : Colors.deepOrange[100]!,
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           "FECHA MÁX. DE ENTREGA",
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: Colors.deepOrange,
+                            color: widget.modoProduccion ? Colors.grey[600] : Colors.deepOrange,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        // TEXTFIELD MODIFICADO PARA EL CALENDARIO
                         TextField(
                           controller: _fechaController,
-                          readOnly: true, // Bloquea el teclado nativo
-                          onTap: () =>
-                              _selectDate(context), // Abre el calendario
-                          decoration: const InputDecoration(
+                          readOnly: true, // Siempre bloquea teclado nativo
+                          onTap: () => _selectDate(context),
+                          decoration: InputDecoration(
                             hintText: "DD/MM/AAAA",
                             isDense: true,
                             filled: true,
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(),
+                            fillColor: widget.modoProduccion ? Colors.grey[100] : Colors.white,
+                            border: const OutlineInputBorder(),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: widget.modoProduccion ? Colors.grey[300]! : Colors.grey[400]!,
+                              ),
+                            ),
                             prefixIcon: Icon(
                               Icons.calendar_today,
                               size: 18,
-                              color: Colors.deepOrange,
+                              color: widget.modoProduccion ? Colors.grey[500] : Colors.deepOrange,
                             ),
                           ),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
+                            color: widget.modoProduccion ? Colors.black54 : Colors.black,
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-
                 const SizedBox(width: 16),
-
-                // --- BLOQUE 2: DIRECCIÓN Y TOTAL A ENTREGAR ---
+                // --- BLOQUE 2: TIPO DE TRANSPORTE ---
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,24 +187,37 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
                       const SizedBox(height: 4),
                       TextField(
                         controller: _transporteController,
-                        onChanged: (v) => ref
-                            .read(ordenTrabajoProvider)
-                            .updateLogistica('transporte', v),
-                        decoration: const InputDecoration(
+                        readOnly: widget.modoProduccion,
+                        onChanged: widget.modoProduccion
+                            ? null
+                            : (v) => ref
+                                .read(ordenTrabajoProvider)
+                                .updateLogistica('transporte', v),
+                        decoration: InputDecoration(
                           hintText: "Ej: Camioneta 3.5 Ton, Paquetería...",
                           isDense: true,
-                          border: OutlineInputBorder(),
+                          filled: widget.modoProduccion,
+                          fillColor: widget.modoProduccion ? Colors.grey[100] : null,
+                          border: const OutlineInputBorder(),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: widget.modoProduccion ? Colors.grey[300]! : Colors.grey[400]!,
+                            ),
+                          ),
                         ),
-                        style: const TextStyle(fontSize: 13),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: widget.modoProduccion ? Colors.black54 : Colors.black,
+                        ),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-
             const SizedBox(height: 16),
 
+            // --- FILA: DIRECCIÓN Y TOTAL ---
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -222,27 +238,38 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
                       TextField(
                         controller: _direccionController,
                         maxLines: 2,
-                        onChanged: (v) => ref
-                            .read(ordenTrabajoProvider)
-                            .updateLogistica('direccion', v),
-                        decoration: const InputDecoration(
-                          hintText:
-                              "Dirección completa, referencias, horarios...",
+                        readOnly: widget.modoProduccion,
+                        onChanged: widget.modoProduccion
+                            ? null
+                            : (v) => ref
+                                .read(ordenTrabajoProvider)
+                                .updateLogistica('direccion', v),
+                        decoration: InputDecoration(
+                          hintText: "Dirección completa, referencias, horarios...",
                           isDense: true,
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(
+                          filled: widget.modoProduccion,
+                          fillColor: widget.modoProduccion ? Colors.grey[100] : null,
+                          border: const OutlineInputBorder(),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: widget.modoProduccion ? Colors.grey[300]! : Colors.grey[400]!,
+                            ),
+                          ),
+                          prefixIcon: const Icon(
                             Icons.location_on,
                             color: Colors.grey,
                           ),
                         ),
-                        style: const TextStyle(fontSize: 13),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: widget.modoProduccion ? Colors.black54 : Colors.black,
+                        ),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(width: 16),
-
-                // TOTAL A ENTREGAR
+                // TOTAL A ENTREGAR (Siempre ReadOnly en ambos flujos)
                 Expanded(
                   flex: 1,
                   child: Column(
@@ -269,6 +296,10 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
                             borderRadius: BorderRadius.circular(8),
                             borderSide: BorderSide(color: Colors.grey[300]!),
                           ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
                         ),
                         style: const TextStyle(
                           fontSize: 18,
@@ -282,8 +313,7 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
                 ),
               ],
             ),
-
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
             // --- NOTAS / INSTRUCCIONES EXTRAS ---
             const Text(
@@ -298,33 +328,42 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
             TextField(
               controller: _notasController,
               maxLines: 3,
-              onChanged: (v) =>
-                  ref.read(ordenTrabajoProvider).updateLogistica('notas', v),
+              readOnly: widget.modoProduccion,
+              onChanged: widget.modoProduccion
+                  ? null
+                  : (v) => ref
+                      .read(ordenTrabajoProvider)
+                      .updateLogistica('notes', v), // Mantiene tu mapeo original
               decoration: InputDecoration(
-                hintText:
-                    "Ej: instrucciones para la entrega, detalles de la dirección, cuidado especial para el transporte...",
+                hintText: widget.modoProduccion
+                    ? "Sin notas o especificaciones logísticas adicionales"
+                    : "Ej: instrucciones para la entrega, detalles de la dirección, cuidado especial para el transporte...",
                 isDense: true,
                 filled: true,
-                fillColor: Colors.yellow[50],
+                fillColor: widget.modoProduccion ? Colors.grey[100] : Colors.yellow[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: Colors.yellow[600]!,
+                    color: widget.modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: Colors.yellow[600]!,
+                    color: widget.modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
               ),
-              style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
+              style: TextStyle(
+                fontSize: 13, 
+                fontStyle: FontStyle.italic,
+                color: widget.modoProduccion ? Colors.black54 : Colors.black,
+              ),
             ),
-            // --- BOTONES (OCULTOS) ---
-            // Usamos Visibility con false para que no ocupen espacio ni se vean
+
+            // --- BOTONES DE PRODUCCIÓN ---
             if (widget.modoProduccion) ...[
               const Divider(height: 32, thickness: 1),
               SectionButtons(

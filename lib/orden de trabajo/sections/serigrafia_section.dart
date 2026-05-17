@@ -15,6 +15,9 @@ class SerigrafiaSection extends ConsumerWidget {
     WidgetRef ref,
     Color currentColor,
   ) async {
+    // Si está en modo producción, se cancela la ejecución de la paleta
+    if (modoProduccion) return false;
+
     return ColorPicker(
       color: currentColor,
       onColorChanged: (Color color) {
@@ -66,6 +69,13 @@ class SerigrafiaSection extends ConsumerWidget {
     return Card(
       elevation: 2,
       margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: modoProduccion ? Colors.grey[300]! : Colors.purple[200]!,
+          width: 1,
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -74,7 +84,10 @@ class SerigrafiaSection extends ConsumerWidget {
             // --- ENCABEZADO ---
             Row(
               children: [
-                const Icon(Icons.palette, color: Colors.purple),
+                Icon(
+                  Icons.palette, 
+                  color: modoProduccion ? Colors.grey[700] : Colors.purple,
+                ),
                 const SizedBox(width: 8),
                 const Text(
                   "7. SERIGRAFÍA",
@@ -94,7 +107,7 @@ class SerigrafiaSection extends ConsumerWidget {
                     "Nombre del proyecto...",
                     controller.serigrafiaProyecto,
                     "serigrafia_proyecto_${controller.sessionKey}",
-                    readOnly: true,
+                    readOnly: modoProduccion, // <--- DINÁMICO
                     onChanged: (v) =>
                         controller.updateSerigrafiaGeneral('proyecto', v),
                   ),
@@ -110,7 +123,7 @@ class SerigrafiaSection extends ConsumerWidget {
                         : "",
                     "serigrafia_piezas_${controller.sessionKey}",
                     esNumero: true,
-                    readOnly: true,
+                    readOnly: modoProduccion, // <--- DINÁMICO
                     onChanged: (v) =>
                         controller.updateSerigrafiaGeneral('piezas', v),
                   ),
@@ -123,19 +136,21 @@ class SerigrafiaSection extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.purple[50],
+                color: modoProduccion ? Colors.grey[50] : Colors.purple[50],
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.purple[100]!),
+                border: Border.all(
+                  color: modoProduccion ? Colors.grey[300]! : Colors.purple[100]!,
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     "CONFIGURACIÓN DE COLOR",
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: Colors.purple,
+                      color: modoProduccion ? Colors.grey[600] : Colors.purple,
                     ),
                   ),
                   Row(
@@ -143,26 +158,32 @@ class SerigrafiaSection extends ConsumerWidget {
                       Radio<String>(
                         value: 'pantone',
                         groupValue: controller.serigrafiaModo,
-                        onChanged: (v) => controller.updateSerigrafiaModo(v!),
+                        onChanged: modoProduccion 
+                            ? null // <--- DESACTIVADO EN PRODUCCIÓN
+                            : (v) => controller.updateSerigrafiaModo(v!),
                       ),
-                      const Text(
+                      Text(
                         "PANTONE / TEXTO",
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
+                          color: modoProduccion ? Colors.black54 : Colors.black,
                         ),
                       ),
                       const SizedBox(width: 16),
                       Radio<String>(
                         value: 'directo',
                         groupValue: controller.serigrafiaModo,
-                        onChanged: (v) => controller.updateSerigrafiaModo(v!),
+                        onChanged: modoProduccion 
+                            ? null // <--- DESACTIVADO EN PRODUCCIÓN
+                            : (v) => controller.updateSerigrafiaModo(v!),
                       ),
-                      const Text(
+                      Text(
                         "COLOR DIRECTO",
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
+                          color: modoProduccion ? Colors.black54 : Colors.black,
                         ),
                       ),
                     ],
@@ -173,17 +194,28 @@ class SerigrafiaSection extends ConsumerWidget {
                     TextFormField(
                       key: ValueKey(
                         "serigrafia_pantone_code_${controller.sessionKey}",
-                      ), // <--- Llave blindada
+                      ),
                       initialValue: controller.serigrafiaPantoneCode,
-                      decoration: const InputDecoration(
+                      readOnly: modoProduccion,
+                      onChanged: modoProduccion 
+                          ? null 
+                          : (v) => controller.updateSerigrafiaPantone(v),
+                      decoration: InputDecoration(
                         hintText: 'Ej: Pantone 293 C, Blanco Mate...',
                         isDense: true,
                         filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(),
+                        fillColor: modoProduccion ? Colors.grey[100] : Colors.white,
+                        border: const OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: modoProduccion ? Colors.grey[300]! : Colors.grey[400]!,
+                          ),
+                        ),
                       ),
-                      style: const TextStyle(fontSize: 13),
-                      onChanged: (v) => controller.updateSerigrafiaPantone(v),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: modoProduccion ? Colors.black54 : Colors.black,
+                      ),
                     ),
 
                   // Modo Color Directo (Selector Visual)
@@ -192,16 +224,18 @@ class SerigrafiaSection extends ConsumerWidget {
                       children: [
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: () => _colorPickerDialog(
-                              context,
-                              ref,
-                              controller.serigrafiaColorDirecto,
-                            ),
+                            onPressed: modoProduccion 
+                                ? null // <--- DESACTIVADO EN PRODUCCIÓN
+                                : () => _colorPickerDialog(
+                                      context,
+                                      ref,
+                                      controller.serigrafiaColorDirecto,
+                                    ),
                             icon: const Icon(Icons.color_lens),
                             label: const Text("Abrir Paleta de Colores"),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: Colors.purple,
+                              backgroundColor: modoProduccion ? Colors.grey[200] : Colors.white,
+                              foregroundColor: modoProduccion ? Colors.grey[500] : Colors.purple,
                             ),
                           ),
                         ),
@@ -239,6 +273,7 @@ class SerigrafiaSection extends ConsumerWidget {
                     "Descripción o medidas...",
                     controller.serigrafiaMarcos,
                     "serigrafia_marcos_${controller.sessionKey}",
+                    readOnly: modoProduccion, // <--- DINÁMICO
                     onChanged: (v) =>
                         controller.updateSerigrafiaGeneral('marcos', v),
                   ),
@@ -259,13 +294,16 @@ class SerigrafiaSection extends ConsumerWidget {
                 _buildCheck(
                   "Existente",
                   controller.serigrafiaMarcoExistente,
-                  (v) =>
-                      controller.updateSerigrafiaGeneral('marcoExistente', v!),
+                  modoProduccion 
+                      ? null // <--- BLOQUEADO EN PRODUCCIÓN
+                      : (v) => controller.updateSerigrafiaGeneral('marcoExistente', v!),
                 ),
                 _buildCheck(
                   "Nuevo",
                   controller.serigrafiaMarcoNuevo,
-                  (v) => controller.updateSerigrafiaGeneral('marcoNuevo', v!),
+                  modoProduccion 
+                      ? null // <--- BLOQUEADO EN PRODUCCIÓN
+                      : (v) => controller.updateSerigrafiaGeneral('marcoNuevo', v!),
                 ),
               ],
             ),
@@ -287,12 +325,16 @@ class SerigrafiaSection extends ConsumerWidget {
                 _buildCheck(
                   "Romosso",
                   controller.serigrafiaEsRomosso,
-                  (v) => controller.updateSerigrafiaGeneral('romosso', v!),
+                  modoProduccion 
+                      ? null // <--- BLOQUEADO EN PRODUCCIÓN
+                      : (v) => controller.updateSerigrafiaGeneral('romosso', v!),
                 ),
                 _buildCheck(
                   "Maquilador",
                   controller.serigrafiaEsMaquilador,
-                  (v) => controller.updateSerigrafiaGeneral('maquilador', v!),
+                  modoProduccion 
+                      ? null // <--- BLOQUEADO EN PRODUCCIÓN
+                      : (v) => controller.updateSerigrafiaGeneral('maquilador', v!),
                 ),
 
                 // Cuadro condicional de Maquilador
@@ -304,21 +346,33 @@ class SerigrafiaSection extends ConsumerWidget {
                         "serigrafia_nombre_maquila_${controller.sessionKey}",
                       ),
                       initialValue: controller.serigrafiaNombreMaquila,
-                      onChanged: (v) => controller.updateSerigrafiaGeneral(
-                        'nombreMaquila',
-                        v,
-                      ),
-                      decoration: const InputDecoration(
+                      readOnly: modoProduccion, // <--- DINÁMICO
+                      onChanged: modoProduccion 
+                          ? null 
+                          : (v) => controller.updateSerigrafiaGeneral('nombreMaquila', v),
+                      decoration: InputDecoration(
                         labelText: "Nombre de quien maquila",
                         isDense: true,
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.business, size: 18),
+                        filled: modoProduccion,
+                        fillColor: modoProduccion ? Colors.grey[100] : null,
+                        border: const OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: modoProduccion ? Colors.grey[300]! : Colors.grey[400]!,
+                          ),
+                        ),
+                        prefixIcon: const Icon(Icons.business, size: 18),
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: modoProduccion ? Colors.black54 : Colors.black,
+                      ),
                     ),
                   ),
               ],
             ),
+            const SizedBox(height: 12),
+
             // --- NOTAS / INSTRUCCIONES EXTRAS ---
             const Text(
               "NOTAS / INSTRUCCIONES EXTRAS",
@@ -333,34 +387,41 @@ class SerigrafiaSection extends ConsumerWidget {
               key: ValueKey("serigrafia_notas_extras_${controller.sessionKey}"),
               initialValue: controller.serigrafiaNotas,
               maxLines: 3,
-              onChanged: (v) => ref
-                  .read(ordenTrabajoProvider)
-                  .updateSerigrafiaGeneral('notas', v),
+              readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+              onChanged: modoProduccion
+                  ? null
+                  : (v) => ref
+                      .read(ordenTrabajoProvider)
+                      .updateSerigrafiaGeneral('notas', v),
               decoration: InputDecoration(
-                hintText:
-                    "Ej: Serigrafía a mano, digital, colores específicos...",
+                hintText: modoProduccion
+                    ? "Sin notas o especificaciones adicionales de serigrafía"
+                    : "Ej: Serigrafía a mano, digital, colores específicos...",
                 isDense: true,
                 filled: true,
-                fillColor: Colors.yellow[50],
+                fillColor: modoProduccion ? Colors.grey[100] : Colors.yellow[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: Colors.yellow[600]!,
+                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: Colors.yellow[600]!,
+                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
               ),
-              style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
+              style: TextStyle(
+                fontSize: 13, 
+                fontStyle: FontStyle.italic,
+                color: modoProduccion ? Colors.black54 : Colors.black,
+              ),
             ),
-            // --- BOTONES (OCULTOS) ---
-            // Usamos Visibility con false para que no ocupen espacio ni se vean
+
             if (modoProduccion) ...[
               const Divider(height: 32, thickness: 1),
               SectionButtons(
@@ -405,9 +466,15 @@ class SerigrafiaSection extends ConsumerWidget {
           decoration: InputDecoration(
             hintText: hint,
             isDense: true,
-            filled: readOnly,
-            fillColor: readOnly ? Colors.grey[200] : Colors.white,
+            filled: true,
+            fillColor: readOnly ? Colors.grey[100] : Colors.white,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: readOnly ? Colors.grey[300]! : Colors.grey[400]!,
+              ),
+            ),
           ),
           style: TextStyle(
             fontSize: 13,
@@ -418,7 +485,7 @@ class SerigrafiaSection extends ConsumerWidget {
     );
   }
 
-  Widget _buildCheck(String label, bool value, Function(bool?) onChanged) {
+  Widget _buildCheck(String label, bool value, Function(bool?)? onChanged) {
     return Padding(
       padding: const EdgeInsets.only(right: 16),
       child: Row(
@@ -426,12 +493,16 @@ class SerigrafiaSection extends ConsumerWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              fontSize: 12, 
+              fontWeight: FontWeight.w500,
+              color: onChanged == null ? Colors.black54 : Colors.black,
+            ),
           ),
           Checkbox(
             value: value,
-            onChanged: onChanged,
-            activeColor: Colors.purple,
+            onChanged: onChanged, // Si es null, el control se deshabilita automáticamente
+            activeColor: onChanged == null ? Colors.grey : Colors.purple,
           ),
         ],
       ),

@@ -39,7 +39,8 @@ class AcabadoSection extends ConsumerWidget {
               "Nombre del proyecto...",
               controller.acabadoProyecto,
               "acabado_proyecto_${controller.sessionKey}",
-              readOnly: true,
+              // Es readOnly si ya venía así O si está en modo producción
+              readOnly: true, 
               onChanged: (v) =>
                   ref.read(ordenTrabajoProvider).updateAcabado('proyecto', v),
             ),
@@ -73,8 +74,11 @@ class AcabadoSection extends ConsumerWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.green[50],
-                    border: Border.all(color: Colors.green[200]!),
+                    // Cambia el fondo a gris si es modo producción para dar feedback visual
+                    color: modoProduccion ? Colors.grey[100] : Colors.green[50],
+                    border: Border.all(
+                      color: modoProduccion ? Colors.grey[300]! : Colors.green[200]!,
+                    ),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -87,12 +91,16 @@ class AcabadoSection extends ConsumerWidget {
                             "acabado_desc_${acabado.id}_${controller.sessionKey}",
                           ),
                           initialValue: acabado.desc,
+                          readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
                           decoration: const InputDecoration(
                             hintText: "Ej: Poner fajilla...",
                             isDense: true,
                             border: InputBorder.none,
                           ),
-                          style: const TextStyle(fontSize: 13),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: modoProduccion ? Colors.black54 : Colors.black,
+                          ),
                           onChanged: (v) => acabado.desc = v,
                         ),
                       ),
@@ -101,7 +109,7 @@ class AcabadoSection extends ConsumerWidget {
                       Container(
                         height: 30,
                         width: 1,
-                        color: Colors.green[200],
+                        color: modoProduccion ? Colors.grey[300] : Colors.green[200],
                         margin: const EdgeInsets.symmetric(horizontal: 4),
                       ),
 
@@ -114,33 +122,35 @@ class AcabadoSection extends ConsumerWidget {
                           ),
                           initialValue: acabado.piezas,
                           keyboardType: TextInputType.number,
+                          readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
                           decoration: const InputDecoration(
                             hintText: "Piezas",
                             isDense: true,
                             border: InputBorder.none,
                           ),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: Colors.green,
+                            color: modoProduccion ? Colors.grey[600] : Colors.green,
                           ),
                           onChanged: (v) => acabado.piezas = v,
                         ),
                       ),
 
-                      // BOTÓN DE BORRAR
-                      IconButton(
-                        icon: const Icon(
-                          Icons.delete,
-                          color: Colors.redAccent,
-                          size: 20,
+                      // BOTÓN DE BORRAR (Oculto en modo producción)
+                      if (!modoProduccion)
+                        IconButton(
+                          icon: const Icon(
+                            Icons.delete,
+                            color: Colors.redAccent,
+                            size: 20,
+                          ),
+                          tooltip: "Borrar acabado",
+                          onPressed: () =>
+                              controller.removeAcabadoManual(acabado.id),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
                         ),
-                        tooltip: "Borrar acabado",
-                        onPressed: () =>
-                            controller.removeAcabadoManual(acabado.id),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
                     ],
                   ),
                 );
@@ -149,20 +159,22 @@ class AcabadoSection extends ConsumerWidget {
 
             const SizedBox(height: 12),
 
-            // Botón para agregar más
-            TextButton.icon(
-              onPressed: () => controller.addAcabadoManual(),
-              icon: const Icon(Icons.add_circle_outline, color: Colors.green),
-              label: const Text(
-                "Agregar Acabado Manual",
-                style: TextStyle(
-                  color: Colors.green,
-                  fontWeight: FontWeight.bold,
+            // Botón para agregar más (Oculto en modo producción)
+            if (!modoProduccion) ...[
+              TextButton.icon(
+                onPressed: () => controller.addAcabadoManual(),
+                icon: const Icon(Icons.add_circle_outline, color: Colors.green),
+                label: const Text(
+                  "Agregar Acabado Manual",
+                  style: TextStyle(
+                    color: Colors.green,
+                    fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-
             const SizedBox(height: 16),
+            ],
+
             const Divider(height: 1, thickness: 0.5),
             const SizedBox(height: 12),
 
@@ -180,30 +192,37 @@ class AcabadoSection extends ConsumerWidget {
               key: ValueKey("acabado_notas_${controller.sessionKey}"),
               initialValue: controller.acabadoNotas,
               maxLines: 3,
-              onChanged: (v) =>
-                  ref.read(ordenTrabajoProvider).updateAcabado('notas', v),
+              readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+              onChanged: modoProduccion 
+                  ? null 
+                  : (v) => ref.read(ordenTrabajoProvider).updateAcabado('notas', v),
               decoration: InputDecoration(
-                hintText:
-                    "Ej: Doblez especial, intercalado manual, compaginado, refile final...",
+                hintText: modoProduccion 
+                    ? "Sin notas adicionales" 
+                    : "Ej: Doblez especial, intercalado manual, compaginado, refile final...",
                 isDense: true,
                 filled: true,
-                fillColor: Colors.yellow[50],
+                fillColor: modoProduccion ? Colors.grey[100] : Colors.yellow[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: Colors.yellow[600]!,
+                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: Colors.yellow[600]!,
+                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
               ),
-              style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
+              style: TextStyle(
+                fontSize: 13, 
+                fontStyle: FontStyle.italic,
+                color: modoProduccion ? Colors.black54 : Colors.black
+              ),
             ),
 
             if (modoProduccion) ...[

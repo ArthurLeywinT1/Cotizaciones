@@ -15,14 +15,25 @@ class SuajeSection extends ConsumerWidget {
     return Card(
       elevation: 2,
       margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: modoProduccion ? Colors.grey[300]! : Colors.pink[200]!,
+          width: 1,
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // --- ENCABEZADO ---
             Row(
               children: [
-                const Icon(Icons.dashboard_customize, color: Colors.pink),
+                Icon(
+                  Icons.dashboard_customize, 
+                  color: modoProduccion ? Colors.grey[700] : Colors.pink,
+                ),
                 const SizedBox(width: 8),
                 const Text(
                   "6. SUAJE",
@@ -40,8 +51,8 @@ class SuajeSection extends ConsumerWidget {
                     "PROYECTO",
                     "Nombre del proyecto...",
                     controller.suajeProyecto,
-                    "suaje_proyecto_${controller.sessionKey}", // <--- Valor inicial inyectado
-                    readOnly: true,
+                    "suaje_proyecto_${controller.sessionKey}",
+                    readOnly: modoProduccion, // <--- Mutabilidad adaptada al flujo de taller
                     onChanged: (v) => controller.updateSuaje('proyecto', v),
                   ),
                 ),
@@ -54,9 +65,9 @@ class SuajeSection extends ConsumerWidget {
                     controller.suajePliegos > 0
                         ? controller.suajePliegos.toString()
                         : "",
-                    "suaje_pliegos_${controller.sessionKey}", // <--- Valor inicial inyectado
+                    "suaje_pliegos_${controller.sessionKey}",
                     esNumero: true,
-                    readOnly: true,
+                    readOnly: modoProduccion, // <--- Mutabilidad adaptada al flujo de taller
                     onChanged: (v) => controller.updateSuaje('pliegos', v),
                   ),
                 ),
@@ -65,7 +76,7 @@ class SuajeSection extends ConsumerWidget {
 
             const SizedBox(height: 20),
 
-            // --- QUIÉN REALIZA EL TRABAJO ---
+            // --- RESPONSABLE DEL PROCESO ---
             const Text(
               "RESPONSABLE DEL PROCESO",
               style: TextStyle(
@@ -80,12 +91,16 @@ class SuajeSection extends ConsumerWidget {
                 _buildCheck(
                   "Romosso",
                   controller.suajeEsRomosso,
-                  (v) => controller.updateSuaje('romosso', v!),
+                  modoProduccion 
+                      ? null // <--- Bloqueo físico de la interacción
+                      : (v) => controller.updateSuaje('romosso', v!),
                 ),
                 _buildCheck(
                   "Maquilador",
                   controller.suajeEsMaquilador,
-                  (v) => controller.updateSuaje('maquilador', v!),
+                  modoProduccion 
+                      ? null // <--- Bloqueo físico de la interacción
+                      : (v) => controller.updateSuaje('maquilador', v!),
                 ),
 
                 // CUADRO DE TEXTO CONDICIONAL
@@ -95,18 +110,29 @@ class SuajeSection extends ConsumerWidget {
                     child: TextFormField(
                       key: ValueKey(
                         "suaje_nombre_maquila_${controller.sessionKey}",
-                      ), // <--- Key reactiva
-                      initialValue:
-                          controller.suajeNombreMaquila, // <--- Valor inicial
-                      onChanged: (v) =>
-                          controller.updateSuaje('nombreMaquila', v),
-                      decoration: const InputDecoration(
+                      ),
+                      initialValue: controller.suajeNombreMaquila,
+                      readOnly: modoProduccion,
+                      onChanged: modoProduccion 
+                          ? null 
+                          : (v) => controller.updateSuaje('nombreMaquila', v),
+                      decoration: InputDecoration(
                         labelText: "Nombre de quien maquila",
                         isDense: true,
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.business, size: 18),
+                        filled: true,
+                        fillColor: modoProduccion ? Colors.grey[100] : Colors.white,
+                        border: const OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: modoProduccion ? Colors.grey[300]! : Colors.grey[400]!,
+                          ),
+                        ),
+                        prefixIcon: const Icon(Icons.business, size: 18),
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: modoProduccion ? Colors.black54 : Colors.black,
+                      ),
                     ),
                   ),
               ],
@@ -129,15 +155,21 @@ class SuajeSection extends ConsumerWidget {
                 _buildCheck(
                   "Marco Existente",
                   controller.suajeMarcoExistente,
-                  (v) => controller.updateSuaje('existente', v!),
+                  modoProduccion 
+                      ? null 
+                      : (v) => controller.updateSuaje('existente', v!),
                 ),
                 _buildCheck(
                   "Marco Nuevo",
                   controller.suajeMarcoNuevo,
-                  (v) => controller.updateSuaje('nuevo', v!),
+                  modoProduccion 
+                      ? null 
+                      : (v) => controller.updateSuaje('nuevo', v!),
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+
             // --- NOTAS / INSTRUCCIONES EXTRAS ---
             const Text(
               "NOTAS / INSTRUCCIONES EXTRAS",
@@ -149,36 +181,42 @@ class SuajeSection extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             TextFormField(
-              key: ValueKey(
-                "suaje_notas_extras_${controller.sessionKey}",
-              ), // <--- Key reactiva
-              initialValue: controller.suajeNotas, // <--- Valor inicial
+              key: ValueKey("suaje_notas_extras_${controller.sessionKey}"),
+              initialValue: controller.suajeNotas,
               maxLines: 3,
-              onChanged: (v) =>
-                  ref.read(ordenTrabajoProvider).updateSuaje('notas', v),
+              readOnly: modoProduccion,
+              onChanged: modoProduccion
+                  ? null
+                  : (v) => ref.read(ordenTrabajoProvider).updateSuaje('notas', v),
               decoration: InputDecoration(
-                hintText:
-                    "Ej: instruciones para el suaje, tipo de marco, si es necesario reparar el marco existente...",
+                hintText: modoProduccion
+                    ? "Sin notas o especificaciones de suajado adicionales"
+                    : "Ej: instrucciones para el suaje, tipo de marco, si es necesario reparar el marco existente...",
                 isDense: true,
                 filled: true,
-                fillColor: Colors.yellow[50],
+                fillColor: modoProduccion ? Colors.grey[100] : Colors.yellow[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: Colors.yellow[600]!,
+                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: Colors.yellow[600]!,
+                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
               ),
-              style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
+              style: TextStyle(
+                fontSize: 13, 
+                fontStyle: FontStyle.italic,
+                color: modoProduccion ? Colors.black54 : Colors.black,
+              ),
             ),
+
             if (modoProduccion) ...[
               const Divider(height: 32, thickness: 1),
               SectionButtons(
@@ -192,7 +230,7 @@ class SuajeSection extends ConsumerWidget {
     );
   }
 
-  // Helper para inputs de texto (Convertido a TextFormField)
+  // Helper para inputs de texto genéricos
   Widget _buildInput(
     String label,
     String hint,
@@ -215,9 +253,7 @@ class SuajeSection extends ConsumerWidget {
         ),
         const SizedBox(height: 4),
         TextFormField(
-          key: ValueKey(
-            fieldKey,
-          ), // <--- Permite actualizar el campo si llegan nuevos datos
+          key: ValueKey(fieldKey),
           initialValue: initialValue,
           readOnly: readOnly,
           onChanged: readOnly ? null : onChanged,
@@ -225,23 +261,27 @@ class SuajeSection extends ConsumerWidget {
           decoration: InputDecoration(
             hintText: hint,
             isDense: true,
-            filled: readOnly,
-            fillColor: readOnly ? Colors.grey[200] : Colors.white,
+            filled: true,
+            fillColor: readOnly ? Colors.grey[100] : Colors.white,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: readOnly ? Colors.grey[300]! : Colors.grey[400]!,
+              ),
+            ),
           ),
           style: TextStyle(
             fontSize: 13,
             color: readOnly ? Colors.black54 : Colors.black,
           ),
         ),
-        // --- BOTONES (OCULTOS) ---
-        // Usamos Visibility con false para que no ocupen espacio ni se vean
       ],
     );
   }
 
-  // Helper para Checkboxes
-  Widget _buildCheck(String label, bool value, Function(bool?) onChanged) {
+  // Helper adaptativo para Checkboxes
+  Widget _buildCheck(String label, bool value, Function(bool?)? onChanged) {
     return Padding(
       padding: const EdgeInsets.only(right: 16),
       child: Row(
@@ -249,12 +289,16 @@ class SuajeSection extends ConsumerWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              fontSize: 13, 
+              fontWeight: FontWeight.w500,
+              color: onChanged == null ? Colors.black54 : Colors.black,
+            ),
           ),
           Checkbox(
             value: value,
-            onChanged: onChanged,
-            activeColor: Colors.pink,
+            onChanged: onChanged, // Al pasar null la UI de Flutter lo inhabilita automáticamente
+            activeColor: onChanged == null ? Colors.grey : Colors.pink,
           ),
         ],
       ),

@@ -20,6 +20,7 @@ class EmbalajeSection extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // --- ENCABEZADO ---
             Row(
               children: [
                 const Icon(Icons.inventory, color: Colors.brown),
@@ -34,6 +35,7 @@ class EmbalajeSection extends ConsumerWidget {
 
             Row(
               children: [
+                // CAMPO: TIPO DE EMPAQUE
                 Expanded(
                   flex: 2,
                   child: Column(
@@ -51,20 +53,35 @@ class EmbalajeSection extends ConsumerWidget {
                       TextFormField(
                         key: ValueKey("embalaje_tipo_${controller.sessionKey}"),
                         initialValue: controller.embalajeTipo,
-                        onChanged: (v) => ref
-                            .read(ordenTrabajoProvider)
-                            .updateEmbalaje('tipo', v),
-                        decoration: const InputDecoration(
+                        readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+                        onChanged: modoProduccion
+                            ? null
+                            : (v) => ref
+                                .read(ordenTrabajoProvider)
+                                .updateEmbalaje('tipo', v),
+                        decoration: InputDecoration(
                           hintText: "Ej: Cajas corrugadas, Playo, Kraft...",
                           isDense: true,
-                          border: OutlineInputBorder(),
+                          filled: modoProduccion,
+                          fillColor: modoProduccion ? Colors.grey[100] : null,
+                          border: const OutlineInputBorder(),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: modoProduccion ? Colors.grey[300]! : Colors.grey[400]!,
+                            ),
+                          ),
                         ),
-                        style: const TextStyle(fontSize: 13),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: modoProduccion ? Colors.black54 : Colors.black,
+                        ),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(width: 16),
+                
+                // CAMPO: CANTIDAD DE BULTOS / CAJAS
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,17 +103,28 @@ class EmbalajeSection extends ConsumerWidget {
                             ? controller.embalajeCantidadCajas.toString()
                             : '',
                         keyboardType: TextInputType.number,
-                        onChanged: (v) => ref
-                            .read(ordenTrabajoProvider)
-                            .updateEmbalaje('cantidad', v),
-                        decoration: const InputDecoration(
+                        readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+                        onChanged: modoProduccion
+                            ? null
+                            : (v) => ref
+                                .read(ordenTrabajoProvider)
+                                .updateEmbalaje('cantidad', v),
+                        decoration: InputDecoration(
                           hintText: "0",
                           isDense: true,
-                          border: OutlineInputBorder(),
+                          filled: modoProduccion,
+                          fillColor: modoProduccion ? Colors.grey[100] : null,
+                          border: const OutlineInputBorder(),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: modoProduccion ? Colors.grey[300]! : Colors.grey[400]!,
+                            ),
+                          ),
                         ),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
+                          color: modoProduccion ? Colors.black54 : Colors.black,
                         ),
                       ),
                     ],
@@ -120,33 +148,40 @@ class EmbalajeSection extends ConsumerWidget {
               key: ValueKey("embalaje_notas_${controller.sessionKey}"),
               initialValue: controller.embalajeNotas,
               maxLines: 3,
-              onChanged: (v) =>
-                  ref.read(ordenTrabajoProvider).updateEmbalaje('notas', v),
+              readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+              onChanged: modoProduccion
+                  ? null
+                  : (v) => ref.read(ordenTrabajoProvider).updateEmbalaje('notes', v),
               decoration: InputDecoration(
-                hintText:
-                    "Ej: instrucciones para el embalaje, tipo de empaque, si es necesario reforzar las cajas...",
+                hintText: modoProduccion
+                    ? "Sin notas o especificaciones adicionales para el embalaje"
+                    : "Ej: instrucciones para el embalaje, tipo de empaque, si es necesario reforzar las cajas...",
                 isDense: true,
                 filled: true,
-                fillColor: Colors.yellow[50],
+                fillColor: modoProduccion ? Colors.grey[100] : Colors.yellow[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: Colors.yellow[600]!,
+                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: Colors.yellow[600]!,
+                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
               ),
-              style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
+              style: TextStyle(
+                fontSize: 13, 
+                fontStyle: FontStyle.italic,
+                color: modoProduccion ? Colors.black54 : Colors.black,
+              ),
             ),
-            // --- BOTONES (OCULTOS) ---
-            // Usamos Visibility con false para que no ocupen espacio ni se vean
+
+            // --- BOTONES DE ACCIÓN (Solo visibles en taller) ---
             if (modoProduccion) ...[
               const Divider(height: 32, thickness: 1),
               SectionButtons(

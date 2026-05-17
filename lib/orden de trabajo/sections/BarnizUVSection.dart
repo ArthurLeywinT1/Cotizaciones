@@ -83,51 +83,70 @@ class BarnizUVSection extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.orange[50],
+                color: modoProduccion ? Colors.grey[100] : Colors.orange[50],
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.orange[100]!),
+                border: Border.all(
+                  color: modoProduccion ? Colors.grey[300]! : Colors.orange[100]!,
+                ),
               ),
               child: Column(
                 children: [
                   // APLICACIÓN (Frente/Vuelta)
                   Row(
                     children: [
-                      _buildTitle("APLICACIÓN:"),
+                      _buildTitle(
+                        "APLICACIÓN:",
+                        color: modoProduccion ? Colors.grey[600] : Colors.orange[800],
+                      ),
                       _buildCheck(
                         "Frente",
                         controller.barnizAplicacion['frente']!,
-                        (v) => ref
-                            .read(ordenTrabajoProvider)
-                            .updateBarnizAplicacion('frente', v!),
+                        modoProduccion
+                            ? null // <--- DESACTIVADO EN PRODUCCIÓN
+                            : (v) => ref
+                                .read(ordenTrabajoProvider)
+                                .updateBarnizAplicacion('frente', v!),
                       ),
                       _buildCheck(
                         "Vuelta",
                         controller.barnizAplicacion['vuelta']!,
-                        (v) => ref
-                            .read(ordenTrabajoProvider)
-                            .updateBarnizAplicacion('vuelta', v!),
+                        modoProduccion
+                            ? null // <--- DESACTIVADO EN PRODUCCIÓN
+                            : (v) => ref
+                                .read(ordenTrabajoProvider)
+                                .updateBarnizAplicacion('vuelta', v!),
                       ),
                     ],
                   ),
-                  const Divider(color: Colors.orange, thickness: 0.2),
+                  Divider(
+                    color: modoProduccion ? Colors.grey[300] : Colors.orange,
+                    thickness: 0.2,
+                  ),
 
                   // PRODUCCIÓN (Romosso/Maquilador)
                   Row(
                     children: [
-                      _buildTitle("PRODUCCIÓN:"),
+                      _buildTitle(
+                        "PRODUCCIÓN:",
+                        color: modoProduccion ? Colors.grey[600] : Colors.orange[800],
+                      ),
                       _buildCheck(
                         "Romosso",
                         controller.barnizEsRomosso,
-                        (v) => ref
-                            .read(ordenTrabajoProvider)
-                            .updateBarnizGeneral('romosso', v!),
+                        modoProduccion
+                            ? null // <--- DESACTIVADO EN PRODUCCIÓN
+                            : (v) => ref
+                                .read(ordenTrabajoProvider)
+                                .updateBarnizGeneral('romosso', v!),
                       ),
                       _buildCheck(
                         "Maquilador",
                         controller.barnizEsMaquilador,
-                        (v) => ref
-                            .read(ordenTrabajoProvider)
-                            .updateBarnizGeneral('maquilador', v!),
+                        modoProduccion
+                            ? null // <--- DESACTIVADO EN PRODUCCIÓN
+                            : (v) => ref
+                                .read(ordenTrabajoProvider)
+                                .updateBarnizGeneral('maquilador', v!),
                       ),
                     ],
                   ),
@@ -138,13 +157,23 @@ class BarnizUVSection extends ConsumerWidget {
                     TextFormField(
                       key: ValueKey("barniz_maquila_${controller.sessionKey}"),
                       initialValue: controller.barnizNombreMaquila,
-                      onChanged: (v) => ref
-                          .read(ordenTrabajoProvider)
-                          .updateBarnizGeneral('nombreMaquila', v),
+                      readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+                      onChanged: modoProduccion
+                          ? null
+                          : (v) => ref
+                              .read(ordenTrabajoProvider)
+                              .updateBarnizGeneral('nombreMaquila', v),
                       decoration: _inputStyle(
                         '¿Quién lo maquila?',
-                      ).copyWith(fillColor: Colors.white, filled: true),
-                      style: const TextStyle(fontSize: 13),
+                        readOnly: modoProduccion,
+                      ).copyWith(
+                        fillColor: modoProduccion ? Colors.grey[200] : Colors.white,
+                        filled: true,
+                      ),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: modoProduccion ? Colors.black54 : Colors.black,
+                      ),
                     ),
                     const SizedBox(height: 8),
                   ],
@@ -160,20 +189,33 @@ class BarnizUVSection extends ConsumerWidget {
                 key: ValueKey("barniz_notas_${controller.sessionKey}"),
                 initialValue: controller.barnizNotas,
                 maxLines: 2,
-                onChanged: (v) => ref
-                    .read(ordenTrabajoProvider)
-                    .updateBarnizGeneral('notas', v),
+                readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+                onChanged: modoProduccion
+                    ? null
+                    : (v) => ref
+                        .read(ordenTrabajoProvider)
+                        .updateBarnizGeneral('notas', v),
                 decoration: _inputStyle(
-                  'Instrucciones...',
-                ).copyWith(filled: true, fillColor: Colors.yellow[50]),
-                style: const TextStyle(
+                  modoProduccion ? 'Sin instrucciones adicionales' : 'Instrucciones...',
+                  readOnly: modoProduccion,
+                ).copyWith(
+                  filled: true,
+                  fillColor: modoProduccion ? Colors.grey[100] : Colors.yellow[50],
+                  enabledBorder: modoProduccion
+                      ? OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey[300]!, width: 0.5),
+                        )
+                      : null,
+                ),
+                style: TextStyle(
                   fontSize: 13,
                   fontStyle: FontStyle.italic,
+                  color: modoProduccion ? Colors.black54 : Colors.black,
                 ),
               ),
             ),
-            // --- BOTONES (OCULTOS) ---
-            // Usamos Visibility con false para que no ocupen espacio ni se vean
+
             if (modoProduccion) ...[
               const Divider(height: 32, thickness: 1),
               SectionButtons(
@@ -195,41 +237,57 @@ class BarnizUVSection extends ConsumerWidget {
         filled: readOnly,
         fillColor: readOnly ? Colors.grey[200] : null,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        enabledBorder: readOnly
+            ? OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              )
+            : null,
       );
 
   Widget _buildLabel(String label, Widget child) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        label,
-        style: const TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-          color: Colors.grey,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+          ),
+          const SizedBox(height: 4),
+          child,
+        ],
+      );
+
+  Widget _buildTitle(String title, {Color? color}) => SizedBox(
+        width: 90,
+        child: Text(
+          title,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            color: color ?? Colors.orange[800],
+          ),
         ),
-      ),
-      const SizedBox(height: 4),
-      child,
-    ],
-  );
+      );
 
-  Widget _buildTitle(String title) => SizedBox(
-    width: 90,
-    child: Text(
-      title,
-      style: TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.bold,
-        color: Colors.orange[800],
-      ),
-    ),
-  );
-
-  Widget _buildCheck(String label, bool val, Function(bool?) onCh) => Row(
-    children: [
-      Text(label, style: const TextStyle(fontSize: 12)),
-      Checkbox(value: val, onChanged: onCh, activeColor: Colors.orange[800]),
-      const SizedBox(width: 8),
-    ],
-  );
+  Widget _buildCheck(String label, bool val, Function(bool?)? onCh) => Row(
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: onCh == null ? Colors.black54 : Colors.black,
+            ),
+          ),
+          Checkbox(
+            value: val,
+            onChanged: onCh,
+            activeColor: onCh == null ? Colors.grey : Colors.orange[800],
+          ),
+          const SizedBox(width: 8),
+        ],
+      );
 }

@@ -53,8 +53,11 @@ class AdquisicionesSection extends ConsumerWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.teal[50],
-                    border: Border.all(color: Colors.teal[200]!),
+                    // Mutación de color a gris en modo producción
+                    color: modoProduccion ? Colors.grey[100] : Colors.teal[50],
+                    border: Border.all(
+                      color: modoProduccion ? Colors.grey[300]! : Colors.teal[200]!,
+                    ),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -67,12 +70,16 @@ class AdquisicionesSection extends ConsumerWidget {
                             "adq_nom_${material.id}_${controller.sessionKey}",
                           ),
                           initialValue: material.nombre,
+                          readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
                           decoration: const InputDecoration(
                             hintText: "Descripción del material...",
                             isDense: true,
                             border: InputBorder.none,
                           ),
-                          style: const TextStyle(fontSize: 13),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: modoProduccion ? Colors.black54 : Colors.black,
+                          ),
                           onChanged: (v) => material.nombre = v,
                         ),
                       ),
@@ -80,7 +87,7 @@ class AdquisicionesSection extends ConsumerWidget {
                       Container(
                         height: 30,
                         width: 1,
-                        color: Colors.teal[200],
+                        color: modoProduccion ? Colors.grey[300] : Colors.teal[200],
                         margin: const EdgeInsets.symmetric(horizontal: 4),
                       ),
 
@@ -92,12 +99,16 @@ class AdquisicionesSection extends ConsumerWidget {
                             "adq_prov_${material.id}_${controller.sessionKey}",
                           ),
                           initialValue: material.proveedor,
+                          readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
                           decoration: const InputDecoration(
                             hintText: "Proveedor sugerido...",
                             isDense: true,
                             border: InputBorder.none,
                           ),
-                          style: const TextStyle(fontSize: 13),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: modoProduccion ? Colors.black54 : Colors.black,
+                          ),
                           onChanged: (v) => material.proveedor = v,
                         ),
                       ),
@@ -105,7 +116,7 @@ class AdquisicionesSection extends ConsumerWidget {
                       Container(
                         height: 30,
                         width: 1,
-                        color: Colors.teal[200],
+                        color: modoProduccion ? Colors.grey[300] : Colors.teal[200],
                         margin: const EdgeInsets.symmetric(horizontal: 4),
                       ),
 
@@ -113,7 +124,6 @@ class AdquisicionesSection extends ConsumerWidget {
                       Expanded(
                         flex: 1,
                         child: TextFormField(
-                          // Para que no muestre un "0" inicial si está vacío
                           key: ValueKey(
                             "adq_cant_${material.id}_${controller.sessionKey}",
                           ),
@@ -121,33 +131,35 @@ class AdquisicionesSection extends ConsumerWidget {
                               ? ''
                               : material.cantidad.toString(),
                           keyboardType: TextInputType.number,
+                          readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
                           decoration: const InputDecoration(
                             hintText: "Cant.",
                             isDense: true,
                             border: InputBorder.none,
                           ),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: Colors.teal,
+                            color: modoProduccion ? Colors.grey[600] : Colors.teal,
                           ),
                           onChanged: (v) =>
                               material.cantidad = int.tryParse(v) ?? 0,
                         ),
                       ),
 
-                      // BOTÓN DE BORRAR
-                      IconButton(
-                        icon: const Icon(
-                          Icons.delete,
-                          color: Colors.redAccent,
-                          size: 20,
+                      // BOTÓN DE BORRAR (Oculto en modo producción)
+                      if (!modoProduccion)
+                        IconButton(
+                          icon: const Icon(
+                            Icons.delete,
+                            color: Colors.redAccent,
+                            size: 20,
+                          ),
+                          tooltip: "Borrar material",
+                          onPressed: () => controller.removeMaterial(material.id),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
                         ),
-                        tooltip: "Borrar material",
-                        onPressed: () => controller.removeMaterial(material.id),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
                     ],
                   ),
                 );
@@ -156,18 +168,19 @@ class AdquisicionesSection extends ConsumerWidget {
 
             const SizedBox(height: 8),
 
-            // Botón para agregar más materiales
-            TextButton.icon(
-              onPressed: () => controller.addMaterial(),
-              icon: const Icon(Icons.add_circle_outline, color: Colors.teal),
-              label: const Text(
-                "Agregar Material",
-                style: TextStyle(
-                  color: Colors.teal,
-                  fontWeight: FontWeight.bold,
+            // Botón para agregar más materiales (Oculto en modo producción)
+            if (!modoProduccion)
+              TextButton.icon(
+                onPressed: () => controller.addMaterial(),
+                icon: const Icon(Icons.add_circle_outline, color: Colors.teal),
+                label: const Text(
+                  "Agregar Material",
+                  style: TextStyle(
+                    color: Colors.teal,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
 
             const SizedBox(height: 16),
             const Divider(height: 1, thickness: 0.5),
@@ -187,34 +200,41 @@ class AdquisicionesSection extends ConsumerWidget {
               key: ValueKey("adq_notas_${controller.sessionKey}"),
               initialValue: controller.adquisicionesNotas,
               maxLines: 3,
-              onChanged: (v) => ref
-                  .read(ordenTrabajoProvider)
-                  .updateAdquisiciones('notas', v),
+              readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+              onChanged: modoProduccion
+                  ? null
+                  : (v) => ref
+                      .read(ordenTrabajoProvider)
+                      .updateAdquisiciones('notas', v),
               decoration: InputDecoration(
-                hintText:
-                    "Escribe aquí especificaciones de compra, tiempos de entrega o detalles de crédito...",
+                hintText: modoProduccion
+                    ? "Sin notas o especificaciones adicionales"
+                    : "Escribe aquí especificaciones de compra, tiempos de entrega o detalles de crédito...",
                 isDense: true,
                 filled: true,
-                fillColor: Colors.yellow[50],
+                fillColor: modoProduccion ? Colors.grey[100] : Colors.yellow[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: Colors.yellow[600]!,
+                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: Colors.yellow[600]!,
+                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
               ),
-              style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
+              style: TextStyle(
+                fontSize: 13, 
+                fontStyle: FontStyle.italic,
+                color: modoProduccion ? Colors.black54 : Colors.black,
+              ),
             ),
-            // --- BOTONES (OCULTOS) ---
-            // Usamos Visibility con false para que no ocupen espacio ni se vean
+            
             if (modoProduccion) ...[
               const Divider(height: 32, thickness: 1),
               SectionButtons(

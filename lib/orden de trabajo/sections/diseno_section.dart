@@ -53,8 +53,11 @@ class DisenoSection extends ConsumerWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.indigo[50],
-                    border: Border.all(color: Colors.indigo[200]!),
+                    // Mutación de color a gris en modo producción
+                    color: modoProduccion ? Colors.grey[100] : Colors.indigo[50],
+                    border: Border.all(
+                      color: modoProduccion ? Colors.grey[300]! : Colors.indigo[200]!,
+                    ),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -66,29 +69,34 @@ class DisenoSection extends ConsumerWidget {
                             "diseno_task_${task.id}_${controller.sessionKey}",
                           ),
                           initialValue: task.desc,
+                          readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
                           decoration: const InputDecoration(
                             hintText:
                                 "Ej: Ajustar rebases, revisar tipografías...",
                             isDense: true,
                             border: InputBorder.none,
                           ),
-                          style: const TextStyle(fontSize: 13),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: modoProduccion ? Colors.black54 : Colors.black,
+                          ),
                           onChanged: (v) => task.desc = v,
                         ),
                       ),
 
-                      // BOTÓN DE BORRAR
-                      IconButton(
-                        icon: const Icon(
-                          Icons.delete,
-                          color: Colors.redAccent,
-                          size: 20,
+                      // BOTÓN DE BORRAR (Oculto en modo producción)
+                      if (!modoProduccion)
+                        IconButton(
+                          icon: const Icon(
+                            Icons.delete,
+                            color: Colors.redAccent,
+                            size: 20,
+                          ),
+                          tooltip: "Borrar tarea",
+                          onPressed: () => controller.removeDesignTask(task.id),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
                         ),
-                        tooltip: "Borrar tarea",
-                        onPressed: () => controller.removeDesignTask(task.id),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
                     ],
                   ),
                 );
@@ -97,18 +105,19 @@ class DisenoSection extends ConsumerWidget {
 
             const SizedBox(height: 8),
 
-            // Botón para agregar más tareas
-            TextButton.icon(
-              onPressed: () => controller.addDesignTask(),
-              icon: const Icon(Icons.add_circle_outline, color: Colors.indigo),
-              label: const Text(
-                "Agregar Tarea",
-                style: TextStyle(
-                  color: Colors.indigo,
-                  fontWeight: FontWeight.bold,
+            // Botón para agregar más tareas (Oculto en modo producción)
+            if (!modoProduccion)
+              TextButton.icon(
+                onPressed: () => controller.addDesignTask(),
+                icon: const Icon(Icons.add_circle_outline, color: Colors.indigo),
+                label: const Text(
+                  "Agregar Tarea",
+                  style: TextStyle(
+                    color: Colors.indigo,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
 
             const SizedBox(height: 16),
             const Divider(height: 1, thickness: 0.5),
@@ -128,33 +137,39 @@ class DisenoSection extends ConsumerWidget {
               key: ValueKey("diseno_notas_${controller.sessionKey}"),
               initialValue: controller.disenoNotas,
               maxLines: 3,
-              onChanged: (v) =>
-                  ref.read(ordenTrabajoProvider).updateDiseno('notas', v),
+              readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+              onChanged: modoProduccion
+                  ? null
+                  : (v) => ref.read(ordenTrabajoProvider).updateDiseno('notas', v),
               decoration: InputDecoration(
-                hintText:
-                    "Escribe aquí links a la nube, nombres de archivos originales, perfiles de color...",
+                hintText: modoProduccion
+                    ? "Sin notas o especificaciones adicionales de diseño"
+                    : "Escribe aquí links a la nube, nombres de archivos originales, perfiles de color...",
                 isDense: true,
                 filled: true,
-                fillColor: Colors.yellow[50],
+                fillColor: modoProduccion ? Colors.grey[100] : Colors.yellow[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: Colors.yellow[600]!,
+                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: Colors.yellow[600]!,
+                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
               ),
-              style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
+              style: TextStyle(
+                fontSize: 13, 
+                fontStyle: FontStyle.italic,
+                color: modoProduccion ? Colors.black54 : Colors.black,
+              ),
             ),
-            // --- BOTONES (OCULTOS) ---
-            // Usamos Visibility con false para que no ocupen espacio ni se vean
+
             if (modoProduccion) ...[
               const Divider(height: 32, thickness: 1),
               SectionButtons(

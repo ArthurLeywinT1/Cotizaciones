@@ -23,7 +23,10 @@ class OffsetSection extends ConsumerWidget {
             // --- ENCABEZADO ---
             Row(
               children: [
-                const Icon(Icons.print, color: Colors.blue),
+                Icon(
+                  Icons.print, 
+                  color: modoProduccion ? Colors.grey[700] : Colors.blue,
+                ),
                 const SizedBox(width: 8),
                 const Text(
                   "3. IMPRESIÓN OFFSET",
@@ -44,7 +47,7 @@ class OffsetSection extends ConsumerWidget {
                   200,
                   controller.offsetTipoTrabajo,
                   "offset_tipo_trabajo_${controller.sessionKey}",
-                  readOnly: true,
+                  readOnly: modoProduccion, // <--- DINÁMICO
                   onChanged: (v) => ref
                       .read(ordenTrabajoProvider)
                       .updateOffsetTexto('tipo', v),
@@ -58,7 +61,7 @@ class OffsetSection extends ConsumerWidget {
                       : "",
                   "offset_piezas_pedidas_${controller.sessionKey}",
                   esNumero: true,
-                  readOnly: true,
+                  readOnly: modoProduccion, // <--- DINÁMICO
                   onChanged: (v) => ref
                       .read(ordenTrabajoProvider)
                       .updateOffsetTexto('piezas', v),
@@ -69,7 +72,7 @@ class OffsetSection extends ConsumerWidget {
                   150,
                   controller.offsetPapelNecesario,
                   "offset_papel_necesario_${controller.sessionKey}",
-                  readOnly: true,
+                  readOnly: modoProduccion, // <--- DINÁMICO
                   onChanged: (v) => ref
                       .read(ordenTrabajoProvider)
                       .updateOffsetTexto('necesario', v),
@@ -80,7 +83,7 @@ class OffsetSection extends ConsumerWidget {
                   150,
                   controller.offsetPapelLlegara,
                   "offset_papel_llegara_${controller.sessionKey}",
-                  readOnly: true,
+                  readOnly: modoProduccion, // <--- DINÁMICO
                   onChanged: (v) => ref
                       .read(ordenTrabajoProvider)
                       .updateOffsetTexto('llegara', v),
@@ -90,12 +93,12 @@ class OffsetSection extends ConsumerWidget {
             const SizedBox(height: 20),
 
             // --- MATRIZ DE TINTAS ---
-            const Text(
+            Text(
               "TINTAS REQUERIDAS",
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
-                color: Colors.blue,
+                color: modoProduccion ? Colors.grey[600] : Colors.blue,
               ),
             ),
             const SizedBox(height: 8),
@@ -108,6 +111,7 @@ class OffsetSection extends ConsumerWidget {
               'FRENTE',
               controller.offsetData['frente'],
               controller.sessionKey,
+              modoProduccion, // <--- INYECTADO
             ),
             const Divider(height: 16),
             // Fila de Vuelta
@@ -118,6 +122,7 @@ class OffsetSection extends ConsumerWidget {
               'VUELTA',
               controller.offsetData['vuelta'],
               controller.sessionKey,
+              modoProduccion, // <--- INYECTADO
             ),
 
             const SizedBox(height: 16),
@@ -138,30 +143,39 @@ class OffsetSection extends ConsumerWidget {
               key: ValueKey("offset_notas_extras_${controller.sessionKey}"),
               initialValue: controller.offsetNotas,
               maxLines: 3,
-              onChanged: (v) =>
-                  ref.read(ordenTrabajoProvider).updateOffsetTexto('notas', v),
+              readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+              onChanged: modoProduccion
+                  ? null
+                  : (v) => ref
+                      .read(ordenTrabajoProvider)
+                      .updateOffsetTexto('notas', v),
               decoration: InputDecoration(
-                hintText:
-                    "Escribe aquí la secuencia de colores, tiempos de secado, tipo de barniz de máquina...",
+                hintText: modoProduccion
+                    ? "Sin notas o especificaciones adicionales de offset"
+                    : "Escribe aquí la secuencia de colores, tiempos de secado, tipo de barniz de máquina...",
                 isDense: true,
                 filled: true,
-                fillColor: Colors.yellow[50],
+                fillColor: modoProduccion ? Colors.grey[100] : Colors.yellow[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: Colors.yellow[600]!,
+                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: Colors.yellow[600]!,
+                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
               ),
-              style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
+              style: TextStyle(
+                fontSize: 13, 
+                fontStyle: FontStyle.italic,
+                color: modoProduccion ? Colors.black54 : Colors.black,
+              ),
             ),
 
             if (modoProduccion) ...[
@@ -211,10 +225,16 @@ class OffsetSection extends ConsumerWidget {
             decoration: InputDecoration(
               hintText: hint,
               isDense: true,
-              filled: readOnly,
-              fillColor: readOnly ? Colors.grey[200] : Colors.white,
+              filled: true,
+              fillColor: readOnly ? Colors.grey[100] : Colors.white,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(
+                  color: readOnly ? Colors.grey[300]! : Colors.grey[400]!,
+                ),
               ),
             ),
             style: TextStyle(
@@ -235,6 +255,7 @@ class OffsetSection extends ConsumerWidget {
     String label,
     Map<String, dynamic> data,
     String sessionKey,
+    bool modoProd,
   ) {
     return Wrap(
       crossAxisAlignment: WrapCrossAlignment.center,
@@ -243,13 +264,17 @@ class OffsetSection extends ConsumerWidget {
           width: 70,
           child: Text(
             label,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 12, 
+              fontWeight: FontWeight.bold,
+              color: modoProd ? Colors.black54 : Colors.black,
+            ),
           ),
         ),
-        _buildInkCheck(ref, caraKey, 'C', 'C', Colors.cyan, data['C']),
-        _buildInkCheck(ref, caraKey, 'M', 'M', Colors.pink, data['M']),
-        _buildInkCheck(ref, caraKey, 'Y', 'Y', Colors.yellow[700]!, data['Y']),
-        _buildInkCheck(ref, caraKey, 'K', 'K', Colors.black, data['K']),
+        _buildInkCheck(ref, caraKey, 'C', 'C', Colors.cyan, data['C'], modoProd),
+        _buildInkCheck(ref, caraKey, 'M', 'M', Colors.pink, data['M'], modoProd),
+        _buildInkCheck(ref, caraKey, 'Y', 'Y', Colors.yellow[700]!, data['Y'], modoProd),
+        _buildInkCheck(ref, caraKey, 'K', 'K', Colors.black, data['K'], modoProd),
         const SizedBox(width: 8),
         _buildInkCheck(
           ref,
@@ -258,6 +283,7 @@ class OffsetSection extends ConsumerWidget {
           'Especial',
           Colors.deepPurple,
           data['especial'],
+          modoProd,
         ),
         _buildInkCheck(
           ref,
@@ -266,6 +292,7 @@ class OffsetSection extends ConsumerWidget {
           'Pantone',
           Colors.orange,
           data['pantone'],
+          modoProd,
         ),
 
         // El cuadro de texto aparece solo si marcan Especial o Pantone
@@ -276,19 +303,30 @@ class OffsetSection extends ConsumerWidget {
             child: TextFormField(
               key: ValueKey("offset_tinta_esp_${caraKey}_$sessionKey"),
               initialValue: data['tinta_esp'] ?? '',
-              onChanged: (v) => ref
-                  .read(ordenTrabajoProvider)
-                  .updateOffsetInk(caraKey, 'tinta_esp', v),
-              decoration: const InputDecoration(
+              readOnly: modoProd,
+              onChanged: modoProd
+                  ? null
+                  : (v) => ref
+                      .read(ordenTrabajoProvider)
+                      .updateOffsetInk(caraKey, 'tinta_esp', v),
+              decoration: InputDecoration(
                 hintText: "Especifique tinta...",
                 isDense: true,
-                border: OutlineInputBorder(),
+                filled: modoProd,
+                fillColor: modoProd ? Colors.grey[100] : Colors.white,
+                border: const OutlineInputBorder(),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: modoProd ? Colors.grey[300]! : Colors.grey[400]!,
+                  ),
+                ),
               ),
-              style: const TextStyle(fontSize: 12),
+              style: TextStyle(
+                fontSize: 12,
+                color: modoProd ? Colors.black54 : Colors.black,
+              ),
             ),
           ),
-        // --- BOTONES (OCULTOS) ---
-        // Usamos Visibility con false para que no ocupen espacio ni se vean
       ],
     );
   }
@@ -301,6 +339,7 @@ class OffsetSection extends ConsumerWidget {
     String label,
     Color color,
     bool value,
+    bool modoProd,
   ) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -308,15 +347,16 @@ class OffsetSection extends ConsumerWidget {
         Checkbox(
           value: value,
           activeColor: color,
-          onChanged: (v) =>
-              ref.read(ordenTrabajoProvider).updateOffsetInk(cara, colorKey, v),
+          onChanged: modoProd
+              ? null // <--- DESACTIVADO EN PRODUCCIÓN
+              : (v) => ref.read(ordenTrabajoProvider).updateOffsetInk(cara, colorKey, v),
         ),
         Text(
           label,
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
-            color: color,
+            color: modoProd ? color.withOpacity(0.6) : color,
           ),
         ),
       ],

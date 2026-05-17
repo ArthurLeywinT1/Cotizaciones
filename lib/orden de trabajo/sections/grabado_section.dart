@@ -39,7 +39,7 @@ class GrabadoSection extends ConsumerWidget {
               "Nombre del proyecto de grabado...",
               controller.grabadoProyecto,
               "grabado_proyecto_${controller.sessionKey}",
-              readOnly: true,
+              readOnly: modoProduccion, // <--- DINÁMICO EN PRODUCCIÓN
               onChanged: (v) =>
                   ref.read(ordenTrabajoProvider).updateGrabado('proyecto', v),
             ),
@@ -55,7 +55,7 @@ class GrabadoSection extends ConsumerWidget {
                     "Descripción de placas...",
                     controller.grabadoPlacas,
                     "grabado_placas_${controller.sessionKey}",
-                    readOnly: true,
+                    readOnly: modoProduccion, // <--- DINÁMICO EN PRODUCCIÓN
                     onChanged: (v) => ref
                         .read(ordenTrabajoProvider)
                         .updateGrabado('placas', v),
@@ -72,7 +72,7 @@ class GrabadoSection extends ConsumerWidget {
                         : "",
                     "grabado_piezas_${controller.sessionKey}",
                     esNumero: true,
-                    readOnly: true,
+                    readOnly: modoProduccion, // <--- DINÁMICO EN PRODUCCIÓN
                     onChanged: (v) => ref
                         .read(ordenTrabajoProvider)
                         .updateGrabado('piezas', v),
@@ -99,16 +99,20 @@ class GrabadoSection extends ConsumerWidget {
                 _buildCheck(
                   "Romosso",
                   controller.grabadoEsRomosso,
-                  (v) => ref
-                      .read(ordenTrabajoProvider)
-                      .updateGrabado('romosso', v!),
+                  modoProduccion
+                      ? null // <--- DESACTIVADO EN PRODUCCIÓN
+                      : (v) => ref
+                          .read(ordenTrabajoProvider)
+                          .updateGrabado('romosso', v!),
                 ),
                 _buildCheck(
                   "Maquilador",
                   controller.grabadoEsMaquilador,
-                  (v) => ref
-                      .read(ordenTrabajoProvider)
-                      .updateGrabado('maquilador', v!),
+                  modoProduccion
+                      ? null // <--- DESACTIVADO EN PRODUCCIÓN
+                      : (v) => ref
+                          .read(ordenTrabajoProvider)
+                          .updateGrabado('maquilador', v!),
                 ),
 
                 // Cuadro de texto condicional que aparece si es Maquilador
@@ -120,16 +124,29 @@ class GrabadoSection extends ConsumerWidget {
                         "grabado_nombre_maquila_${controller.sessionKey}",
                       ),
                       initialValue: controller.grabadoNombreMaquila,
-                      onChanged: (v) => ref
-                          .read(ordenTrabajoProvider)
-                          .updateGrabado('nombreMaquila', v),
-                      decoration: const InputDecoration(
+                      readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+                      onChanged: modoProduccion
+                          ? null
+                          : (v) => ref
+                              .read(ordenTrabajoProvider)
+                              .updateGrabado('nombreMaquila', v),
+                      decoration: InputDecoration(
                         labelText: "Nombre de quien maquila",
                         isDense: true,
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.handyman, size: 18),
+                        filled: modoProduccion,
+                        fillColor: modoProduccion ? Colors.grey[100] : null,
+                        border: const OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: modoProduccion ? Colors.grey[300]! : Colors.grey[400]!,
+                          ),
+                        ),
+                        prefixIcon: const Icon(Icons.handyman, size: 18),
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: modoProduccion ? Colors.black54 : Colors.black,
+                      ),
                     ),
                   ),
               ],
@@ -153,30 +170,37 @@ class GrabadoSection extends ConsumerWidget {
               key: ValueKey("grabado_notas_extras_${controller.sessionKey}"),
               initialValue: controller.grabadoNotas,
               maxLines: 3,
-              onChanged: (v) =>
-                  ref.read(ordenTrabajoProvider).updateGrabado('notas', v),
+              readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+              onChanged: modoProduccion
+                  ? null
+                  : (v) => ref.read(ordenTrabajoProvider).updateGrabado('notes', v),
               decoration: InputDecoration(
-                hintText:
-                    "Escribe aquí cualquier instrucción adicional, cuidado especial, o detalle extra para el área de grabado...",
+                hintText: modoProduccion
+                    ? "Sin notas o especificaciones adicionales de grabado"
+                    : "Escribe aquí cualquier instrucción adicional, cuidado especial, o detalle extra para el área de grabado...",
                 isDense: true,
                 filled: true,
-                fillColor: Colors.yellow[50],
+                fillColor: modoProduccion ? Colors.grey[100] : Colors.yellow[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: Colors.yellow[600]!,
+                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: Colors.yellow[600]!,
+                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
               ),
-              style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
+              style: TextStyle(
+                fontSize: 13, 
+                fontStyle: FontStyle.italic,
+                color: modoProduccion ? Colors.black54 : Colors.black,
+              ),
             ),
 
             if (modoProduccion) ...[
@@ -224,22 +248,26 @@ class GrabadoSection extends ConsumerWidget {
             hintText: hint,
             isDense: true,
             filled: readOnly,
-            fillColor: readOnly ? Colors.grey[200] : Colors.white,
+            fillColor: readOnly ? Colors.grey[100] : Colors.white,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: readOnly ? Colors.grey[300]! : Colors.grey[400]!,
+              ),
+            ),
           ),
           style: TextStyle(
             fontSize: 13,
             color: readOnly ? Colors.black54 : Colors.black,
           ),
         ),
-        // --- BOTONES (OCULTOS) ---
-        // Usamos Visibility con false para que no ocupen espacio ni se vean
       ],
     );
   }
 
   // Helper para Checkboxes
-  Widget _buildCheck(String label, bool value, Function(bool?) onChanged) {
+  Widget _buildCheck(String label, bool value, Function(bool?)? onChanged) {
     return Padding(
       padding: const EdgeInsets.only(right: 16),
       child: Row(
@@ -247,7 +275,11 @@ class GrabadoSection extends ConsumerWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              fontSize: 13, 
+              fontWeight: FontWeight.w500,
+              color: onChanged == null ? Colors.black54 : Colors.black,
+            ),
           ),
           Checkbox(
             value: value,

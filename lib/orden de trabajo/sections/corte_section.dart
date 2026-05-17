@@ -50,8 +50,11 @@ class CorteSection extends ConsumerWidget {
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.red[50],
-                    border: Border.all(color: Colors.red[200]!),
+                    // Mutación de color a gris en modo producción
+                    color: modoProduccion ? Colors.grey[100] : Colors.red[50],
+                    border: Border.all(
+                      color: modoProduccion ? Colors.grey[300]! : Colors.red[200]!,
+                    ),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Column(
@@ -78,14 +81,16 @@ class CorteSection extends ConsumerWidget {
                                     "corte_tipo_${cut.id}_${controller.sessionKey}",
                                   ),
                                   initialValue: cut.tipo,
+                                  readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
                                   decoration: const InputDecoration(
                                     hintText: "Ej: Tarjetas, Volantes...",
                                     isDense: true,
                                     border: InputBorder.none,
                                   ),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
+                                    color: modoProduccion ? Colors.black54 : Colors.black,
                                   ),
                                   onChanged: (v) => cut.tipo = v,
                                 ),
@@ -95,7 +100,7 @@ class CorteSection extends ConsumerWidget {
                           Container(
                             height: 30,
                             width: 1,
-                            color: Colors.red[200],
+                            color: modoProduccion ? Colors.grey[300] : Colors.red[200],
                             margin: const EdgeInsets.symmetric(horizontal: 8),
                           ),
 
@@ -118,14 +123,15 @@ class CorteSection extends ConsumerWidget {
                                     "corte_momento_${cut.id}_${controller.sessionKey}",
                                   ),
                                   initialValue: cut.despuesDe,
+                                  readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
                                   decoration: const InputDecoration(
                                     hintText: "Ej: Antes de Offset, Final...",
                                     isDense: true,
                                     border: InputBorder.none,
                                   ),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 13,
-                                    color: Colors.red,
+                                    color: modoProduccion ? Colors.grey[600] : Colors.red,
                                   ),
                                   onChanged: (v) => cut.despuesDe = v,
                                 ),
@@ -133,21 +139,23 @@ class CorteSection extends ConsumerWidget {
                             ),
                           ),
 
-                          // BOTÓN DE BORRAR
-                          IconButton(
-                            icon: const Icon(
-                              Icons.delete,
-                              color: Colors.redAccent,
-                              size: 20,
+                          // BOTÓN DE BORRAR (Oculto en modo producción)
+                          if (!modoProduccion)
+                            IconButton(
+                              icon: const Icon(
+                                Icons.delete,
+                                color: Colors.redAccent,
+                                size: 20,
+                              ),
+                              tooltip: "Borrar corte",
+                              onPressed: () => controller.removeCut(cut.id),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
                             ),
-                            tooltip: "Borrar corte",
-                            onPressed: () => controller.removeCut(cut.id),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                          ),
                         ],
                       ),
                       const Divider(height: 8, thickness: 0.5),
+                      
                       // CAMPO 3: DESCRIPCIÓN Y MEDIDAS
                       Row(
                         children: [
@@ -157,13 +165,17 @@ class CorteSection extends ConsumerWidget {
                                 "corte_desc_${cut.id}_${controller.sessionKey}",
                               ),
                               initialValue: cut.desc,
+                              readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
                               decoration: const InputDecoration(
                                 hintText:
                                     "Medidas finales y descripción del corte (Ej: Refile a marcas de 9x5 cm)...",
                                 isDense: true,
                                 border: InputBorder.none,
                               ),
-                              style: const TextStyle(fontSize: 13),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: modoProduccion ? Colors.black54 : Colors.black,
+                              ),
                               onChanged: (v) => cut.desc = v,
                             ),
                           ),
@@ -177,18 +189,19 @@ class CorteSection extends ConsumerWidget {
 
             const SizedBox(height: 8),
 
-            // Botón para agregar más cortes
-            TextButton.icon(
-              onPressed: () => controller.addCut(),
-              icon: const Icon(Icons.add_circle_outline, color: Colors.red),
-              label: const Text(
-                "Agregar Proceso de Corte",
-                style: TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.bold,
+            // Botón para agregar más cortes (Oculto en modo producción)
+            if (!modoProduccion)
+              TextButton.icon(
+                onPressed: () => controller.addCut(),
+                icon: const Icon(Icons.add_circle_outline, color: Colors.red),
+                label: const Text(
+                  "Agregar Proceso de Corte",
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
 
             const SizedBox(height: 16),
             const Divider(height: 1, thickness: 0.5),
@@ -208,33 +221,39 @@ class CorteSection extends ConsumerWidget {
               key: ValueKey("corte_notas_extras_${controller.sessionKey}"),
               initialValue: controller.corteNotas,
               maxLines: 3,
-              onChanged: (v) =>
-                  ref.read(ordenTrabajoProvider).updateCorte('notas', v),
+              readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+              onChanged: modoProduccion
+                  ? null
+                  : (v) => ref.read(ordenTrabajoProvider).updateCorte('notas', v),
               decoration: InputDecoration(
-                hintText:
-                    "Escribe aquí instrucciones para el guillotino, como el margen de pinza, sangrados, etc...",
+                hintText: modoProduccion
+                    ? "Sin notas o especificaciones adicionales para el corte"
+                    : "Escribe aquí instrucciones para el guillotino, como el margen de pinza, sangrados, etc...",
                 isDense: true,
                 filled: true,
-                fillColor: Colors.yellow[50],
+                fillColor: modoProduccion ? Colors.grey[100] : Colors.yellow[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: Colors.yellow[600]!,
+                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: Colors.yellow[600]!,
+                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
               ),
-              style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
+              style: TextStyle(
+                fontSize: 13, 
+                fontStyle: FontStyle.italic,
+                color: modoProduccion ? Colors.black54 : Colors.black,
+              ),
             ),
-            // --- BOTONES (OCULTOS) ---
-            // Usamos Visibility con false para que no ocupen espacio ni se vean
+
             if (modoProduccion) ...[
               const Divider(height: 32, thickness: 1),
               SectionButtons(
