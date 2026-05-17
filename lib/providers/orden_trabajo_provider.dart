@@ -54,6 +54,29 @@ class AcabadoManualItem {
   AcabadoManualItem({required this.id, this.desc = '', this.piezas = ''});
 }
 
+class TiempoProceso {
+  String estatus;
+  String? inicio;
+  String? fin;
+
+  TiempoProceso({this.estatus = 'Pendiente', this.inicio, this.fin});
+
+  Map<String, dynamic> toJson() => {
+    'estatus': estatus,
+    'inicio': inicio,
+    'fin': fin,
+  };
+
+  factory TiempoProceso.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return TiempoProceso();
+    return TiempoProceso(
+      estatus: json['estatus'] ?? 'Pendiente',
+      inicio: json['inicio'],
+      fin: json['fin'],
+    );
+  }
+}
+
 // ==========================================
 // 2. EL CONTROLADOR (El que maneja la lógica)
 // ==========================================
@@ -82,9 +105,59 @@ class OrdenTrabajoController extends ChangeNotifier {
     'logistica': true,
   };
 
+  Map<String, TiempoProceso> tiempos = {
+    'adquisiciones': TiempoProceso(),
+    'diseno': TiempoProceso(),
+    'offset': TiempoProceso(),
+    'corte': TiempoProceso(),
+    'laminados': TiempoProceso(),
+    'suaje': TiempoProceso(),
+    'grabado': TiempoProceso(),
+    'serigrafia': TiempoProceso(),
+    'acabado': TiempoProceso(),
+    'barniz': TiempoProceso(),
+    'embalaje': TiempoProceso(),
+    'logistica': TiempoProceso(),
+  };
+
   void toggleSection(String section) {
     activeSections[section] = !activeSections[section]!;
     notifyListeners();
+  }
+
+  String _normalizarKey(String seccion) {
+    String s = seccion.toLowerCase().trim();
+    if (s == 'diseño' || s == 'pre-prensa') return 'diseno';
+    return s;
+  }
+
+  Future<void> iniciarProceso(String seccion) async {
+    final key = _normalizarKey(seccion);
+    if (tiempos.containsKey(key)) {
+      tiempos[key]!.estatus = 'Inicio';
+      tiempos[key]!.inicio ??= DateTime.now().toIso8601String();
+      notifyListeners();
+      await guardarOrdenTrabajo();
+    }
+  }
+
+  Future<void> terminarProceso(String seccion) async {
+    final key = _normalizarKey(seccion);
+    if (tiempos.containsKey(key)) {
+      tiempos[key]!.estatus = 'Fin';
+      tiempos[key]!.fin = DateTime.now().toIso8601String();
+      notifyListeners();
+      await guardarOrdenTrabajo();
+    }
+  }
+
+  Future<void> marcarIncidenteProceso(String seccion) async {
+    final key = _normalizarKey(seccion);
+    if (tiempos.containsKey(key)) {
+      tiempos[key]!.estatus = 'Incidente';
+      notifyListeners();
+      await guardarOrdenTrabajo();
+    }
   }
 
   Future<void> cargarDatosPorId(String id, WidgetRef ref) async {
@@ -121,6 +194,13 @@ class OrdenTrabajoController extends ChangeNotifier {
   void _cargarDesdeBaseDeDatos(Map<String, dynamic> dbData) {
     if (dbData['activeSections'] != null) {
       activeSections = Map<String, bool>.from(dbData['activeSections']);
+    }
+
+    final seccionesKeys = tiempos.keys.toList();
+    for (var key in seccionesKeys) {
+      if (dbData[key] != null) {
+        tiempos[key] = TiempoProceso.fromJson(dbData[key]);
+      }
     }
 
     if (dbData['adquisiciones'] != null) {
@@ -286,6 +366,10 @@ class OrdenTrabajoController extends ChangeNotifier {
     if (cotizacion == null) return;
 
     orderId = cotizacion.folio ?? "S/F";
+
+    for (var key in tiempos.keys) {
+      tiempos[key] = TiempoProceso();
+    }
 
     materials.clear();
     int matIdCounter = 0;
@@ -457,6 +541,8 @@ class OrdenTrabajoController extends ChangeNotifier {
         }
       }
 
+      disenoNotas = 'Revisar archivos para: ${cotizacion.descripcion}';
+
       offsetTipoTrabajo = cotizacion.descripcion;
       offsetPiezasPedidas = cotizacion.cantidadImpresiones;
 
@@ -479,23 +565,27 @@ class OrdenTrabajoController extends ChangeNotifier {
       offsetPapelNecesario = (cantidadPliegos + pliegosSobrantes).toString();
       offsetPapelLlegara = totalPliegos.toString();
 
-      if (cotizacion.configMaquina != null &&
-          cotizacion.configMaquina!["interior"] != null) {
-        final mq = cotizacion.configMaquina!["interior"];
-
-        int fte = int.tryParse(mq['tintasFte']?.toString() ?? '0') ?? 0;
-        int rev = int.tryParse(mq['tintasRev']?.toString() ?? '0') ?? 0;
-
-        offsetData['frente']?['K'] = fte > 0;
-        offsetData['frente']?['C'] = fte > 1;
-        offsetData['frente']?['M'] = fte > 2;
-        offsetData['frente']?['Y'] = fte > 3;
-
-        offsetData['vuelta']?['K'] = rev > 0;
-        offsetData['vuelta']?['C'] = rev > 1;
-        offsetData['vuelta']?['M'] = rev > 2;
-        offsetData['vuelta']?['Y'] = rev > 3;
-      }
+      offsetNotas = '';
+      offsetData = {
+        'frente': {
+          'C': false,
+          'M': false,
+          'Y': false,
+          'K': false,
+          'especial': false,
+          'pantone': false,
+          'tinta_esp': '',
+        },
+        'vuelta': {
+          'C': false,
+          'M': false,
+          'Y': false,
+          'K': false,
+          'especial': false,
+          'pantone': false,
+          'tinta_esp': '',
+        },
+      };
 
       laminadoProyecto = cotizacion.descripcion;
       laminadoAcabado = 'Brillante';
@@ -508,6 +598,8 @@ class OrdenTrabajoController extends ChangeNotifier {
             detalles.forEach((key, val) {
               if (val["frente"] == true) laminadoAplicacion['frente'] = true;
               if (val["vuelta"] == true) laminadoAplicacion['vuelta'] = true;
+              if (val["frente"] == true || val["vuelta"] == true)
+                laminadoNotas += "- $key\n";
             });
           }
         }
@@ -518,7 +610,9 @@ class OrdenTrabajoController extends ChangeNotifier {
       barnizEsRomosso = true;
       barnizEsMaquilador = false;
       barnizNombreMaquila = '';
+      barnizNotas = '';
       barnizAplicacion = {'frente': false, 'vuelta': false};
+
       if (cotizacion.configAcabados != null) {
         final acInt = cotizacion.configAcabados!["interior"];
         if (acInt != null && acInt["barnizUV"] == true) {
@@ -527,6 +621,8 @@ class OrdenTrabajoController extends ChangeNotifier {
             detalles.forEach((key, val) {
               if (val["frente"] == true) barnizAplicacion['frente'] = true;
               if (val["vuelta"] == true) barnizAplicacion['vuelta'] = true;
+              if (val["frente"] == true || val["vuelta"] == true)
+                barnizNotas += "- $key\n";
             });
           }
         }
@@ -581,19 +677,6 @@ class OrdenTrabajoController extends ChangeNotifier {
               ),
             );
           }
-        }
-      }
-
-      if (cotizacion.configEmbalaje != null &&
-          cotizacion.configEmbalaje!["embalajeActivo"] == true) {
-        final em = cotizacion.configEmbalaje!["items"] as List?;
-        if (em != null && em.isNotEmpty) {
-          embalajeTipo = em.map((e) => e["item"].toString()).join(", ");
-          int totalCajas = 0;
-          for (var item in em)
-            totalCajas +=
-                int.tryParse(item["cantidad"]?.toString() ?? "0") ?? 0;
-          embalajeCantidadCajas = totalCajas;
         }
       }
 
@@ -657,7 +740,6 @@ class OrdenTrabajoController extends ChangeNotifier {
   String offsetPapelNecesario = '';
   String offsetPapelLlegara = '';
   String offsetNotas = '';
-
   Map<String, dynamic> offsetData = {
     'frente': {
       'C': false,
@@ -754,7 +836,6 @@ class OrdenTrabajoController extends ChangeNotifier {
     if (campo == 'pliegos') suajePliegos = int.tryParse(valor.toString()) ?? 0;
     if (campo == 'nombreMaquila') suajeNombreMaquila = valor;
     if (campo == 'notas') suajeNotas = valor;
-
     if (campo == 'romosso') {
       suajeEsRomosso = valor;
       if (valor) suajeEsMaquilador = false;
@@ -771,7 +852,6 @@ class OrdenTrabajoController extends ChangeNotifier {
       suajeMarcoNuevo = valor;
       if (valor) suajeMarcoExistente = false;
     }
-
     notifyListeners();
   }
 
@@ -796,7 +876,6 @@ class OrdenTrabajoController extends ChangeNotifier {
     if (campo == 'marcos') serigrafiaMarcos = valor;
     if (campo == 'nombreMaquila') serigrafiaNombreMaquila = valor;
     if (campo == 'notas') serigrafiaNotas = valor;
-
     if (campo == 'marcoExistente') {
       serigrafiaMarcoExistente = valor;
       if (valor) serigrafiaMarcoNuevo = false;
@@ -813,7 +892,6 @@ class OrdenTrabajoController extends ChangeNotifier {
       serigrafiaEsMaquilador = valor;
       if (valor) serigrafiaEsRomosso = false;
     }
-
     notifyListeners();
   }
 
@@ -847,7 +925,6 @@ class OrdenTrabajoController extends ChangeNotifier {
     if (campo == 'piezas') grabadoPiezas = int.tryParse(valor.toString()) ?? 0;
     if (campo == 'nombreMaquila') grabadoNombreMaquila = valor;
     if (campo == 'notas') grabadoNotas = valor;
-
     if (campo == 'romosso') {
       grabadoEsRomosso = valor;
       if (valor) grabadoEsMaquilador = false;
@@ -856,7 +933,6 @@ class OrdenTrabajoController extends ChangeNotifier {
       grabadoEsMaquilador = valor;
       if (valor) grabadoEsRomosso = false;
     }
-
     notifyListeners();
   }
 
@@ -900,7 +976,6 @@ class OrdenTrabajoController extends ChangeNotifier {
     if (campo == 'pliegos') barnizPliegos = int.tryParse(valor.toString()) ?? 0;
     if (campo == 'nombreMaquila') barnizNombreMaquila = valor;
     if (campo == 'notas') barnizNotas = valor;
-
     if (campo == 'romosso') {
       barnizEsRomosso = valor;
       if (valor) barnizEsMaquilador = false;
@@ -954,6 +1029,9 @@ class OrdenTrabajoController extends ChangeNotifier {
       final datosCompletos = {
         "activeSections": activeSections,
         "adquisiciones": {
+          "estatus": tiempos['adquisiciones']?.estatus,
+          "inicio": tiempos['adquisiciones']?.inicio,
+          "fin": tiempos['adquisiciones']?.fin,
           "notas": adquisicionesNotas,
           "materiales": materials
               .map(
@@ -966,10 +1044,16 @@ class OrdenTrabajoController extends ChangeNotifier {
               .toList(),
         },
         "diseno": {
+          "estatus": tiempos['diseno']?.estatus,
+          "inicio": tiempos['diseno']?.inicio,
+          "fin": tiempos['diseno']?.fin,
           "notas": disenoNotas,
           "tareas": designTasks.map((t) => {"desc": t.desc}).toList(),
         },
         "offset": {
+          "estatus": tiempos['offset']?.estatus,
+          "inicio": tiempos['offset']?.inicio,
+          "fin": tiempos['offset']?.fin,
           "tipoTrabajo": offsetTipoTrabajo,
           "piezasPedidas": offsetPiezasPedidas,
           "papelNecesario": offsetPapelNecesario,
@@ -978,6 +1062,9 @@ class OrdenTrabajoController extends ChangeNotifier {
           "notas": offsetNotas,
         },
         "corte": {
+          "estatus": tiempos['corte']?.estatus,
+          "inicio": tiempos['corte']?.inicio,
+          "fin": tiempos['corte']?.fin,
           "notas": corteNotas,
           "procesos": cuts
               .map(
@@ -991,6 +1078,9 @@ class OrdenTrabajoController extends ChangeNotifier {
               .toList(),
         },
         "laminados": {
+          "estatus": tiempos['laminados']?.estatus,
+          "inicio": tiempos['laminados']?.inicio,
+          "fin": tiempos['laminados']?.fin,
           "proyecto": laminadoProyecto,
           "acabado": laminadoAcabado,
           "pliegos": laminadoPliegos,
@@ -1000,6 +1090,9 @@ class OrdenTrabajoController extends ChangeNotifier {
           "notas": laminadoNotas,
         },
         "suaje": {
+          "estatus": tiempos['suaje']?.estatus,
+          "inicio": tiempos['suaje']?.inicio,
+          "fin": tiempos['suaje']?.fin,
           "proyecto": suajeProyecto,
           "pliegos": suajePliegos,
           "esRomosso": suajeEsRomosso,
@@ -1010,6 +1103,9 @@ class OrdenTrabajoController extends ChangeNotifier {
           "notas": suajeNotas,
         },
         "serigrafia": {
+          "estatus": tiempos['serigrafia']?.estatus,
+          "inicio": tiempos['serigrafia']?.inicio,
+          "fin": tiempos['serigrafia']?.fin,
           "proyecto": serigrafiaProyecto,
           "piezas": serigrafiaPiezas,
           "marcos": serigrafiaMarcos,
@@ -1024,6 +1120,9 @@ class OrdenTrabajoController extends ChangeNotifier {
           "notas": serigrafiaNotas,
         },
         "grabado": {
+          "estatus": tiempos['grabado']?.estatus,
+          "inicio": tiempos['grabado']?.inicio,
+          "fin": tiempos['grabado']?.fin,
           "proyecto": grabadoProyecto,
           "placas": grabadoPlacas,
           "piezas": grabadoPiezas,
@@ -1033,6 +1132,9 @@ class OrdenTrabajoController extends ChangeNotifier {
           "notas": grabadoNotas,
         },
         "acabado": {
+          "estatus": tiempos['acabado']?.estatus,
+          "inicio": tiempos['acabado']?.inicio,
+          "fin": tiempos['acabado']?.fin,
           "proyecto": acabadoProyecto,
           "descripcionBD": acabadoDescripcion,
           "cantidadBD": acabadoCantidad,
@@ -1042,6 +1144,9 @@ class OrdenTrabajoController extends ChangeNotifier {
               .toList(),
         },
         "barniz": {
+          "estatus": tiempos['barniz']?.estatus,
+          "inicio": tiempos['barniz']?.inicio,
+          "fin": tiempos['barniz']?.fin,
           "proyecto": barnizProyecto,
           "pliegos": barnizPliegos,
           "aplicacion": barnizAplicacion,
@@ -1051,11 +1156,17 @@ class OrdenTrabajoController extends ChangeNotifier {
           "notas": barnizNotas,
         },
         "embalaje": {
+          "estatus": tiempos['embalaje']?.estatus,
+          "inicio": tiempos['embalaje']?.inicio,
+          "fin": tiempos['embalaje']?.fin,
           "tipo": embalajeTipo,
           "cantidadCajas": embalajeCantidadCajas,
           "notas": embalajeNotas,
         },
         "logistica": {
+          "estatus": tiempos['logistica']?.estatus,
+          "inicio": tiempos['logistica']?.inicio,
+          "fin": tiempos['logistica']?.fin,
           "fechaEntrega": logisticaFechaEntrega,
           "direccion": logisticaDireccion,
           "transporte": logisticaTransporte,
@@ -1064,11 +1175,27 @@ class OrdenTrabajoController extends ChangeNotifier {
         },
       };
 
+      DateTime? fechaEntregaNativa;
+      if (logisticaFechaEntrega.isNotEmpty) {
+        try {
+          final partes = logisticaFechaEntrega.split('/');
+          if (partes.length == 3) {
+            int dia = int.parse(partes[0]);
+            int mes = int.parse(partes[1]);
+            int anio = int.parse(partes[2]);
+            fechaEntregaNativa = DateTime(anio, mes, dia);
+          }
+        } catch (e) {
+          print("Aviso: No se pudo parsear la fecha de entrega a DateTime: $e");
+        }
+      }
+
       final orden = OrdenTrabajo(
         id: ordenTrabajoDbId,
         cotizacionId: currentCotizacionId,
         estatus: 'En Proceso',
         datosCompletos: datosCompletos,
+        fechaEntrega: fechaEntregaNativa,
       );
 
       bool exito;

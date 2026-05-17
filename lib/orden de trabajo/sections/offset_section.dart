@@ -5,7 +5,8 @@ import '../../providers/orden_trabajo_provider.dart';
 import 'section_buttons.dart';
 
 class OffsetSection extends ConsumerWidget {
-  const OffsetSection({super.key});
+  final bool modoProduccion;
+  const OffsetSection({super.key, this.modoProduccion = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -162,6 +163,14 @@ class OffsetSection extends ConsumerWidget {
               ),
               style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
             ),
+
+            if (modoProduccion) ...[
+              const Divider(height: 32, thickness: 1),
+              SectionButtons(
+                area: 'offset',
+                ordenTrabajoId: controller.ordenTrabajoDbId ?? '',
+              ),
+            ],
           ],
         ),
       ),
@@ -278,12 +287,8 @@ class OffsetSection extends ConsumerWidget {
               style: const TextStyle(fontSize: 12),
             ),
           ),
-          // --- BOTONES (OCULTOS) ---
-            // Usamos Visibility con false para que no ocupen espacio ni se vean
-            const Visibility(
-              visible: false, 
-              child: SectionButtons(),
-            ),
+        // --- BOTONES (OCULTOS) ---
+        // Usamos Visibility con false para que no ocupen espacio ni se vean
       ],
     );
   }

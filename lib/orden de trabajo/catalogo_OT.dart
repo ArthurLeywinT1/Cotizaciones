@@ -5,6 +5,7 @@ import '../widgets/boton.dart';
 import '../widgets/tabla.dart';
 import '../orden de trabajo/ordenTrabajo.dart';
 import '../screens/modals/incidente_admin.dart';
+import '../orden de trabajo/iniciarOrden.dart';
 
 class CatalogoOTScreen extends ConsumerWidget {
   const CatalogoOTScreen({super.key});
@@ -85,10 +86,10 @@ class CatalogoOTScreen extends ConsumerWidget {
                       DataColumn(label: Text('Inicio Adq.')),
                       DataColumn(label: Text('Fin Adq.')),
 
-                      DataColumn(label: Text('Estatus PrePrensa')),
-                      DataColumn(label: Text('Incidente PrePrensa')),
-                      DataColumn(label: Text('Inicio PrePrensa')),
-                      DataColumn(label: Text('Fin PrePrensa')),
+                      DataColumn(label: Text('Estatus Diseño')),
+                      DataColumn(label: Text('Incidente Diseño')),
+                      DataColumn(label: Text('Inicio Diseño')),
+                      DataColumn(label: Text('Fin Diseño')),
 
                       DataColumn(label: Text('Estatus Offset')),
                       DataColumn(label: Text('Incidente Offset')),
@@ -110,10 +111,25 @@ class CatalogoOTScreen extends ConsumerWidget {
                       DataColumn(label: Text('Inicio Suaje')),
                       DataColumn(label: Text('Fin Suaje')),
 
+                      DataColumn(label: Text('Estatus Serigrafía')),
+                      DataColumn(label: Text('Incidente Serigrafía')),
+                      DataColumn(label: Text('Inicio Serigrafía')),
+                      DataColumn(label: Text('Fin Serigrafía')),
+
+                      DataColumn(label: Text('Estatus Grabado')),
+                      DataColumn(label: Text('Incidente Grabado')),
+                      DataColumn(label: Text('Inicio Grabado')),
+                      DataColumn(label: Text('Fin Grabado')),
+
                       DataColumn(label: Text('Estatus Acabado')),
                       DataColumn(label: Text('Incidente Acabado')),
                       DataColumn(label: Text('Inicio Acabado')),
                       DataColumn(label: Text('Fin Acabado')),
+
+                      DataColumn(label: Text('Estatus Barniz')),
+                      DataColumn(label: Text('Incidente Barniz')),
+                      DataColumn(label: Text('Inicio Barniz')),
+                      DataColumn(label: Text('Fin Barniz')),
 
                       DataColumn(label: Text('Estatus Embalaje')),
                       DataColumn(label: Text('Incidente Embalaje')),
@@ -131,11 +147,75 @@ class CatalogoOTScreen extends ConsumerWidget {
                           otSeleccionada['ot_id'] == orden['ot_id'];
 
                       String formatearFecha(dynamic fecha) {
-                        if (fecha == null) return '-';
+                        if (fecha == null || fecha.toString().isEmpty)
+                          return '-';
                         if (fecha is DateTime) {
-                          return '${fecha.day}/${fecha.month}/${fecha.year}';
+                          return '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${fecha.year}';
                         }
-                        return fecha.toString().split(' ')[0];
+                        try {
+                          final parsed = DateTime.parse(fecha.toString());
+                          return '${parsed.day.toString().padLeft(2, '0')}/${parsed.month.toString().padLeft(2, '0')}/${parsed.year}';
+                        } catch (e) {
+                          return fecha.toString().split(' ')[0];
+                        }
+                      }
+
+                      Widget widgetEstatus(String? estatus) {
+                        final val = estatus ?? 'Pendiente';
+                        Color textColor = Colors.grey.shade700;
+                        Color bgColor = Colors.transparent;
+
+                        if (val == 'Inicio') {
+                          textColor = Colors.blue.shade700;
+                          bgColor = Colors.blue.shade50;
+                        } else if (val == 'Fin') {
+                          textColor = Colors.green.shade700;
+                          bgColor = Colors.green.shade50;
+                        } else if (val == 'Incidente') {
+                          textColor = Colors.orange.shade800;
+                          bgColor = Colors.orange.shade50;
+                        }
+
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: bgColor,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            val,
+                            style: TextStyle(
+                              color: textColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        );
+                      }
+
+                      Widget widgetIncidente(String? estatus) {
+                        final val = estatus ?? '-';
+                        if (val == '-') {
+                          return const Text(
+                            '-',
+                            style: TextStyle(color: Colors.black87),
+                          );
+                        }
+
+                        Color color = Colors.black87;
+                        if (val == 'Pendiente') color = Colors.red;
+                        if (val == 'Resuelto') color = Colors.green;
+                        return Text(
+                          val,
+                          style: TextStyle(
+                            color: color,
+                            fontWeight: val != '-'
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
+                        );
                       }
 
                       return DataRow(
@@ -146,60 +226,113 @@ class CatalogoOTScreen extends ConsumerWidget {
                         },
                         cells: [
                           DataCell(Text(orden['folio'] ?? '-')),
-                          DataCell(Text(orden['no_orden'] ?? '')),
+                          DataCell(Text(orden['no_orden']?.toString() ?? '-')),
                           DataCell(
                             Text(formatearFecha(orden['fecha_creacion'])),
                           ),
                           DataCell(Text(orden['cliente'] ?? '-')),
                           DataCell(Text(orden['descripcion'] ?? '-')),
-                          DataCell(Text(orden['fecha_entrega'] ?? '')),
-
-                          DataCell(Text(orden['estatus_adquisiciones'] ?? '-')),
                           DataCell(
-                            Text(orden['incidente_adquisiciones'] ?? '-'),
+                            Text(formatearFecha(orden['fecha_entrega'])),
                           ),
-                          DataCell(Text(orden['inicio_adquisiciones'] ?? '-')),
-                          DataCell(Text(orden['fin_adquisiciones'] ?? '-')),
 
-                          DataCell(Text(orden['estatus_preprensa'] ?? '-')),
-                          DataCell(Text(orden['incidente_preprensa'] ?? '-')),
-                          DataCell(Text(orden['inicio_preprensa'] ?? '-')),
-                          DataCell(Text(orden['fin_preprensa'] ?? '-')),
+                          DataCell(
+                            widgetEstatus(orden['estatus_adquisiciones']),
+                          ),
+                          DataCell(
+                            widgetIncidente(orden['incidente_adquisiciones']),
+                          ),
+                          DataCell(
+                            Text(formatearFecha(orden['inicio_adquisiciones'])),
+                          ),
+                          DataCell(
+                            Text(formatearFecha(orden['fin_adquisiciones'])),
+                          ),
 
-                          DataCell(Text(orden['estatus_offset'] ?? '-')),
-                          DataCell(Text(orden['incidente_offset'] ?? '-')),
-                          DataCell(Text(orden['inicio_offset'] ?? '-')),
-                          DataCell(Text(orden['fin_offset'] ?? '-')),
+                          DataCell(widgetEstatus(orden['estatus_diseno'])),
+                          DataCell(widgetIncidente(orden['incidente_diseno'])),
+                          DataCell(
+                            Text(formatearFecha(orden['inicio_diseno'])),
+                          ),
+                          DataCell(Text(formatearFecha(orden['fin_diseno']))),
 
-                          DataCell(Text(orden['estatus_corte'] ?? '-')),
-                          DataCell(Text(orden['incidente_corte'] ?? '-')),
-                          DataCell(Text(orden['inicio_corte'] ?? '-')),
-                          DataCell(Text(orden['fin_corte'] ?? '-')),
+                          DataCell(widgetEstatus(orden['estatus_offset'])),
+                          DataCell(widgetIncidente(orden['incidente_offset'])),
+                          DataCell(
+                            Text(formatearFecha(orden['inicio_offset'])),
+                          ),
+                          DataCell(Text(formatearFecha(orden['fin_offset']))),
 
-                          DataCell(Text(orden['estatus_laminado'] ?? '-')),
-                          DataCell(Text(orden['incidente_laminado'] ?? '-')),
-                          DataCell(Text(orden['inicio_laminado'] ?? '-')),
-                          DataCell(Text(orden['fin_laminado'] ?? '-')),
+                          DataCell(widgetEstatus(orden['estatus_corte'])),
+                          DataCell(widgetIncidente(orden['incidente_corte'])),
+                          DataCell(Text(formatearFecha(orden['inicio_corte']))),
+                          DataCell(Text(formatearFecha(orden['fin_corte']))),
 
-                          DataCell(Text(orden['estatus_suaje'] ?? '-')),
-                          DataCell(Text(orden['incidente_suaje'] ?? '-')),
-                          DataCell(Text(orden['inicio_suaje'] ?? '-')),
-                          DataCell(Text(orden['fin_suaje'] ?? '-')),
+                          DataCell(widgetEstatus(orden['estatus_laminado'])),
+                          DataCell(
+                            widgetIncidente(orden['incidente_laminado']),
+                          ),
+                          DataCell(
+                            Text(formatearFecha(orden['inicio_laminado'])),
+                          ),
+                          DataCell(Text(formatearFecha(orden['fin_laminado']))),
 
-                          DataCell(Text(orden['estatus_acabado'] ?? '-')),
-                          DataCell(Text(orden['incidente_acabado'] ?? '-')),
-                          DataCell(Text(orden['inicio_acabado'] ?? '-')),
-                          DataCell(Text(orden['fin_acabado'] ?? '-')),
+                          DataCell(widgetEstatus(orden['estatus_suaje'])),
+                          DataCell(widgetIncidente(orden['incidente_suaje'])),
+                          DataCell(Text(formatearFecha(orden['inicio_suaje']))),
+                          DataCell(Text(formatearFecha(orden['fin_suaje']))),
 
-                          DataCell(Text(orden['estatus_embalaje'] ?? '-')),
-                          DataCell(Text(orden['incidente_embalaje'] ?? '-')),
-                          DataCell(Text(orden['inicio_embalaje'] ?? '-')),
-                          DataCell(Text(orden['fin_embalaje'] ?? '-')),
+                          DataCell(widgetEstatus(orden['estatus_serigrafia'])),
+                          DataCell(
+                            widgetIncidente(orden['incidente_serigrafia']),
+                          ),
+                          DataCell(
+                            Text(formatearFecha(orden['inicio_serigrafia'])),
+                          ),
+                          DataCell(
+                            Text(formatearFecha(orden['fin_serigrafia'])),
+                          ),
 
-                          DataCell(Text(orden['estatus_logistica'] ?? '-')),
-                          DataCell(Text(orden['incidente_logistica'] ?? '-')),
-                          DataCell(Text(orden['inicio_logistica'] ?? '-')),
-                          DataCell(Text(orden['fin_logistica'] ?? '-')),
+                          DataCell(widgetEstatus(orden['estatus_grabado'])),
+                          DataCell(widgetIncidente(orden['incidente_grabado'])),
+                          DataCell(
+                            Text(formatearFecha(orden['inicio_grabado'])),
+                          ),
+                          DataCell(Text(formatearFecha(orden['fin_grabado']))),
+
+                          DataCell(widgetEstatus(orden['estatus_acabado'])),
+                          DataCell(widgetIncidente(orden['incidente_acabado'])),
+                          DataCell(
+                            Text(formatearFecha(orden['inicio_acabado'])),
+                          ),
+                          DataCell(Text(formatearFecha(orden['fin_acabado']))),
+
+                          DataCell(widgetEstatus(orden['estatus_barniz'])),
+                          DataCell(widgetIncidente(orden['incidente_barniz'])),
+                          DataCell(
+                            Text(formatearFecha(orden['inicio_barniz'])),
+                          ),
+                          DataCell(Text(formatearFecha(orden['fin_barniz']))),
+
+                          DataCell(widgetEstatus(orden['estatus_embalaje'])),
+                          DataCell(
+                            widgetIncidente(orden['incidente_embalaje']),
+                          ),
+                          DataCell(
+                            Text(formatearFecha(orden['inicio_embalaje'])),
+                          ),
+                          DataCell(Text(formatearFecha(orden['fin_embalaje']))),
+
+                          DataCell(widgetEstatus(orden['estatus_logistica'])),
+                          DataCell(
+                            widgetIncidente(orden['incidente_logistica']),
+                          ),
+                          DataCell(
+                            Text(formatearFecha(orden['inicio_logistica'])),
+                          ),
+                          DataCell(
+                            Text(formatearFecha(orden['fin_logistica'])),
+                          ),
                         ],
                       );
                     }).toList(),
@@ -243,14 +376,44 @@ class CatalogoOTScreen extends ConsumerWidget {
                   },
                 ),
                 Boton(
+                  icon: Icons.play_circle_fill,
+                  label: "Iniciar Orden",
+                  onPressed: () {
+                    if (otSeleccionada != null &&
+                        otSeleccionada['cotizacion_id'] != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProduccionScreen(
+                            cotizacionId: otSeleccionada['cotizacion_id'],
+                            area: 'admin',
+                          ),
+                        ),
+                      ).then((_) {
+                        ref.read(catalogoOTProvider.notifier).cargarOrdenes();
+                      });
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Selecciona una Orden de Trabajo primero',
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                ),
+                Boton(
                   icon: Icons.warning_amber_rounded,
                   label: "Incidentes",
-                  isDestructive: true,
+                  isWarning: true,
                   onPressed: () {
                     showDialog(
                       context: context,
                       builder: (context) => const BandejaIncidentesDialog(),
-                    );
+                    ).then((_) {
+                      ref.read(catalogoOTProvider.notifier).cargarOrdenes();
+                    });
                   },
                 ),
                 Boton(

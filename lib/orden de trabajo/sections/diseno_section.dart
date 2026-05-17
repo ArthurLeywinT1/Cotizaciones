@@ -5,7 +5,8 @@ import '../../providers/orden_trabajo_provider.dart';
 import 'section_buttons.dart';
 
 class DisenoSection extends ConsumerWidget {
-  const DisenoSection({super.key});
+  final bool modoProduccion;
+  const DisenoSection({super.key, this.modoProduccion = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -154,10 +155,13 @@ class DisenoSection extends ConsumerWidget {
             ),
             // --- BOTONES (OCULTOS) ---
             // Usamos Visibility con false para que no ocupen espacio ni se vean
-            const Visibility(
-              visible: false, 
-              child: SectionButtons(),
-            ),
+            if (modoProduccion) ...[
+              const Divider(height: 32, thickness: 1),
+              SectionButtons(
+                area: 'diseño',
+                ordenTrabajoId: controller.ordenTrabajoDbId ?? '',
+              ),
+            ],
           ],
         ),
       ),
