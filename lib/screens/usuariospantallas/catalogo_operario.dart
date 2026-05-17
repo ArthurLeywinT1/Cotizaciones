@@ -71,15 +71,23 @@ class _TablaOperarioScreenState extends ConsumerState<TablaOperarioScreen> {
       );
     } else {
       contenidoTabla = Tabla(
-        columns: const [
-          DataColumn(label: Text('Folio')),
-          DataColumn(label: Text('No. Orden')),
-          DataColumn(label: Text('Fecha Creación')),
-          DataColumn(label: Text('Cliente')),
-          DataColumn(label: Text('Descripción')),
-          DataColumn(label: Text('Fecha Entrega')),
-          DataColumn(label: Text('Estatus del Área')),
-          DataColumn(label: Text('Incidente')),
+        columns: [
+          const DataColumn(label: Text('Folio')),
+          const DataColumn(label: Text('No. Orden')),
+          const DataColumn(label: Text('Fecha Creación')),
+          const DataColumn(label: Text('Cliente')),
+          const DataColumn(label: Text('Descripción')),
+          const DataColumn(label: Text('Fecha Entrega')),
+
+          if (widget.area.toLowerCase() == 'acabado') ...[
+            const DataColumn(label: Text('Estatus Acabado')),
+            const DataColumn(label: Text('Inc. Acabado')),
+            const DataColumn(label: Text('Estatus Embalaje')),
+            const DataColumn(label: Text('Inc. Embalaje')),
+          ] else ...[
+            const DataColumn(label: Text('Estatus')),
+            const DataColumn(label: Text('Incidente')),
+          ],
         ],
         rows: state.ordenes.map((orden) {
           final isSelected =
@@ -187,8 +195,16 @@ class _TablaOperarioScreenState extends ConsumerState<TablaOperarioScreen> {
               DataCell(Text(orden['cliente'] ?? '-')),
               DataCell(Text(orden['descripcion'] ?? '-')),
               DataCell(Text(fFecha(orden['fecha_entrega']))),
-              DataCell(widgetEstatus(orden['estatus_departamento'])),
-              DataCell(widgetIncidente(orden['estatus_incidente'])),
+
+              if (widget.area.toLowerCase() == 'acabado') ...[
+                DataCell(widgetEstatus(orden['estatus_departamento'])),
+                DataCell(widgetIncidente(orden['estatus_incidente'])),
+                DataCell(widgetEstatus(orden['estatus_embalaje'])),
+                DataCell(widgetIncidente(orden['incidente_embalaje'])),
+              ] else ...[
+                DataCell(widgetEstatus(orden['estatus_departamento'])),
+                DataCell(widgetIncidente(orden['estatus_incidente'])),
+              ],
             ],
           );
         }).toList(),

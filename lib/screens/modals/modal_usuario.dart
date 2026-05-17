@@ -46,7 +46,7 @@ class _ModalUsuarioState extends State<ModalUsuario> {
     'Logistica',
     'Serigrafia',
     'Grabado',
-    'Otro',
+    'Barniz',
   ];
 
   @override

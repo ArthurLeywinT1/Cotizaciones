@@ -36,9 +36,24 @@ class OperarioOTController extends StateNotifier<OperarioOTState> {
     if (areaKey == 'diseño' || areaKey == 'pre-prensa') areaKey = 'diseno';
 
     try {
-      String estatusFiltro = verHistorial
-          ? "ot.datos_completos->'$areaKey'->>'estatus' = 'Fin'"
-          : "COALESCE(ot.datos_completos->'$areaKey'->>'estatus', 'Pendiente') != 'Fin'";
+      String condicionEstatus;
+      if (verHistorial) {
+        if (areaKey == 'acabado') {
+          condicionEstatus =
+              "(ot.datos_completos->'acabado'->>'estatus' = 'Fin' AND ot.datos_completos->'embalaje'->>'estatus' = 'Fin')";
+        } else {
+          condicionEstatus =
+              "ot.datos_completos->'$areaKey'->>'estatus' = 'Fin'";
+        }
+      } else {
+        if (areaKey == 'acabado') {
+          condicionEstatus =
+              "((COALESCE(ot.datos_completos->'acabado'->>'estatus', 'Pendiente') != 'Fin') OR (COALESCE(ot.datos_completos->'embalaje'->>'estatus', 'Pendiente') != 'Fin'))";
+        } else {
+          condicionEstatus =
+              "COALESCE(ot.datos_completos->'$areaKey'->>'estatus', 'Pendiente') != 'Fin'";
+        }
+      }
 
       final results = await _db.query(
         """
@@ -50,12 +65,15 @@ class OperarioOTController extends StateNotifier<OperarioOTState> {
           ot.fecha_creacion,
           cl.razon_social as cliente,
           c.descripcion,
-          ot.datos_completos->'logistica'->>'fechaEntrega' as fecha_entrega,
+          ot.fecha_entrega,
 
           COALESCE(ot.datos_completos->'$areaKey'->>'estatus', 'Pendiente') as estatus_departamento,
           ot.datos_completos->'$areaKey'->>'inicio' as inicio_departamento,
           ot.datos_completos->'$areaKey'->>'fin' as fin_departamento,
-          i.estatus as estatus_incidente
+          i.estatus as estatus_incidente,
+
+          COALESCE(ot.datos_completos->'embalaje'->>'estatus', 'Pendiente') as estatus_embalaje,
+          (SELECT estatus FROM incidentes WHERE orden_trabajo_id = ot.id AND LOWER(area) = 'embalaje' ORDER BY fecha_creacion DESC LIMIT 1) as incidente_embalaje
 
         FROM ordenes_trabajo ot
         LEFT JOIN cotizaciones c ON ot.cotizacion_id::TEXT = c.id::TEXT
@@ -64,7 +82,7 @@ class OperarioOTController extends StateNotifier<OperarioOTState> {
         LEFT JOIN incidentes i ON i.orden_trabajo_id = ot.id AND i.area = @area
 
         WHERE COALESCE(ot.datos_completos->'activeSections'->>'$areaKey', 'true') = 'true'
-          AND $estatusFiltro
+          AND $condicionEstatus
           AND ot.estatus != 'Cancelada'
 
         ORDER BY ot.fecha_creacion DESC
