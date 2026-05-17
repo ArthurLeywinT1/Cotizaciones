@@ -156,6 +156,7 @@ class _HomeOperarioScreenState extends ConsumerState<HomeOperarioScreen> {
           ),
           const Divider(height: 30),
 
+          // ESPACIO PARA LA TABLA
           Expanded(
             child: _buildTablaDeDatos(),
           ),
