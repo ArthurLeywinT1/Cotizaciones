@@ -203,7 +203,7 @@ class _TablaOperarioScreenState extends ConsumerState<TablaOperarioScreen> {
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-          decoration: BoxDecoration(color: Colors.grey.shade200),
+          color: Colors.grey.shade200,
           child: Wrap(
             alignment: WrapAlignment.center,
             spacing: 16,

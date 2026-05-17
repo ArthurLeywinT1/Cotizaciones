@@ -258,13 +258,13 @@ class UsuarioScreen extends ConsumerWidget {
           ),
 
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              border: Border(top: BorderSide(color: Colors.grey.shade400)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            color: Colors.grey.shade200,
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 16,
+              runSpacing: 16,
               children: [
                 Boton(
                   icon: Icons.person_add,

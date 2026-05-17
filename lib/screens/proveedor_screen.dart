@@ -159,10 +159,13 @@ class ProveedorScreen extends ConsumerWidget {
                   ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
             color: Colors.grey.shade200,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 16,
+              runSpacing: 16,
               children: [
                 Boton(
                   icon: Icons.add,

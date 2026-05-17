@@ -22,7 +22,6 @@ dependencies:
   file_picker: ^10.3.10
   flex_color_picker: ^3.5.0
   flutter_screenutil: ^5.9.3
-  
 
 dev_dependencies:
   flutter_test:
@@ -34,5 +33,7 @@ flutter:
 
   assets:
     - .env
-    - assets/firma.png
+    - assets/firmaDaniela.jpg
+    - assets/firmaRoberta.jpg
+    - assets/firmaIsabel.jpg
     - assets/fondo.png

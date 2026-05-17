@@ -16,12 +16,28 @@ class DialogoGenerarPdf extends StatefulWidget {
 }
 
 class _DialogoGenerarPdfState extends State<DialogoGenerarPdf> {
-  final TextEditingController nombreCtrl = TextEditingController(
-    text: "DANNIELA ADRIANA GONZÁLEZ MORÁN",
-  );
-  final TextEditingController rfcCtrl = TextEditingController(
-    text: "GOMD9602012M3",
-  );
+  final List<Map<String, String>> _usuariosPredefinidos = [
+    {
+      "nombre": "DANNIELA ADRIANA GONZÁLEZ MORÁN",
+      "rfc": "GOMD9602012M3",
+      "firma": "assets/firmaDaniela.jpg",
+    },
+    {
+      "nombre": "ROBERTA MORAN SOTO",
+      "rfc": "MOSR750510AN9",
+      "firma": "assets/firmaRoberta.jpg",
+    },
+    {
+      "nombre": "MARIA ISABEL VARELA BECERRA",
+      "rfc": "VABI720416PC7",
+      "firma": "assets/firmaIsabel.jpg",
+    },
+  ];
+
+  Map<String, String>? _usuarioSeleccionado;
+
+  final TextEditingController nombreCtrl = TextEditingController();
+  final TextEditingController rfcCtrl = TextEditingController();
   final TextEditingController atencionCtrl = TextEditingController();
   final TextEditingController impresoCtrl = TextEditingController();
   final TextEditingController acabadosCtrl = TextEditingController();
@@ -30,6 +46,14 @@ class _DialogoGenerarPdfState extends State<DialogoGenerarPdf> {
   );
 
   bool _isGenerating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _usuarioSeleccionado = _usuariosPredefinidos.first;
+    nombreCtrl.text = _usuarioSeleccionado!["nombre"]!;
+    rfcCtrl.text = _usuarioSeleccionado!["rfc"]!;
+  }
 
   Future<void> _generarYMostrarPdf() async {
     setState(() => _isGenerating = true);
@@ -43,6 +67,7 @@ class _DialogoGenerarPdfState extends State<DialogoGenerarPdf> {
         impreso: impresoCtrl.text,
         acabados: acabadosCtrl.text,
         tiempoEntrega: tiempoEntregaCtrl.text,
+        rutaFirma: _usuarioSeleccionado!["firma"]!,
       );
 
       if (!mounted) return;
@@ -103,14 +128,47 @@ class _DialogoGenerarPdfState extends State<DialogoGenerarPdf> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            DropdownButtonFormField<Map<String, String>>(
+              decoration: const InputDecoration(
+                labelText: 'Seleccionar Emisor Rápido',
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+              value: _usuarioSeleccionado,
+              items: _usuariosPredefinidos.map((user) {
+                return DropdownMenuItem(
+                  value: user,
+                  child: Text(
+                    user["nombre"]!,
+                    style: const TextStyle(fontSize: 13),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                );
+              }).toList(),
+              onChanged: (val) {
+                if (val != null) {
+                  setState(() {
+                    _usuarioSeleccionado = val;
+                    nombreCtrl.text = val["nombre"]!;
+                    rfcCtrl.text = val["rfc"]!;
+                  });
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 8),
+
             TextField(
               controller: nombreCtrl,
-              decoration: const InputDecoration(labelText: 'Usuario'),
+              decoration: const InputDecoration(labelText: 'Usuario Emisor'),
+              readOnly: true, // Bloqueado
             ),
             const SizedBox(height: 10),
             TextField(
               controller: rfcCtrl,
-              decoration: const InputDecoration(labelText: 'RFC'),
+              decoration: const InputDecoration(labelText: 'RFC Emisor'),
+              readOnly: true, // Bloqueado
             ),
             const SizedBox(height: 10),
             TextField(

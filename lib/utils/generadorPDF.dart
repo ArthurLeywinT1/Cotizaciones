@@ -12,6 +12,7 @@ Future<Uint8List> generarCotizacionPdf({
   required String impreso,
   required String acabados,
   required String tiempoEntrega,
+  required String rutaFirma,
 }) async {
   final pdf = pw.Document();
 
@@ -26,10 +27,10 @@ Future<Uint8List> generarCotizacionPdf({
   }
 
   try {
-    final firmaBytes = await rootBundle.load('assets/firma.png');
+    final firmaBytes = await rootBundle.load(rutaFirma);
     firmaImage = pw.MemoryImage(firmaBytes.buffer.asUint8List());
   } catch (e) {
-    print("Firma no encontrada");
+    print("Firma no encontrada en la ruta: $rutaFirma");
   }
 
   final configCliente = cotizacion.configClientes ?? {};
