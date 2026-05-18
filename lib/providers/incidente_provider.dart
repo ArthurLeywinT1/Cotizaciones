@@ -5,26 +5,26 @@ import '../services/incidente_service.dart';
 class IncidenteState {
   final bool isLoading;
   final String error;
-  final Incidente? incidenteActual;
+  final List<Incidente> incidentesActuales;
   final List<Map<String, dynamic>> incidentesPendientes;
 
   IncidenteState({
     this.isLoading = false,
     this.error = '',
-    this.incidenteActual,
+    this.incidentesActuales = const [],
     this.incidentesPendientes = const [],
   });
 
   IncidenteState copyWith({
     bool? isLoading,
     String? error,
-    Incidente? incidenteActual,
+    List<Incidente>? incidentesActuales,
     List<Map<String, dynamic>>? incidentesPendientes,
   }) {
     return IncidenteState(
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
-      incidenteActual: incidenteActual ?? this.incidenteActual,
+      incidentesActuales: incidentesActuales ?? this.incidentesActuales,
       incidentesPendientes: incidentesPendientes ?? this.incidentesPendientes,
     );
   }
@@ -35,26 +35,27 @@ class IncidenteController extends StateNotifier<IncidenteState> {
 
   final IncidenteService _service = IncidenteService();
 
-  Future<void> cargarIncidentePorOtYArea(
+  Future<void> cargarIncidentesPorOtYArea(
     String ordenTrabajoId,
     String area,
   ) async {
     state = IncidenteState(
       isLoading: true,
       error: '',
-      incidenteActual: null,
+      incidentesActuales: [],
       incidentesPendientes: state.incidentesPendientes,
     );
 
     try {
-      final incidente = await _service.obtenerIncidentePorOtYArea(
+      final incidentes = await _service.obtenerIncidentesPorOtYArea(
         ordenTrabajoId,
         area,
       );
+
       state = IncidenteState(
         isLoading: false,
         error: '',
-        incidenteActual: incidente,
+        incidentesActuales: incidentes,
         incidentesPendientes: state.incidentesPendientes,
       );
     } catch (e) {
@@ -67,7 +68,10 @@ class IncidenteController extends StateNotifier<IncidenteState> {
     try {
       final exito = await _service.crearIncidente(incidente);
       if (exito) {
-        state = state.copyWith(isLoading: false, incidenteActual: incidente);
+        await cargarIncidentesPorOtYArea(
+          incidente.ordenTrabajoId,
+          incidente.area,
+        );
         return true;
       } else {
         state = state.copyWith(
@@ -119,7 +123,7 @@ class IncidenteController extends StateNotifier<IncidenteState> {
     state = IncidenteState(
       isLoading: false,
       error: '',
-      incidenteActual: null,
+      incidentesActuales: [],
       incidentesPendientes: state.incidentesPendientes,
     );
   }

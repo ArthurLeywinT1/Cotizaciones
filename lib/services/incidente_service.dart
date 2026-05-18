@@ -6,30 +6,27 @@ class IncidenteService {
 
   Future<bool> crearIncidente(Incidente incidente) async {
     try {
-      final rowsAffected = await _db.execute(
+      final rows = await _db.execute(
         """
-        INSERT INTO incidentes
-        (orden_trabajo_id, usuario_id, area, mensaje_operario, estatus)
-        VALUES
-        (CAST(@ot_id AS uuid), CAST(@u_id AS uuid), @area, @mensaje, @estatus)
+        INSERT INTO incidentes (orden_trabajo_id, usuario_id, area, mensaje_operario)
+        VALUES (CAST(@otId AS uuid), CAST(@userId AS uuid), @area, @mensaje)
         """,
         params: {
-          'ot_id': incidente.ordenTrabajoId,
-          'u_id': incidente.usuarioId,
+          'otId': incidente.ordenTrabajoId,
+          'userId': incidente.usuarioId,
           'area': incidente.area,
           'mensaje': incidente.mensajeOperario,
-          'estatus': incidente.estatus,
         },
       );
 
-      return rowsAffected > 0;
+      return rows > 0;
     } catch (e) {
-      print('Excepción en crearIncidente: $e');
+      print('Error al crear incidente: $e');
       return false;
     }
   }
 
-  Future<Incidente?> obtenerIncidentePorOtYArea(
+  Future<List<Incidente>> obtenerIncidentesPorOtYArea(
     String ordenTrabajoId,
     String area,
   ) async {
@@ -38,20 +35,16 @@ class IncidenteService {
         """
         SELECT * FROM incidentes
         WHERE orden_trabajo_id = CAST(@ot_id AS uuid)
-        AND area = @area
-        ORDER BY fecha_creacion DESC
-        LIMIT 1
+        AND LOWER(area) = LOWER(@area)
+        ORDER BY fecha_creacion ASC
         """,
         params: {'ot_id': ordenTrabajoId, 'area': area},
       );
 
-      if (results.isNotEmpty) {
-        return Incidente.fromJson(results.first);
-      }
-      return null;
+      return results.map((json) => Incidente.fromJson(json)).toList();
     } catch (e) {
-      print('Excepción en obtenerIncidentePorOtYArea: $e');
-      return null;
+      print('Excepción en obtenerIncidentesPorOtYArea: $e');
+      return [];
     }
   }
 

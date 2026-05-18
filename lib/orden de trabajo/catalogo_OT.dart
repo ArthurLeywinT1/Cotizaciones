@@ -163,17 +163,21 @@ class CatalogoOTScreen extends ConsumerWidget {
                       Widget widgetEstatus(String? estatus) {
                         final val = estatus ?? 'Pendiente';
                         Color textColor = Colors.grey.shade700;
-                        Color bgColor = Colors.transparent;
+                        Color bgColor = Colors.grey.shade100;
+                        Color borderColor = Colors.grey.shade300;
 
                         if (val == 'Inicio') {
                           textColor = Colors.blue.shade700;
                           bgColor = Colors.blue.shade50;
+                          borderColor = Colors.blue.shade200;
                         } else if (val == 'Fin') {
                           textColor = Colors.green.shade700;
                           bgColor = Colors.green.shade50;
+                          borderColor = Colors.green.shade200;
                         } else if (val == 'Incidente') {
                           textColor = Colors.orange.shade800;
                           bgColor = Colors.orange.shade50;
+                          borderColor = Colors.orange.shade300;
                         }
 
                         return Container(
@@ -184,6 +188,7 @@ class CatalogoOTScreen extends ConsumerWidget {
                           decoration: BoxDecoration(
                             color: bgColor,
                             borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: borderColor),
                           ),
                           child: Text(
                             val,
@@ -197,23 +202,43 @@ class CatalogoOTScreen extends ConsumerWidget {
 
                       Widget widgetIncidente(String? estatus) {
                         final val = estatus ?? '-';
-                        if (val == '-') {
+                        if (val == '-' || val.isEmpty) {
                           return const Text(
                             '-',
                             style: TextStyle(color: Colors.black87),
                           );
                         }
 
-                        Color color = Colors.black87;
-                        if (val == 'Pendiente') color = Colors.red;
-                        if (val == 'Resuelto') color = Colors.green;
-                        return Text(
-                          val,
-                          style: TextStyle(
-                            color: color,
-                            fontWeight: val != '-'
-                                ? FontWeight.bold
-                                : FontWeight.normal,
+                        Color textColor = Colors.black87;
+                        Color bgColor = Colors.grey.shade100;
+                        Color borderColor = Colors.grey.shade300;
+
+                        if (val == 'Pendiente') {
+                          textColor = Colors.red.shade700;
+                          bgColor = Colors.red.shade50;
+                          borderColor = Colors.red.shade200;
+                        } else if (val == 'Resuelto') {
+                          textColor = Colors.green.shade700;
+                          bgColor = Colors.green.shade50;
+                          borderColor = Colors.green.shade200;
+                        }
+
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: bgColor,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: Text(
+                            val,
+                            style: TextStyle(
+                              color: textColor,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         );
                       }
@@ -226,7 +251,13 @@ class CatalogoOTScreen extends ConsumerWidget {
                         },
                         cells: [
                           DataCell(Text(orden['folio'] ?? '-')),
-                          DataCell(Text(orden['no_orden']?.toString() ?? '-')),
+                          DataCell(
+                            Text(
+                              orden['no_orden']?.toString().isNotEmpty == true
+                                  ? orden['no_orden'].toString()
+                                  : '-',
+                            ),
+                          ),
                           DataCell(
                             Text(formatearFecha(orden['fecha_creacion'])),
                           ),
