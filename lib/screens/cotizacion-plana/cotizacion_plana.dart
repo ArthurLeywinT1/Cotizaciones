@@ -1,3 +1,4 @@
+import 'package:cotizador/screens/home.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -1180,19 +1181,25 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     setState(() {});
   }
 
-  Future<void> _guardarCotizacion({String? nuevoStatus}) async {
+Future<void> _guardarCotizacion({String? nuevoStatus}) async {
+    // 1. Le da un respiro a la UI para que no se congele el hilo principal
+    await Future.delayed(Duration.zero); 
+
     calcularMedidasFinales();
     if (portada) calcularMedidasFinalesPortada();
     calcularCostoTotalGeneral();
+    
     double costoBaseLimpio = _limpiar(costoTotalController.text);
     _calcularUtilidadYFinal(costoBaseLimpio);
 
     if (clienteIdSeleccionado == null) {
+      if (!mounted) return; // Validación de seguridad para el contexto
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Selecciona un Cliente primero')),
       );
       return;
     }
+    // ... el resto de tu código de guardado
 
     final authState = ref.read(authProvider);
     final String? usuarioIdActual = authState.usuario?.id;
@@ -1638,7 +1645,15 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
           MaterialPageRoute(builder: (context) => const OrdenTrabajoScreen()),
         );
       } else {
-        Navigator.pop(context);
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+        } else{
+          // Si no hay pantalla atrás, mándalo a tu Home o Historial en lugar de dejarlo en negro
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()), // <--- Cambia por el nombre real de tu Home
+          );
+        }
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
