@@ -1059,12 +1059,23 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
           altoPliego > 0 &&
           anchoSuaje > 0 &&
           altoSuaje > 0) {
-        final areaPliego = anchoPliego * altoPliego;
-        final areaSuaje = anchoSuaje * altoSuaje;
+          // Reemplaza el cálculo de área por este acomodo lógico:
 
-        final piezasPorPliego = (areaPliego / areaSuaje).floor();
+          // 1. Orientación normal
+          final piezasAnchoNormal = (anchoPliego / anchoSuaje).floor();
+          final piezasAltoNormal = (altoPliego / altoSuaje).floor();
+          final totalNormal = piezasAnchoNormal * piezasAltoNormal;
 
-        final resultado = piezasPorPliego * totalPliegos;
+          // 2. Orientación girada (90 grados)
+          final piezasAnchoGirado = (anchoPliego / altoSuaje).floor();
+          final piezasAltoGirado = (altoPliego / anchoSuaje).floor();
+          final totalGirado = piezasAnchoGirado * piezasAltoGirado;
+
+          // 3. Elegimos el que aproveche mejor el papel
+          final piezasPorPliego = totalNormal > totalGirado ? totalNormal : totalGirado;
+
+          // Ahora sí, el resultado real
+          final resultado = piezasPorPliego * totalPliegos;
 
         pliegosSuajeController.text = resultado.toString();
       }
@@ -1648,7 +1659,6 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
           if (Navigator.canPop(context)) {
             Navigator.pop(context);
         } else{
-          // Si no hay pantalla atrás, mándalo a tu Home o Historial en lugar de dejarlo en negro
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const HomeScreen()), // <--- Cambia por el nombre real de tu Home
