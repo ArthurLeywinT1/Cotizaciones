@@ -160,6 +160,7 @@ class CatalogoOTScreen extends ConsumerWidget {
                         }
                       }
 
+                      // --- MEJORA VISUAL: PÍLDORAS DE ESTATUS ---
                       Widget widgetEstatus(String? estatus) {
                         final val = estatus ?? 'Pendiente';
                         Color textColor = Colors.grey.shade700;
@@ -200,6 +201,7 @@ class CatalogoOTScreen extends ConsumerWidget {
                         );
                       }
 
+                      // --- MEJORA VISUAL: PÍLDORAS DE INCIDENTE ---
                       Widget widgetIncidente(String? estatus) {
                         final val = estatus ?? '-';
                         if (val == '-' || val.isEmpty) {

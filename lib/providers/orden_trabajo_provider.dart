@@ -166,16 +166,27 @@ class OrdenTrabajoController extends ChangeNotifier {
     notifyListeners();
 
     currentCotizacionId = id;
-
+    try {
+      final cotizacion = ref
+          .read(cotizacionesProvider)
+          .cotizaciones
+          .firstWhere((c) => c.id == id);
+      orderId = cotizacion.folio ?? "S/F";
+    } catch (e) {
+      orderId = "S/F";
+      print(
+        "⚠️ Aviso: No se encontró la cotización en memoria para extraer el folio.",
+      );
+    }
     final ordenGuardada = await _service.obtenerOrdenPorCotizacionId(id);
 
     if (ordenGuardada != null) {
       ordenTrabajoDbId = ordenGuardada.id;
-      print("✅ Orden existente encontrada en DB. Lista para actualizar.");
+      print("Orden existente encontrada en DB. Lista para actualizar.");
       _cargarDesdeBaseDeDatos(ordenGuardada.datosCompletos);
     } else {
       ordenTrabajoDbId = null;
-      print("ℹ️ Orden nueva. Se creará un nuevo registro.");
+      print("Orden nueva. Se creará un nuevo registro.");
       final cotizacionesState = ref.read(cotizacionesProvider);
       try {
         final cotizacion = cotizacionesState.cotizaciones.firstWhere(

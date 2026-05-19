@@ -7,12 +7,14 @@ class IncidenteState {
   final String error;
   final List<Incidente> incidentesActuales;
   final List<Map<String, dynamic>> incidentesPendientes;
+  final List<Map<String, dynamic>> historialResueltos;
 
   IncidenteState({
     this.isLoading = false,
     this.error = '',
     this.incidentesActuales = const [],
     this.incidentesPendientes = const [],
+    this.historialResueltos = const [],
   });
 
   IncidenteState copyWith({
@@ -20,12 +22,14 @@ class IncidenteState {
     String? error,
     List<Incidente>? incidentesActuales,
     List<Map<String, dynamic>>? incidentesPendientes,
+    List<Map<String, dynamic>>? historialResueltos,
   }) {
     return IncidenteState(
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
       incidentesActuales: incidentesActuales ?? this.incidentesActuales,
       incidentesPendientes: incidentesPendientes ?? this.incidentesPendientes,
+      historialResueltos: historialResueltos ?? this.historialResueltos,
     );
   }
 }
@@ -51,7 +55,6 @@ class IncidenteController extends StateNotifier<IncidenteState> {
         ordenTrabajoId,
         area,
       );
-
       state = IncidenteState(
         isLoading: false,
         error: '',
@@ -94,6 +97,16 @@ class IncidenteController extends StateNotifier<IncidenteState> {
         isLoading: false,
         incidentesPendientes: pendientes,
       );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> cargarHistorialResueltos() async {
+    state = state.copyWith(isLoading: true, error: '');
+    try {
+      final historial = await _service.obtenerHistorialResueltosAdmin();
+      state = state.copyWith(isLoading: false, historialResueltos: historial);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }

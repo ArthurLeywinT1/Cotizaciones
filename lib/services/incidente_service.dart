@@ -74,6 +74,34 @@ class IncidenteService {
     }
   }
 
+  Future<List<Map<String, dynamic>>> obtenerHistorialResueltosAdmin() async {
+    try {
+      final results = await _db.query('''
+        SELECT
+          i.id as incidente_id,
+          i.area,
+          i.mensaje_operario,
+          i.mensaje_admin,
+          i.fecha_creacion,
+          i.fecha_respuesta,
+          i.estatus,
+          u.nombre as operario_nombre,
+          c.folio as folio_ot
+        FROM incidentes i
+        LEFT JOIN usuarios u ON i.usuario_id = u.id
+        LEFT JOIN ordenes_trabajo ot ON i.orden_trabajo_id = ot.id
+        LEFT JOIN cotizaciones c ON ot.cotizacion_id::TEXT = c.id::TEXT
+        WHERE i.estatus = 'Resuelto'
+        ORDER BY i.fecha_respuesta DESC
+        LIMIT 50
+      ''');
+      return results;
+    } catch (e) {
+      print('Excepción en obtenerHistorialResueltosAdmin: $e');
+      return [];
+    }
+  }
+
   Future<bool> responderIncidente(
     String incidenteId,
     String respuestaAdmin,
