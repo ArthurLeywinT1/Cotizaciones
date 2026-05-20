@@ -48,9 +48,9 @@ class _PanelPliegosState extends State<PanelPliegos> {
   @override
   void initState() {
     super.initState();
-
-    pliegosExtraSeleccionados =
-        int.tryParse(widget.pliegosExtraController.text) ?? 0;
+    if (widget.pliegosExtraController.text.isEmpty){
+      widget.pliegosExtraController.text = "150";
+    }
   }
 
   /// ===============================
@@ -234,34 +234,20 @@ class _PanelPliegosState extends State<PanelPliegos> {
 
             const SizedBox(height: 8),
 
-            DropdownButtonFormField<int>(
-              value: pliegosExtraSeleccionados,
+            TextField(
+              controller: widget.pliegosExtraController,
+              keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                labelText: "Seleccionar pliegos extra",
+                labelText: "Cantidad de pliegos extra",
                 border: OutlineInputBorder(),
                 isDense: true,
               ),
-              items: const [
-                DropdownMenuItem(value: 0, child: Text("0")),
-                DropdownMenuItem(value: 50, child: Text("50")),
-                DropdownMenuItem(value: 100, child: Text("100")),
-                DropdownMenuItem(value: 150, child: Text("150")),
-                DropdownMenuItem(value: 200, child: Text("200")),
-                DropdownMenuItem(value: 250, child: Text("250")),
-                DropdownMenuItem(value: 300, child: Text("300")),
-              ],
               onChanged: (value) {
-                setState(() {
-                  pliegosExtraSeleccionados = value ?? 0;
-
-                  /// GUARDAR EN EL PADRE
-                  widget.pliegosExtraController.text = pliegosExtraSeleccionados
-                      .toString();
-                });
-
                 _calcularPliegos();
               },
             ),
+
+        
 
             const Divider(height: 30),
 

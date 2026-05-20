@@ -61,39 +61,10 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   final TextEditingController paginasInternasPorPiezaController =
       TextEditingController(text: "0");
 
-  // ===== PORTADA =====
-  bool portada = false;
+
   bool cambiarPrecioTinta = false;
-  bool cambiarPrecioTintaPortada = false;
   bool cambiarPrecioBarniz = false;
-  bool cambiarPrecioBarnizPortada = false;
 
-  // ===== PRUEBA COLOR PORTADA =====
-  bool pruebaColorPortada = false;
-  bool pruebaColorPortadaCarta = false;
-  bool pruebaColorPortadaTabloide = false;
-  bool pruebaColorPortadaMediaCarta = false;
-  // ===== PRUEBA COLOR PORTADA POR TAMAÑO =====
-  final TextEditingController cantidadPruebaPortadaCartaController =
-      TextEditingController(text: "0");
-  final TextEditingController precioPruebaPortadaCartaController =
-      TextEditingController(text: "0.00");
-  final TextEditingController totalPruebaPortadaCartaController =
-      TextEditingController(text: "0.00");
-
-  final TextEditingController cantidadPruebaPortadaTabloideController =
-      TextEditingController(text: "0");
-  final TextEditingController precioPruebaPortadaTabloideController =
-      TextEditingController(text: "0.00");
-  final TextEditingController totalPruebaPortadaTabloideController =
-      TextEditingController(text: "0.00");
-
-  final TextEditingController cantidadPruebaPortadaMediaCartaController =
-      TextEditingController(text: "0");
-  final TextEditingController precioPruebaPortadaMediaCartaController =
-      TextEditingController(text: "0.00");
-  final TextEditingController totalPruebaPortadaMediaCartaController =
-      TextEditingController(text: "0.00");
 
   // ===== PRUEBA DE COLOR INTERNAS =====
   bool pruebaCarta = false;
@@ -124,19 +95,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   final TextEditingController totalMediaCartaController = TextEditingController(
     text: "0.00",
   );
-  final TextEditingController anchoPortadaController = TextEditingController();
-  final TextEditingController altoPortadaController = TextEditingController();
-  final TextEditingController medianilPortadaController =
-      TextEditingController();
-  final TextEditingController anchoFinalPortadaController =
-      TextEditingController(text: "0");
-  final TextEditingController altoFinalPortadaController =
-      TextEditingController(text: "0");
-  final TextEditingController piezasPortadaController = TextEditingController(
-    text: "0",
-  );
-  final TextEditingController costoPruebaPortadaController =
-      TextEditingController();
 
   // CONTROLADORES – PLIEGOS
   final TextEditingController pliegoAnchoController = TextEditingController();
@@ -154,28 +112,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   final TextEditingController totalPliegosController = TextEditingController();
   final TextEditingController millaresController = TextEditingController();
   final TextEditingController pliegosExtraController = TextEditingController();
-
-  // PLIEGOS PORTADA
-  final TextEditingController pliegoAnchoPortadaController =
-      TextEditingController();
-  final TextEditingController pliegoAltoPortadaController =
-      TextEditingController();
-  final TextEditingController posicionPiezasPortadaController =
-      TextEditingController();
-  final TextEditingController piezasPorPliegoPortadaController =
-      TextEditingController();
-  final TextEditingController tamanoPorPliegoPortadaController =
-      TextEditingController();
-  final TextEditingController cantidadPliegosPortadaController =
-      TextEditingController();
-  final TextEditingController pliegosSobrantesPortadaController =
-      TextEditingController();
-  final TextEditingController totalPliegosPortadaController =
-      TextEditingController();
-  final TextEditingController millaresPortadaController =
-      TextEditingController();
-  final TextEditingController pliegosExtraPortadaController =
-      TextEditingController();
 
   // Controladores papel
   final TextEditingController nombrePapelController = TextEditingController();
@@ -195,28 +131,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   final TextEditingController costoPapelConIvaController =
       TextEditingController(text: "0.00");
 
-  // PAPEL PORTADA
-
-  final TextEditingController nombrePapelPortadaController =
-      TextEditingController();
-  final TextEditingController tipoPapelPortadaController =
-      TextEditingController();
-  final TextEditingController anchoPapelPortadaController =
-      TextEditingController();
-  final TextEditingController largoPapelPortadaController =
-      TextEditingController();
-  final TextEditingController pesoPapelPortadaController =
-      TextEditingController();
-  final TextEditingController proveedorPapelPortadaController =
-      TextEditingController();
-  final TextEditingController costoMillarPortadaController =
-      TextEditingController();
-  final TextEditingController costoTotalPapelPortadaController =
-      TextEditingController();
-  final TextEditingController descuentoPapelPortadaController =
-      TextEditingController();
-  final TextEditingController costoPapelPortadaConIvaController =
-      TextEditingController();
 
   // Controladores maquina
   final TextEditingController nombreMaquinaController = TextEditingController();
@@ -264,59 +178,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   String? configuracionFrente;
   String? configuracionVuelta;
 
-  // MAQUINA PORTADA
-  final TextEditingController nombreMaquinaPortadaController =
-      TextEditingController();
-  final TextEditingController costoPlacaPortadaController =
-      TextEditingController();
-  final TextEditingController tintasFtePortadaController =
-      TextEditingController();
-  final TextEditingController tintasRevPortadaController =
-      TextEditingController();
-  final TextEditingController cantidadTotalTintasPortadaController =
-      TextEditingController();
-  final TextEditingController costoUnitFtePortadaController =
-      TextEditingController();
-  final TextEditingController costoTotalFtePortadaController =
-      TextEditingController();
-  final TextEditingController costoUnitRevPortadaController =
-      TextEditingController();
-  final TextEditingController costoTotalRevPortadaController =
-      TextEditingController();
-  final TextEditingController costoGranTotalTintasPortadaController =
-      TextEditingController();
-  final TextEditingController cantidadPlacasPortadaController =
-      TextEditingController();
-  final TextEditingController costoBarnizPortadaController =
-      TextEditingController();
-  final TextEditingController costoTotalPlacasPortadaController =
-      TextEditingController();
-
-  final TextEditingController cantidadPlacas790PortadaController =
-      TextEditingController(text: "0");
-
-  final TextEditingController costoPlaca790PortadaController =
-      TextEditingController(text: "0.00");
-
-  final TextEditingController costoTotalPlacas790PortadaController =
-      TextEditingController(text: "0.00");
-
-  bool barnizMaquinaPortada = false;
-  bool cambiarPrecioPlacaPortada = false;
-  List<String> opcionesFrentePortada = [];
-  List<String> opcionesVueltaPortada = [];
-
-  bool barnizFtePortada = false;
-  bool barnizRevPortada = false;
-
-  late final TextEditingController barnizFtePortadaController;
-  late final TextEditingController barnizRevPortadaController;
-
-  late final TextEditingController costoUnitBarnizFtePortadaController;
-  late final TextEditingController costoUnitBarnizRevPortadaController;
-  String? configuracionFrentePortada;
-  String? configuracionVueltaPortada;
-
   // Contoladores suaje
   final TextEditingController tamanoSuajeController = TextEditingController();
   final TextEditingController costoSuajeCmController = TextEditingController(
@@ -354,28 +215,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
 
   final Map<String, TextEditingController> laminadosCostoCm2Controllers = {};
   final Map<String, TextEditingController> laminadosCostoTotalControllers = {};
-  final Map<String, TextEditingController> laminadosPortadaCostoCm2Controllers =
-      {};
-  final Map<String, TextEditingController>
-  laminadosPortadaCostoTotalControllers = {};
 
-  // ACABADOS PORTADA
-  final Map<String, Map<String, bool>> acabadosPortada = {
-    "Barniz UV a Registro": {"frente": false, "vuelta": false},
-    "Barniz UV Brillante a Plasta": {"frente": false, "vuelta": false},
-    "Barniz UV Mate Plasta": {"frente": false, "vuelta": false},
-  };
-
-  final Map<String, TextEditingController> acabadosPortadaCostoCm2Controllers =
-      {};
-  final Map<String, TextEditingController>
-  acabadosPortadaCostoTotalControllers = {};
-
-  // ACABADOS PORTADA
-  final Map<String, Map<String, bool>> laminadosPortadaMap = {
-    "Plastificado Brillante": {"frente": false, "vuelta": false},
-    "Plastificado Mate": {"frente": false, "vuelta": false},
-  };
   // MARCOS
   final cantidadMarcosController = TextEditingController();
   final totalMarcosController = TextEditingController();
@@ -488,9 +328,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   bool duplicarCostoSuaje = false;
   bool offsetActivo = false;
   bool barnizUV = false;
-  bool barnizUVPortada = false;
   bool laminadosActivo = false;
-  bool laminadosPortada = false;
   bool acabadosEspeciales = false;
   bool seCuentaConSuaje = false;
   bool serigrafia = false;
@@ -517,35 +355,16 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       acabadosCostoCm2Controllers[key] = TextEditingController(text: "0.00");
       acabadosCostoTotalControllers[key] = TextEditingController(text: "0.00");
     }
-    for (var key in acabadosPortada.keys) {
-      acabadosPortadaCostoCm2Controllers[key] = TextEditingController(
-        text: "0.00",
-      );
-      acabadosPortadaCostoTotalControllers[key] = TextEditingController(
-        text: "0.00",
-      );
-    }
     for (var key in laminados.keys) {
       laminadosCostoCm2Controllers[key] = TextEditingController(text: "0.00");
       laminadosCostoTotalControllers[key] = TextEditingController(text: "0.00");
     }
-    for (var key in laminadosPortadaMap.keys) {
-      laminadosPortadaCostoCm2Controllers[key] = TextEditingController(
-        text: "0.00",
-      );
-      laminadosPortadaCostoTotalControllers[key] = TextEditingController(
-        text: "0.00",
-      );
-    }
+
     barnizFteController = TextEditingController(text: "0");
     barnizRevController = TextEditingController(text: "0");
     costoUnitBarnizFteController = TextEditingController(text: "0.00");
     costoUnitBarnizRevController = TextEditingController(text: "0.00");
 
-    barnizFtePortadaController = TextEditingController(text: "0");
-    barnizRevPortadaController = TextEditingController(text: "0");
-    costoUnitBarnizFtePortadaController = TextEditingController(text: "0.00");
-    costoUnitBarnizRevPortadaController = TextEditingController(text: "0.00");
     embalajeCostoControllers = List.generate(7, (_) => TextEditingController());
 
     embalajeCantidadControllers = List.generate(
@@ -611,47 +430,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       paginasInternasPorPiezaController.text =
           cli["paginasInternasPorPieza"] ?? "";
 
-      portada = cli["portada"] ?? false;
-      anchoPortadaController.text = cli["anchoPortada"] ?? "";
-      altoPortadaController.text = cli["altoPortada"] ?? "";
-      medianilPortadaController.text = cli["medianilPortada"] ?? "";
-      anchoFinalPortadaController.text = cli["anchoFinalPortada"] ?? "";
-      altoFinalPortadaController.text = cli["altoFinalPortada"] ?? "";
-      piezasPortadaController.text = cli["piezasPortada"] ?? "";
-
-      pruebaColorPortada = cli["pruebaColorPortada"] ?? false;
-      if (cli["pruebaColorPortadaDetalles"] != null) {
-        final pcPort = cli["pruebaColorPortadaDetalles"];
-        costoPruebaPortadaController.text = pcPort["costoPruebaPortada"] ?? "";
-        if (pcPort["carta"] != null) {
-          pruebaColorPortadaCarta = pcPort["carta"]["activo"] ?? false;
-          cantidadPruebaPortadaCartaController.text =
-              pcPort["carta"]["cantidad"] ?? "0";
-          precioPruebaPortadaCartaController.text =
-              pcPort["carta"]["precio"] ?? "0.00";
-          totalPruebaPortadaCartaController.text =
-              pcPort["carta"]["total"] ?? "0.00";
-        }
-        if (pcPort["tabloide"] != null) {
-          pruebaColorPortadaTabloide = pcPort["tabloide"]["activo"] ?? false;
-          cantidadPruebaPortadaTabloideController.text =
-              pcPort["tabloide"]["cantidad"] ?? "0";
-          precioPruebaPortadaTabloideController.text =
-              pcPort["tabloide"]["precio"] ?? "0.00";
-          totalPruebaPortadaTabloideController.text =
-              pcPort["tabloide"]["total"] ?? "0.00";
-        }
-        if (pcPort["mediaCarta"] != null) {
-          pruebaColorPortadaMediaCarta =
-              pcPort["mediaCarta"]["activo"] ?? false;
-          cantidadPruebaPortadaMediaCartaController.text =
-              pcPort["mediaCarta"]["cantidad"] ?? "0";
-          precioPruebaPortadaMediaCartaController.text =
-              pcPort["mediaCarta"]["precio"] ?? "0.00";
-          totalPruebaPortadaMediaCartaController.text =
-              pcPort["mediaCarta"]["total"] ?? "0.00";
-        }
-      }
 
       if (cli["pruebaColorInternasDetalles"] != null) {
         final pcInt = cli["pruebaColorInternasDetalles"];
@@ -683,9 +461,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         final sw = cli["switches"];
         offsetActivo = sw["offsetActivo"] ?? false;
         barnizUV = sw["barnizUV"] ?? false;
-        barnizUVPortada = sw["barnizUVPortada"] ?? false;
         laminadosActivo = sw["laminadosActivo"] ?? false;
-        laminadosPortada = sw["laminadosPortada"] ?? false;
         suaje = sw["suaje"] ?? false;
         serigrafia = sw["serigrafia"] ?? false;
         grabado = sw["grabado"] ?? false;
@@ -707,20 +483,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         pliegosSobrantesController.text = pInt["pliegosSobrantes"] ?? "";
         millaresController.text = pInt["millares"] ?? "";
       }
-      final pPort = edit.configPliegos!["portada"];
-      if (pPort != null) {
-        pliegoAnchoPortadaController.text = pPort["pliegoAncho"] ?? "";
-        pliegoAltoPortadaController.text = pPort["pliegoAlto"] ?? "";
-        posicionPiezasPortadaController.text = pPort["posicionPiezas"] ?? "";
-        piezasPorPliegoPortadaController.text = pPort["piezasPorPliego"] ?? "";
-        tamanoPorPliegoPortadaController.text = pPort["tamanoPorPliego"] ?? "";
-        pliegosExtraPortadaController.text = pPort["pliegosExtra"] ?? "";
-        cantidadPliegosPortadaController.text = pPort["cantidadPliegos"] ?? "";
-        pliegosSobrantesPortadaController.text =
-            pPort["pliegosSobrantes"] ?? "";
-        totalPliegosPortadaController.text = pPort["totalPliegos"] ?? "";
-        millaresPortadaController.text = pPort["millares"] ?? "";
-      }
+
     }
 
     if (edit.configDatosPapel != null) {
@@ -733,15 +496,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         pesoPapelController.text = dpInt["peso"] ?? "";
         proveedorPapelController.text = dpInt["proveedor"] ?? "";
       }
-      final dpPort = edit.configDatosPapel!["portada"];
-      if (dpPort != null) {
-        nombrePapelPortadaController.text = dpPort["nombre"] ?? "";
-        tipoPapelPortadaController.text = dpPort["tipo"] ?? "";
-        anchoPapelPortadaController.text = dpPort["ancho"] ?? "";
-        largoPapelPortadaController.text = dpPort["largo"] ?? "";
-        pesoPapelPortadaController.text = dpPort["peso"] ?? "";
-        proveedorPapelPortadaController.text = dpPort["proveedor"] ?? "";
-      }
+
     }
 
     if (edit.configCostoPapel != null) {
@@ -751,14 +506,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         costoTotalPapelController.text = cpInt["costoTotalPapel"] ?? "";
         descuentoPapelController.text = cpInt["descuentoPapel"] ?? "";
         costoPapelConIvaController.text = cpInt["costoPapelConIva"] ?? "";
-      }
-      final cpPort = edit.configCostoPapel!["portada"];
-      if (cpPort != null) {
-        costoMillarPortadaController.text = cpPort["costoMillar"] ?? "";
-        costoTotalPapelPortadaController.text = cpPort["costoTotalPapel"] ?? "";
-        descuentoPapelPortadaController.text = cpPort["descuentoPapel"] ?? "";
-        costoPapelPortadaConIvaController.text =
-            cpPort["costoPapelConIva"] ?? "";
       }
     }
 
@@ -792,39 +539,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         cambiarPrecioTinta = mqInt["cambiarPrecioTinta"] ?? false;
         cambiarPrecioBarniz = mqInt["cambiarPrecioBarniz"] ?? false;
       }
-      final mqPort = edit.configMaquina!["portada"];
-      if (mqPort != null) {
-        nombreMaquinaPortadaController.text = mqPort["nombreMaquina"] ?? "";
-        costoPlacaPortadaController.text = mqPort["costoPlaca"] ?? "";
-        tintasFtePortadaController.text = mqPort["tintasFte"] ?? "";
-        tintasRevPortadaController.text = mqPort["tintasRev"] ?? "";
-        cantidadTotalTintasPortadaController.text =
-            mqPort["cantidadTotalTintas"] ?? "";
-        costoUnitFtePortadaController.text = mqPort["costoUnitFte"] ?? "";
-        costoTotalFtePortadaController.text = mqPort["costoTotalFte"] ?? "";
-        costoUnitRevPortadaController.text = mqPort["costoUnitRev"] ?? "";
-        costoTotalRevPortadaController.text = mqPort["costoTotalRev"] ?? "";
-        costoGranTotalTintasPortadaController.text =
-            mqPort["costoGranTotalTintas"] ?? "";
-        cantidadPlacasPortadaController.text = mqPort["cantidadPlacas"] ?? "";
-        costoBarnizPortadaController.text = mqPort["costoBarniz"] ?? "";
-        costoTotalPlacasPortadaController.text =
-            mqPort["costoTotalPlacas"] ?? "";
-        cantidadPlacas790PortadaController.text =
-            mqPort["cantidadPlacas790"] ?? "";
-        costoPlaca790PortadaController.text = mqPort["costoPlaca790"] ?? "";
-        costoTotalPlacas790PortadaController.text =
-            mqPort["costoTotalPlacas790"] ?? "";
-        barnizFtePortada = mqPort["barnizFte"] ?? false;
-        barnizRevPortada = mqPort["barnizRev"] ?? false;
-        barnizFtePortadaController.text = mqPort["barnizFteValor"] ?? "";
-        barnizRevPortadaController.text = mqPort["barnizRevValor"] ?? "";
-        costoUnitBarnizFtePortadaController.text =
-            mqPort["costoUnitBarnizFte"] ?? "";
-        costoUnitBarnizRevPortadaController.text =
-            mqPort["costoUnitBarnizRev"] ?? "";
-        cambiarPrecioPlacaPortada = mqPort["cambiarPrecioPlaca"] ?? false;
-      }
     }
 
     if (edit.configAcabados != null) {
@@ -834,12 +548,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         acabadosCostoCm2Controllers,
         acabadosCostoTotalControllers,
       );
-      restaurarAcabados(
-        edit.configAcabados!["portada"]?["detalles"],
-        acabadosPortada,
-        acabadosPortadaCostoCm2Controllers,
-        acabadosPortadaCostoTotalControllers,
-      );
     }
 
     if (edit.configLaminado != null) {
@@ -848,12 +556,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         laminados,
         laminadosCostoCm2Controllers,
         laminadosCostoTotalControllers,
-      );
-      restaurarAcabados(
-        edit.configLaminado!["portada"]?["detalles"],
-        laminadosPortadaMap,
-        laminadosPortadaCostoCm2Controllers,
-        laminadosPortadaCostoTotalControllers,
       );
     }
 
@@ -1007,18 +709,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     });
   }
 
-  void actualizarAcabadoPortada(String nombre, String lado, bool valor) {
-    setState(() {
-      acabadosPortada[nombre]?[lado] = valor;
-    });
-  }
-
-  void actualizarLaminadoPortada(String nombre, String lado, bool valor) {
-    setState(() {
-      laminadosPortadaMap[nombre]?[lado] = valor;
-    });
-  }
-
   void calcularTotalEmbalaje(int index) {
     final costo = double.tryParse(embalajeCostoControllers[index].text) ?? 0.0;
 
@@ -1028,17 +718,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     final total = costo * cantidad;
 
     embalajeTotalControllers[index].text = total.toStringAsFixed(2);
-  }
-
-  void calcularMedidasFinalesPortada() {
-    final ancho = double.tryParse(anchoPortadaController.text) ?? 0;
-    final alto = double.tryParse(altoPortadaController.text) ?? 0;
-    final medianil = double.tryParse(medianilPortadaController.text) ?? 0;
-
-    setState(() {
-      anchoFinalPortadaController.text = (ancho + medianil).toStringAsFixed(2);
-      altoFinalPortadaController.text = (alto + medianil).toStringAsFixed(2);
-    });
   }
 
   void calcularPliegosSuaje() {
@@ -1098,16 +777,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     if (pruebaTabloide) total += _limpiar(totalTabloideController.text);
     if (pruebaMediaCarta) total += _limpiar(totalMediaCartaController.text);
 
-    if (portada && pruebaColorPortada) {
-      if (pruebaColorPortadaCarta)
-        total += _limpiar(totalPruebaPortadaCartaController.text);
-      if (pruebaColorPortadaTabloide)
-        total += _limpiar(totalPruebaPortadaTabloideController.text);
-      if (pruebaColorPortadaMediaCarta)
-        total += _limpiar(totalPruebaPortadaMediaCartaController.text);
-    }
-
-    // OFFSET INTERNAS Y PORTADA
+    // OFFSET INTERNAS Y
     if (offsetActivo) {
       total += _limpiar(costoPapelConIvaController.text);
       total += _limpiar(costoGranTotalTintasController.text);
@@ -1117,16 +787,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       if (barnizFte) total += _limpiar(costoBarnizController.text);
       if (barnizRev) total += _limpiar(costoBarnizController.text);
 
-      if (portada) {
-        total += _limpiar(costoPapelPortadaConIvaController.text);
-        total += _limpiar(costoGranTotalTintasPortadaController.text);
-        total += _limpiar(costoTotalPlacasPortadaController.text);
-        total += _limpiar(costoTotalPlacas790PortadaController.text);
-        if (barnizFtePortada)
-          total += _limpiar(costoBarnizPortadaController.text);
-        if (barnizRevPortada)
-          total += _limpiar(costoBarnizPortadaController.text);
-      }
     }
 
     // ACABADOS UV Y LAMINADOS
@@ -1134,16 +794,8 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       for (var c in acabadosCostoTotalControllers.values)
         total += _limpiar(c.text);
     }
-    if (portada && barnizUVPortada) {
-      for (var c in acabadosPortadaCostoTotalControllers.values)
-        total += _limpiar(c.text);
-    }
     if (laminadosActivo) {
       for (var c in laminadosCostoTotalControllers.values)
-        total += _limpiar(c.text);
-    }
-    if (portada && laminadosPortada) {
-      for (var c in laminadosPortadaCostoTotalControllers.values)
         total += _limpiar(c.text);
     }
 
@@ -1197,7 +849,6 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
     await Future.delayed(Duration.zero); 
 
     calcularMedidasFinales();
-    if (portada) calcularMedidasFinalesPortada();
     calcularCostoTotalGeneral();
     
     double costoBaseLimpio = _limpiar(costoTotalController.text);
@@ -1239,38 +890,6 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
           "${anchoFinalController.text} x ${altoFinalController.text} cm",
       "paginasInternasTotales": paginasInternasTotalesController.text,
       "paginasInternasPorPieza": paginasInternasPorPiezaController.text,
-      "portada": portada,
-      "anchoPortada": anchoPortadaController.text,
-      "altoPortada": altoPortadaController.text,
-      "medianilPortada": medianilPortadaController.text,
-      "anchoFinalPortada": anchoFinalPortadaController.text,
-      "altoFinalPortada": altoFinalPortadaController.text,
-      "medidasFinalesPortadaCalculadas": portada
-          ? "${anchoFinalPortadaController.text} x ${altoFinalPortadaController.text} cm"
-          : null,
-      "piezasPortada": piezasPortadaController.text,
-      "pruebaColorPortada": pruebaColorPortada,
-      "pruebaColorPortadaDetalles": {
-        "costoPruebaPortada": costoPruebaPortadaController.text,
-        "carta": {
-          "activo": pruebaColorPortadaCarta,
-          "cantidad": cantidadPruebaPortadaCartaController.text,
-          "precio": precioPruebaPortadaCartaController.text,
-          "total": totalPruebaPortadaCartaController.text,
-        },
-        "tabloide": {
-          "activo": pruebaColorPortadaTabloide,
-          "cantidad": cantidadPruebaPortadaTabloideController.text,
-          "precio": precioPruebaPortadaTabloideController.text,
-          "total": totalPruebaPortadaTabloideController.text,
-        },
-        "mediaCarta": {
-          "activo": pruebaColorPortadaMediaCarta,
-          "cantidad": cantidadPruebaPortadaMediaCartaController.text,
-          "precio": precioPruebaPortadaMediaCartaController.text,
-          "total": totalPruebaPortadaMediaCartaController.text,
-        },
-      },
       "pruebaColorInternasDetalles": {
         "carta": {
           "activo": pruebaCarta,
@@ -1294,9 +913,7 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
       "switches": {
         "offsetActivo": offsetActivo,
         "barnizUV": barnizUV,
-        "barnizUVPortada": barnizUVPortada,
         "laminadosActivo": laminadosActivo,
-        "laminadosPortada": laminadosPortada,
         "suaje": suaje,
         "serigrafia": serigrafia,
         "grabado": grabado,
@@ -1317,20 +934,6 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
         "totalPliegos": totalPliegosController.text,
         "millares": millaresController.text,
       },
-      "portada": portada
-          ? {
-              "pliegoAncho": pliegoAnchoPortadaController.text,
-              "pliegoAlto": pliegoAltoPortadaController.text,
-              "posicionPiezas": posicionPiezasPortadaController.text,
-              "piezasPorPliego": piezasPorPliegoPortadaController.text,
-              "tamanoPorPliego": tamanoPorPliegoPortadaController.text,
-              "pliegosExtra": pliegosExtraPortadaController.text,
-              "cantidadPliegos": cantidadPliegosPortadaController.text,
-              "pliegosSobrantes": pliegosSobrantesPortadaController.text,
-              "totalPliegos": totalPliegosPortadaController.text,
-              "millares": millaresPortadaController.text,
-            }
-          : null,
     };
     final mapDatosPapel = {
       "interior": {
@@ -1341,16 +944,6 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
         "peso": pesoPapelController.text,
         "proveedor": proveedorPapelController.text,
       },
-      "portada": portada
-          ? {
-              "nombre": nombrePapelPortadaController.text,
-              "tipo": tipoPapelPortadaController.text,
-              "ancho": anchoPapelPortadaController.text,
-              "largo": largoPapelPortadaController.text,
-              "peso": pesoPapelPortadaController.text,
-              "proveedor": proveedorPapelPortadaController.text,
-            }
-          : null,
     };
     final mapCostoPapel = {
       "interior": {
@@ -1359,14 +952,6 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
         "descuentoPapel": descuentoPapelController.text,
         "costoPapelConIva": costoPapelConIvaController.text,
       },
-      "portada": portada
-          ? {
-              "costoMillar": costoMillarPortadaController.text,
-              "costoTotalPapel": costoTotalPapelPortadaController.text,
-              "descuentoPapel": descuentoPapelPortadaController.text,
-              "costoPapelConIva": costoPapelPortadaConIvaController.text,
-            }
-          : null,
     };
     final mapMaquina = {
       "offsetActivo": offsetActivo,
@@ -1399,38 +984,6 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
         "cambiarPrecioTinta": cambiarPrecioTinta,
         "cambiarPrecioBarniz": cambiarPrecioBarniz,
       },
-      "portada": portada
-          ? {
-              "nombreMaquina": nombreMaquinaPortadaController.text,
-              "costoPlaca": costoPlacaPortadaController.text,
-              "tintasFte": tintasFtePortadaController.text,
-              "tintasRev": tintasRevPortadaController.text,
-              "cantidadTotalTintas": cantidadTotalTintasPortadaController.text,
-              "costoUnitFte": costoUnitFtePortadaController.text,
-              "costoTotalFte": costoTotalFtePortadaController.text,
-              "costoUnitRev": costoUnitRevPortadaController.text,
-              "costoTotalRev": costoTotalRevPortadaController.text,
-              "costoGranTotalTintas":
-                  costoGranTotalTintasPortadaController.text,
-              "cantidadPlacas": cantidadPlacasPortadaController.text,
-              "costoBarniz": costoBarnizPortadaController.text,
-              "costoTotalPlacas": costoTotalPlacasPortadaController.text,
-              "cantidadPlacas790": cantidadPlacas790PortadaController.text,
-              "costoPlaca790": costoPlaca790PortadaController.text,
-              "costoTotalPlacas790": costoTotalPlacas790PortadaController.text,
-              "barnizFte": barnizFtePortada,
-              "barnizRev": barnizRevPortada,
-              "barnizFteValor": barnizFtePortadaController.text,
-              "barnizRevValor": barnizRevPortadaController.text,
-              "configuracionFrente": configuracionFrentePortada,
-              "configuracionVuelta": configuracionVueltaPortada,
-              "costoUnitBarnizFte": costoUnitBarnizFtePortadaController.text,
-              "costoUnitBarnizRev": costoUnitBarnizRevPortadaController.text,
-              "cambiarPrecioPlaca": cambiarPrecioPlacaPortada,
-              "cambiarPrecioTinta": cambiarPrecioTinta,
-              "cambiarPrecioBarniz": cambiarPrecioBarniz,
-            }
-          : null,
     };
     Map<String, dynamic> extraerEstado(
       Map<String, Map<String, bool>> estado,
@@ -1458,18 +1011,6 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
               )
             : {},
       },
-      "portada": portada
-          ? {
-              "barnizUV": barnizUVPortada,
-              "detalles": barnizUVPortada
-                  ? extraerEstado(
-                      acabadosPortada,
-                      acabadosPortadaCostoCm2Controllers,
-                      acabadosPortadaCostoTotalControllers,
-                    )
-                  : {},
-            }
-          : null,
     };
     final mapLaminado = {
       "interior": {
@@ -1482,18 +1023,6 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
               )
             : {},
       },
-      "portada": portada
-          ? {
-              "laminadosActivo": laminadosPortada,
-              "detalles": laminadosPortada
-                  ? extraerEstado(
-                      laminadosPortadaMap,
-                      laminadosPortadaCostoCm2Controllers,
-                      laminadosPortadaCostoTotalControllers,
-                    )
-                  : {},
-            }
-          : null,
     };
     final mapSuaje = {
       "suajeActivo": suaje,
@@ -1726,19 +1255,6 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
       controller.dispose();
     for (var controller in acabadosCostoTotalControllers.values)
       controller.dispose();
-    anchoPortadaController.dispose();
-    altoPortadaController.dispose();
-    medianilPortadaController.dispose();
-    anchoFinalPortadaController.dispose();
-    altoFinalPortadaController.dispose();
-    piezasPortadaController.dispose();
-    costoPruebaPortadaController.dispose();
-    for (var c in acabadosPortadaCostoCm2Controllers.values) {
-      c.dispose();
-    }
-    for (var c in acabadosPortadaCostoTotalControllers.values) {
-      c.dispose();
-    }
     cantidadCartaController.dispose();
     precioCartaController.dispose();
     totalCartaController.dispose();
@@ -1755,18 +1271,11 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
     cantidadPlacas790Controller.dispose();
     costoPlaca790Controller.dispose();
     costoTotalPlacas790Controller.dispose();
-    cantidadPlacas790PortadaController.dispose();
-    costoPlaca790PortadaController.dispose();
-    costoTotalPlacas790PortadaController.dispose();
     barnizFteController.dispose();
     barnizRevController.dispose();
     costoUnitBarnizFteController.dispose();
     costoUnitBarnizRevController.dispose();
 
-    barnizFtePortadaController.dispose();
-    barnizRevPortadaController.dispose();
-    costoUnitBarnizFtePortadaController.dispose();
-    costoUnitBarnizRevPortadaController.dispose();
     for (var c in embalajeCostoControllers) {
       c.dispose();
     }
@@ -1815,40 +1324,8 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
               medianilController: medianilController,
               anchoFinalController: anchoFinalController,
               altoFinalController: altoFinalController,
-              cantidadPruebaPortadaCartaController:
-                  cantidadPruebaPortadaCartaController,
-              precioPruebaPortadaCartaController:
-                  precioPruebaPortadaCartaController,
-              totalPruebaPortadaCartaController:
-                  totalPruebaPortadaCartaController,
               paginasInternasPorPiezaController:
                   paginasInternasPorPiezaController,
-
-              onPruebaColorPortadaChanged: (v) {
-                setState(() {
-                  pruebaColorPortada = v ?? false;
-                  if (!pruebaColorPortada) {
-                    pruebaColorPortadaCarta = false;
-                    pruebaColorPortadaTabloide = false;
-                    pruebaColorPortadaMediaCarta = false;
-                  }
-                });
-              },
-
-              cantidadPruebaPortadaTabloideController:
-                  cantidadPruebaPortadaTabloideController,
-              precioPruebaPortadaTabloideController:
-                  precioPruebaPortadaTabloideController,
-              totalPruebaPortadaTabloideController:
-                  totalPruebaPortadaTabloideController,
-
-              cantidadPruebaPortadaMediaCartaController:
-                  cantidadPruebaPortadaMediaCartaController,
-              precioPruebaPortadaMediaCartaController:
-                  precioPruebaPortadaMediaCartaController,
-              totalPruebaPortadaMediaCartaController:
-                  totalPruebaPortadaMediaCartaController,
-
               barnizUV: barnizUV,
               onBarnizUVChanged: (v) => setState(() => barnizUV = v ?? false),
               suaje: suaje,
@@ -1873,78 +1350,11 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
                 calcularPliegosSuaje();
               },
               onCalcular: calcularMedidasFinales,
-              portada: portada,
-              onPortadaChanged: (v) {
-                setState(() {
-                  portada = v ?? false;
-                  if (!portada) {
-                    barnizUVPortada = false;
-                    acabadosPortada.forEach((_, lados) {
-                      lados.updateAll((_, __) => false);
-                    });
-                  }
-                });
-              },
-              anchoPortadaController: anchoPortadaController,
-              altoPortadaController: altoPortadaController,
-              medianilPortadaController: medianilPortadaController,
-              anchoFinalPortadaController: anchoFinalPortadaController,
-              altoFinalPortadaController: altoFinalPortadaController,
-              piezasPortadaController: piezasPortadaController,
-              onCalcularPortada: calcularMedidasFinalesPortada,
-              pruebaColorPortada: pruebaColorPortada,
-              pruebaColorPortadaCarta: pruebaColorPortadaCarta,
-              pruebaColorPortadaTabloide: pruebaColorPortadaTabloide,
-              pruebaColorPortadaMediaCarta: pruebaColorPortadaMediaCarta,
               paginasInternasTotalesController:
                   paginasInternasTotalesController,
               prePrensa: false,
               onPrePrensaChanged: (v) {
                 setState(() {});
-              },
-              onPruebaColorPortadaCartaChanged: (v) {
-                setState(() {
-                  pruebaColorPortadaCarta = v ?? false;
-                  if (!pruebaColorPortadaCarta) {
-                    cantidadPruebaPortadaCartaController.text = "0";
-                    precioPruebaPortadaCartaController.text = "0.00";
-                    totalPruebaPortadaCartaController.text = "0.00";
-                  }
-                });
-              },
-
-              onPruebaColorPortadaTabloideChanged: (v) {
-                setState(() {
-                  pruebaColorPortadaTabloide = v ?? false;
-                  if (!pruebaColorPortadaTabloide) {
-                    cantidadPruebaPortadaTabloideController.text = "0";
-                    precioPruebaPortadaTabloideController.text = "0.00";
-                    totalPruebaPortadaTabloideController.text = "0.00";
-                  }
-                });
-              },
-
-              onPruebaColorPortadaMediaCartaChanged: (v) {
-                setState(() {
-                  pruebaColorPortadaMediaCarta = v ?? false;
-                  if (!pruebaColorPortadaMediaCarta) {
-                    cantidadPruebaPortadaMediaCartaController.text = "0";
-                    precioPruebaPortadaMediaCartaController.text = "0.00";
-                    totalPruebaPortadaMediaCartaController.text = "0.00";
-                  }
-                });
-              },
-
-              barnizUVPortada: barnizUVPortada,
-              onBarnizUVPortadaChanged: (v) {
-                setState(() {
-                  barnizUVPortada = v ?? false;
-                  if (!barnizUVPortada) {
-                    acabadosPortada.forEach((_, lados) {
-                      lados.updateAll((_, __) => false);
-                    });
-                  }
-                });
               },
               laminadosActivo: laminadosActivo,
               onLaminadosChanged: (v) {
@@ -1957,9 +1367,6 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
                   }
                 });
               },
-              laminadosPortada: laminadosPortada,
-              onLaminadosPortadaChanged: (v) =>
-                  setState(() => laminadosPortada = v ?? false),
               pruebaCarta: pruebaCarta,
               onPruebaCartaChanged: (v) {
                 setState(() {
@@ -2028,14 +1435,13 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
                 posicionPiezasController: posicionPiezasController,
                 piezasPorPliegoController: piezasPorPliegoController,
                 tamanoPorPliegoController: tamanoPorPliegoController,
-                cantidadImpresionesController: portada
-                    ? paginasInternasTotalesController
-                    : cantidadImpresionController,
                 pliegosSobrantesController: pliegosSobrantesController,
                 totalPliegosController: totalPliegosController,
                 millaresController: millaresController,
                 cantidadPliegosController: cantidadPliegosController,
                 pliegosExtraController: pliegosExtraController,
+                cantidadImpresionesController: cantidadImpresionController,
+                
               ),
 
               PanelDatosPapel(
@@ -2138,139 +1544,6 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
                 controllersCostoCm2: laminadosCostoCm2Controllers,
                 controllersCostoTotal: laminadosCostoTotalControllers,
                 cantidadImpresionController: cantidadImpresionController,
-                isOffset: offsetActivo,
-              ),
-
-            if (offsetActivo && portada) ...[
-              const Divider(thickness: 2),
-              const Text(
-                "PORTADA",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-
-              /// PLIEGOS PORTADA
-              PanelPliegos(
-                cantidadImpresionesController: piezasPortadaController,
-                anchoFinalController: anchoFinalPortadaController,
-                altoFinalController: altoFinalPortadaController,
-
-                pliegoAnchoController: pliegoAnchoPortadaController,
-                pliegoAltoController: pliegoAltoPortadaController,
-                posicionPiezasController: posicionPiezasPortadaController,
-                piezasPorPliegoController: piezasPorPliegoPortadaController,
-                tamanoPorPliegoController: tamanoPorPliegoPortadaController,
-                cantidadPliegosController: cantidadPliegosPortadaController,
-                pliegosSobrantesController: pliegosSobrantesPortadaController,
-                totalPliegosController: totalPliegosPortadaController,
-                millaresController: millaresPortadaController,
-                pliegosExtraController: pliegosExtraPortadaController,
-              ),
-
-              /// PAPEL PORTADA
-              PanelDatosPapel(
-                nombrePapelController: nombrePapelPortadaController,
-                tipoPapelController: tipoPapelPortadaController,
-                anchoPapelController: anchoPapelPortadaController,
-                largoPapelController: largoPapelPortadaController,
-                pesoPapelController: pesoPapelPortadaController,
-                proveedorPapelController: proveedorPapelPortadaController,
-                costoMillarController: costoMillarPortadaController,
-                totalPliegosController: totalPliegosPortadaController,
-                pliegoAnchoController: pliegoAnchoPortadaController,
-                pliegoAltoController: pliegoAltoPortadaController,
-              ),
-
-              PanelCostoPapel(
-                costoMillarController: costoMillarPortadaController,
-                totalPliegosController: totalPliegosPortadaController,
-                costoTotalPapelController: costoTotalPapelPortadaController,
-                descuentoController: descuentoPapelPortadaController,
-                costoConIvaController: costoPapelPortadaConIvaController,
-              ),
-
-              /// MAQUINA PORTADA
-              PanelMaquina(
-                nombreMaquinaController: nombreMaquinaPortadaController,
-                costoPlacaController: costoPlacaPortadaController,
-                tintasFteController: tintasFtePortadaController,
-                tintasRevController: tintasRevPortadaController,
-                costoUnitFteController: costoUnitFtePortadaController,
-                costoTotalFteController: costoTotalFtePortadaController,
-                costoUnitRevController: costoUnitRevPortadaController,
-                costoTotalRevController: costoTotalRevPortadaController,
-                costoGranTotalTintasController:
-                    costoGranTotalTintasPortadaController,
-                cantidadPlacasController: cantidadPlacasPortadaController,
-                costoBarnizController: costoBarnizPortadaController,
-                costoTotalPlacasController: costoTotalPlacasPortadaController,
-                onBarnizMaquinaChanged: (v) =>
-                    setState(() => barnizMaquinaPortada = v ?? false),
-                cambiarPrecioPlaca: cambiarPrecioPlacaPortada,
-                onCambiarPrecioPlacaChanged: (v) =>
-                    setState(() => cambiarPrecioPlacaPortada = v ?? false),
-                cambiarPrecioTinta: cambiarPrecioTinta,
-                onCambiarPrecioTintaChanged: (v) =>
-                    setState(() => cambiarPrecioTinta = v ?? false),
-                cambiarPrecioBarniz: cambiarPrecioBarniz,
-                onCambiarPrecioBarnizChanged: (v) =>
-                    setState(() => cambiarPrecioBarniz = v ?? false),
-                cantidadPlacas790Controller: cantidadPlacas790PortadaController,
-                costoPlaca790Controller: costoPlaca790PortadaController,
-                costoTotalPlacas790Controller:
-                    costoTotalPlacas790PortadaController,
-                millaresController: millaresPortadaController,
-                opcionesFrente: opcionesFrentePortada,
-                opcionesVuelta: opcionesVueltaPortada,
-                barnizFte: barnizFtePortada,
-                barnizRev: barnizRevPortada,
-                barnizFteController: barnizFtePortadaController,
-                barnizRevController: barnizRevPortadaController,
-                costoUnitBarnizFteController:
-                    costoUnitBarnizFtePortadaController,
-                costoUnitBarnizRevController:
-                    costoUnitBarnizRevPortadaController,
-                onBarnizFteChanged: (v) => setState(() => barnizFtePortada = v),
-                onBarnizRevChanged: (v) => setState(() => barnizRevPortada = v),
-                valorInicialFrente: configuracionFrentePortada,
-                valorInicialVuelta: configuracionVueltaPortada,
-                onConfiguracionFrenteChanged: (valor) {
-                  setState(() {
-                    configuracionFrentePortada = valor;
-                  });
-                },
-
-                onConfiguracionVueltaChanged: (valor) {
-                  setState(() {
-                    configuracionVueltaPortada = valor;
-                  });
-                },
-              ),
-            ],
-
-            /// ACABADOS PORTADA
-            if (offsetActivo && portada && barnizUVPortada)
-              PanelAcabados(
-                read_Only: panelAcabadosActivo,
-                acabados: acabadosPortada,
-                onAcabadoChanged: actualizarAcabadoPortada,
-                anchoFinalController: anchoFinalPortadaController,
-                altoFinalController: altoFinalPortadaController,
-                totalPliegosController: totalPliegosPortadaController,
-                controllersCostoCm2: acabadosPortadaCostoCm2Controllers,
-                controllersCostoTotal: acabadosPortadaCostoTotalControllers,
-              ),
-
-            if (offsetActivo && portada && laminadosPortada)
-              PanelLaminados(
-                readOnly: laminadosPortada,
-                laminados: laminadosPortadaMap,
-                onLaminadoChanged: actualizarLaminadoPortada,
-                pliegoAnchoController: pliegoAnchoPortadaController,
-                pliegoAltoController: pliegoAltoPortadaController,
-                totalPliegosController: totalPliegosPortadaController,
-                controllersCostoCm2: laminadosPortadaCostoCm2Controllers,
-                controllersCostoTotal: laminadosPortadaCostoTotalControllers,
-                cantidadImpresionController: piezasPortadaController,
                 isOffset: offsetActivo,
               ),
 
