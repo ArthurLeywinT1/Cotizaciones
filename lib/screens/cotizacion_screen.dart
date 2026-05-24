@@ -217,6 +217,30 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                   },
                 ),
                 Boton(
+                  icon: Icons.disabled_by_default_outlined,
+                  label: "No Aprobar",
+                  isDestructive: true,
+                  onPressed: () async {
+                    if (seleccionado != null && seleccionado.id != null) {
+                      final ok = await ref
+                          .read(cotizacionesProvider.notifier)
+                          .cambiarStatus(seleccionado.id!, 'No Aprobado');
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              ok
+                                  ? 'Cotización marcada como No Aprobado'
+                                  : 'No se pudo actualizar el estatus',
+                            ),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                ),
+                Boton(
                   icon: Icons.refresh,
                   label: "Recargar",
                   onPressed: () {

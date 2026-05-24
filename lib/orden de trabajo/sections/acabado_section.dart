@@ -40,7 +40,6 @@ class AcabadoSection extends ConsumerWidget {
               controller.acabadoProyecto,
               "acabado_proyecto_${controller.sessionKey}",
               // Es readOnly si ya venía así O si está en modo producción
-              readOnly: true, 
               onChanged: (v) =>
                   ref.read(ordenTrabajoProvider).updateAcabado('proyecto', v),
             ),
@@ -77,7 +76,9 @@ class AcabadoSection extends ConsumerWidget {
                     // Cambia el fondo a gris si es modo producción para dar feedback visual
                     color: modoProduccion ? Colors.grey[100] : Colors.green[50],
                     border: Border.all(
-                      color: modoProduccion ? Colors.grey[300]! : Colors.green[200]!,
+                      color: modoProduccion
+                          ? Colors.grey[300]!
+                          : Colors.green[200]!,
                     ),
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -91,7 +92,8 @@ class AcabadoSection extends ConsumerWidget {
                             "acabado_desc_${acabado.id}_${controller.sessionKey}",
                           ),
                           initialValue: acabado.desc,
-                          readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+                          readOnly:
+                              modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
                           decoration: const InputDecoration(
                             hintText: "Ej: Poner fajilla...",
                             isDense: true,
@@ -99,7 +101,9 @@ class AcabadoSection extends ConsumerWidget {
                           ),
                           style: TextStyle(
                             fontSize: 13,
-                            color: modoProduccion ? Colors.black54 : Colors.black,
+                            color: modoProduccion
+                                ? Colors.black54
+                                : Colors.black,
                           ),
                           onChanged: (v) => acabado.desc = v,
                         ),
@@ -109,7 +113,9 @@ class AcabadoSection extends ConsumerWidget {
                       Container(
                         height: 30,
                         width: 1,
-                        color: modoProduccion ? Colors.grey[300] : Colors.green[200],
+                        color: modoProduccion
+                            ? Colors.grey[300]
+                            : Colors.green[200],
                         margin: const EdgeInsets.symmetric(horizontal: 4),
                       ),
 
@@ -122,7 +128,8 @@ class AcabadoSection extends ConsumerWidget {
                           ),
                           initialValue: acabado.piezas,
                           keyboardType: TextInputType.number,
-                          readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+                          readOnly:
+                              modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
                           decoration: const InputDecoration(
                             hintText: "Piezas",
                             isDense: true,
@@ -131,7 +138,9 @@ class AcabadoSection extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: modoProduccion ? Colors.grey[600] : Colors.green,
+                            color: modoProduccion
+                                ? Colors.grey[600]
+                                : Colors.green,
                           ),
                           onChanged: (v) => acabado.piezas = v,
                         ),
@@ -169,10 +178,10 @@ class AcabadoSection extends ConsumerWidget {
                   style: TextStyle(
                     color: Colors.green,
                     fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
             ],
 
             const Divider(height: 1, thickness: 0.5),
@@ -193,35 +202,43 @@ class AcabadoSection extends ConsumerWidget {
               initialValue: controller.acabadoNotas,
               maxLines: 3,
               readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
-              onChanged: modoProduccion 
-                  ? null 
-                  : (v) => ref.read(ordenTrabajoProvider).updateAcabado('notas', v),
+              onChanged: modoProduccion
+                  ? null
+                  : (v) => ref
+                        .read(ordenTrabajoProvider)
+                        .updateAcabado('notas', v),
               decoration: InputDecoration(
-                hintText: modoProduccion 
-                    ? "Sin notas adicionales" 
+                hintText: modoProduccion
+                    ? "Sin notas adicionales"
                     : "Ej: Doblez especial, intercalado manual, compaginado, refile final...",
                 isDense: true,
                 filled: true,
-                fillColor: modoProduccion ? Colors.grey[100] : Colors.yellow[50],
+                fillColor: modoProduccion
+                    ? Colors.grey[100]
+                    : Colors.yellow[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
+                    color: modoProduccion
+                        ? Colors.grey[300]!
+                        : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
+                    color: modoProduccion
+                        ? Colors.grey[300]!
+                        : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
               ),
               style: TextStyle(
-                fontSize: 13, 
+                fontSize: 13,
                 fontStyle: FontStyle.italic,
-                color: modoProduccion ? Colors.black54 : Colors.black
+                color: modoProduccion ? Colors.black54 : Colors.black,
               ),
             ),
 

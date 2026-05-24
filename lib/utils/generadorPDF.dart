@@ -102,7 +102,7 @@ Future<Uint8List> generarCotizacionPdf({
                           style: const pw.TextStyle(fontSize: 9),
                         ),
                         pw.Text(
-                          'DIRECCIÓN: APONECAS NO. 81, COL. CARACOL EL ALTO\nALCALDIA COYOCÁN TEL. 55 5421 4868',
+                          'DIRECCIÓN: MIXTECAS 499 BIS, AJUSCO, COYOACÁN, 04300 CIUDAD DE MÉXICO, CDMX',
                           style: const pw.TextStyle(fontSize: 9),
                         ),
                       ],

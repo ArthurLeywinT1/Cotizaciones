@@ -82,6 +82,27 @@ class CotizacionesNotifier extends Notifier<CotizacionesState> {
     }
   }
 
+  Future<bool> cambiarStatus(String id, String nuevoStatus) async {
+    try {
+      state = state.copyWith(isLoading: true, error: '');
+      final success = await _service.actualizarStatus(id, nuevoStatus);
+
+      if (success) {
+        await _cargarCotizaciones();
+        return true;
+      }
+
+      state = state.copyWith(
+        isLoading: false,
+        error: 'No se pudo actualizar el status',
+      );
+      return false;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
   Future<void> recargar() async => await _cargarCotizaciones();
 }
 

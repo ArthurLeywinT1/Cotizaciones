@@ -3,14 +3,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/orden_trabajo_provider.dart';
 import 'section_buttons.dart';
+import '../../screens/modals/modal_proveedor.dart';
+import '../../providers/proveedor_provider.dart';
 
 class AdquisicionesSection extends ConsumerWidget {
   final bool modoProduccion;
   const AdquisicionesSection({super.key, this.modoProduccion = false});
 
+  void _agregarProveedor(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => ModalProveedor(
+        titulo: 'Nuevo Proveedor',
+        onGuardar: (proveedorNuevo) async {
+          final success = await ref
+              .read(proveedoresProvider.notifier)
+              .crearProveedor(proveedorNuevo);
+          if (success && context.mounted) {
+            Navigator.pop(context);
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Proveedor creado')));
+          }
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.watch(ordenTrabajoProvider);
+    final proveedoresState = ref.watch(proveedoresProvider);
 
     return Card(
       elevation: 2,
@@ -56,7 +79,9 @@ class AdquisicionesSection extends ConsumerWidget {
                     // Mutación de color a gris en modo producción
                     color: modoProduccion ? Colors.grey[100] : Colors.teal[50],
                     border: Border.all(
-                      color: modoProduccion ? Colors.grey[300]! : Colors.teal[200]!,
+                      color: modoProduccion
+                          ? Colors.grey[300]!
+                          : Colors.teal[200]!,
                     ),
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -70,7 +95,8 @@ class AdquisicionesSection extends ConsumerWidget {
                             "adq_nom_${material.id}_${controller.sessionKey}",
                           ),
                           initialValue: material.nombre,
-                          readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+                          readOnly:
+                              modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
                           decoration: const InputDecoration(
                             hintText: "Descripción del material...",
                             isDense: true,
@@ -78,7 +104,9 @@ class AdquisicionesSection extends ConsumerWidget {
                           ),
                           style: TextStyle(
                             fontSize: 13,
-                            color: modoProduccion ? Colors.black54 : Colors.black,
+                            color: modoProduccion
+                                ? Colors.black54
+                                : Colors.black,
                           ),
                           onChanged: (v) => material.nombre = v,
                         ),
@@ -87,36 +115,61 @@ class AdquisicionesSection extends ConsumerWidget {
                       Container(
                         height: 30,
                         width: 1,
-                        color: modoProduccion ? Colors.grey[300] : Colors.teal[200],
+                        color: modoProduccion
+                            ? Colors.grey[300]
+                            : Colors.teal[200],
                         margin: const EdgeInsets.symmetric(horizontal: 4),
                       ),
 
                       // CAMPO 2: PROVEEDOR
                       Expanded(
                         flex: 2,
-                        child: TextFormField(
+                        child: DropdownButtonFormField<String>(
                           key: ValueKey(
                             "adq_prov_${material.id}_${controller.sessionKey}",
                           ),
-                          initialValue: material.proveedor,
-                          readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+                          value:
+                              proveedoresState.proveedores.any(
+                                (p) => p.id == material.proveedor,
+                              )
+                              ? material.proveedor
+                              : null,
+                          onChanged: modoProduccion
+                              ? null
+                              : (String? val) {
+                                  if (val != null) {
+                                    material.proveedor = val;
+                                  }
+                                },
                           decoration: const InputDecoration(
-                            hintText: "Proveedor sugerido...",
+                            hintText: "Seleccionar Proveedor",
                             isDense: true,
                             border: InputBorder.none,
                           ),
                           style: TextStyle(
                             fontSize: 13,
-                            color: modoProduccion ? Colors.black54 : Colors.black,
+                            color: modoProduccion
+                                ? Colors.black54
+                                : Colors.black,
                           ),
-                          onChanged: (v) => material.proveedor = v,
+                          items: proveedoresState.proveedores.map((prov) {
+                            return DropdownMenuItem<String>(
+                              value: prov.id,
+                              child: Text(
+                                prov.razonSocial,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          }).toList(),
                         ),
                       ),
 
                       Container(
                         height: 30,
                         width: 1,
-                        color: modoProduccion ? Colors.grey[300] : Colors.teal[200],
+                        color: modoProduccion
+                            ? Colors.grey[300]
+                            : Colors.teal[200],
                         margin: const EdgeInsets.symmetric(horizontal: 4),
                       ),
 
@@ -131,7 +184,8 @@ class AdquisicionesSection extends ConsumerWidget {
                               ? ''
                               : material.cantidad.toString(),
                           keyboardType: TextInputType.number,
-                          readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+                          readOnly:
+                              modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
                           decoration: const InputDecoration(
                             hintText: "Cant.",
                             isDense: true,
@@ -140,7 +194,9 @@ class AdquisicionesSection extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: modoProduccion ? Colors.grey[600] : Colors.teal,
+                            color: modoProduccion
+                                ? Colors.grey[600]
+                                : Colors.teal,
                           ),
                           onChanged: (v) =>
                               material.cantidad = int.tryParse(v) ?? 0,
@@ -156,7 +212,8 @@ class AdquisicionesSection extends ConsumerWidget {
                             size: 20,
                           ),
                           tooltip: "Borrar material",
-                          onPressed: () => controller.removeMaterial(material.id),
+                          onPressed: () =>
+                              controller.removeMaterial(material.id),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                         ),
@@ -170,16 +227,42 @@ class AdquisicionesSection extends ConsumerWidget {
 
             // Botón para agregar más materiales (Oculto en modo producción)
             if (!modoProduccion)
-              TextButton.icon(
-                onPressed: () => controller.addMaterial(),
-                icon: const Icon(Icons.add_circle_outline, color: Colors.teal),
-                label: const Text(
-                  "Agregar Material",
-                  style: TextStyle(
-                    color: Colors.teal,
-                    fontWeight: FontWeight.bold,
+              Column(
+                children: [
+                  Row(
+                    children: [
+                      TextButton.icon(
+                        onPressed: () => controller.addMaterial(),
+                        icon: const Icon(
+                          Icons.add_circle_outline,
+                          color: Colors.teal,
+                        ),
+                        label: const Text(
+                          "Agregar Material",
+                          style: TextStyle(
+                            color: Colors.teal,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      TextButton.icon(
+                        onPressed: () => _agregarProveedor(context, ref),
+                        icon: const Icon(
+                          Icons.add_circle_outline,
+                          color: Colors.teal,
+                        ),
+                        label: const Text(
+                          "Nuevo Proveedor",
+                          style: TextStyle(
+                            color: Colors.teal,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
+                ],
               ),
 
             const SizedBox(height: 16),
@@ -204,37 +287,43 @@ class AdquisicionesSection extends ConsumerWidget {
               onChanged: modoProduccion
                   ? null
                   : (v) => ref
-                      .read(ordenTrabajoProvider)
-                      .updateAdquisiciones('notas', v),
+                        .read(ordenTrabajoProvider)
+                        .updateAdquisiciones('notas', v),
               decoration: InputDecoration(
                 hintText: modoProduccion
                     ? "Sin notas o especificaciones adicionales"
                     : "Escribe aquí especificaciones de compra, tiempos de entrega o detalles de crédito...",
                 isDense: true,
                 filled: true,
-                fillColor: modoProduccion ? Colors.grey[100] : Colors.yellow[50],
+                fillColor: modoProduccion
+                    ? Colors.grey[100]
+                    : Colors.yellow[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
+                    color: modoProduccion
+                        ? Colors.grey[300]!
+                        : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
+                    color: modoProduccion
+                        ? Colors.grey[300]!
+                        : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
               ),
               style: TextStyle(
-                fontSize: 13, 
+                fontSize: 13,
                 fontStyle: FontStyle.italic,
                 color: modoProduccion ? Colors.black54 : Colors.black,
               ),
             ),
-            
+
             if (modoProduccion) ...[
               const Divider(height: 32, thickness: 1),
               SectionButtons(

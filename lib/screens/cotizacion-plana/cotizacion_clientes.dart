@@ -132,15 +132,6 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
     );
   }
 
-  void _calcularPaginasInternas() {
-    final piezas = int.tryParse(widget.cantidadImpresionController.text) ?? 0;
-    final paginas =
-        int.tryParse(widget.paginasInternasPorPiezaController.text) ?? 0;
-
-    widget.paginasInternasTotalesController.text = (piezas * paginas)
-        .toString();
-  }
-
   void calcularTotal(
     TextEditingController cantidadController,
     TextEditingController precioController,
@@ -499,13 +490,13 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
 
             const SizedBox(height: 10),
 
-const Text(
+            const Text(
               "Piezas totales solicitadas",
-              style: TextStyle(fontWeight: FontWeight.bold),   
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            
+
             const SizedBox(height: 8),
-            
+
             TextField(
               controller: widget.cantidadImpresionController,
               keyboardType: TextInputType.number,

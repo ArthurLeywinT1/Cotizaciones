@@ -7,7 +7,10 @@ class PapelService {
   Future<List<Papel>> obtenerPapeles() async {
     try {
       final resultado = await db.query(
-        'SELECT * FROM papeles ORDER BY nombre_papel ASC',
+        '''SELECT p.*, prov.razon_social as proveedor_razon_social
+           FROM papeles p
+           LEFT JOIN proveedores prov ON p.proveedor_id::TEXT = prov.id::TEXT
+           ORDER BY p.nombre_papel ASC''',
       );
       return resultado.map((row) => Papel.fromMap(row)).toList();
     } catch (e) {
@@ -20,7 +23,7 @@ class PapelService {
     try {
       await db.execute(
         '''INSERT INTO papeles (
-             nombre_papel, tipo_papel, medida_ancho, medida_largo, 
+             nombre_papel, tipo_papel, medida_ancho, medida_largo,
              peso_gramaje, costo_millar, proveedor_id
            ) VALUES (@nom, @tipo, @ancho, @largo, @peso, @costo, @prov)''',
         params: {
@@ -42,12 +45,12 @@ class PapelService {
   Future<void> actualizarPapel(Papel papel) async {
     try {
       await db.execute(
-        '''UPDATE papeles 
-           SET nombre_papel = @nom, tipo_papel = @tipo, 
-               medida_ancho = @ancho, medida_largo = @largo, 
-               peso_gramaje = @peso, costo_millar = @costo, 
+        '''UPDATE papeles
+           SET nombre_papel = @nom, tipo_papel = @tipo,
+               medida_ancho = @ancho, medida_largo = @largo,
+               peso_gramaje = @peso, costo_millar = @costo,
                proveedor_id = @prov, fecha_modificacion = NOW()
-           WHERE id = @id''',
+           WHERE id = CAST(@id AS uuid)''',
         params: {
           'id': papel.id,
           'nom': papel.nombre,
@@ -68,7 +71,7 @@ class PapelService {
   Future<bool> eliminarPapel(String id) async {
     try {
       final affectedRows = await db.execute(
-        'DELETE FROM papeles WHERE id = @id',
+        'DELETE FROM papeles WHERE id = CAST(@id AS uuid)',
         params: {'id': id},
       );
       return affectedRows > 0;

@@ -5,23 +5,25 @@ import 'db.dart';
 class OrdenTrabajoService {
   final DatabaseService _db = DatabaseService();
 
-  Future<List<OrdenTrabajo>> obtenerOrdenes() async {
+  Future<String> obtenerFolioPorCotizacionId(String cotizacionId) async {
     try {
       final results = await _db.query(
-        "SELECT * FROM ordenes_trabajo ORDER BY fecha_creacion DESC",
+        "SELECT folio FROM cotizaciones WHERE id = CAST(@id AS uuid) LIMIT 1",
+        params: {'id': cotizacionId},
       );
-
-      return results.map((row) => OrdenTrabajo.fromJson(row)).toList();
+      if (results.isNotEmpty) {
+        return results.first['folio']?.toString() ?? "S/F";
+      }
+      return "S/F";
     } catch (e) {
-      print('Excepción en obtenerOrdenes: $e');
-      return [];
+      return "S/F";
     }
   }
 
   Future<OrdenTrabajo?> obtenerOrdenPorCotizacionId(String cotizacionId) async {
     try {
       final results = await _db.query(
-        "SELECT * FROM ordenes_trabajo WHERE cotizacion_id = @id LIMIT 1",
+        "SELECT * FROM ordenes_trabajo WHERE cotizacion_id::TEXT = @id LIMIT 1",
         params: {'id': cotizacionId},
       );
 
@@ -46,15 +48,10 @@ class OrdenTrabajoService {
           'cotizacionId': orden.cotizacionId,
           'estatus': orden.estatus,
           'datosCompletos': jsonEncode(orden.datosCompletos),
-          'fechaEntrega': orden.fechaEntrega,
+          'fechaEntrega': orden.fechaEntrega?.toIso8601String(),
         },
       );
-
-      if (rowsAffected > 0) {
-        print('Orden de Trabajo creada con éxito en NeonDB');
-        return true;
-      }
-      return false;
+      return rowsAffected > 0;
     } catch (e) {
       print('Excepción en crearOrden: $e');
       return false;
@@ -77,36 +74,30 @@ class OrdenTrabajoService {
           'id': orden.id,
           'estatus': orden.estatus,
           'datosCompletos': jsonEncode(orden.datosCompletos),
-          'fechaEntrega': orden.fechaEntrega,
+          'fechaEntrega': orden.fechaEntrega?.toIso8601String(),
         },
       );
-
-      if (rowsAffected > 0) {
-        print('Orden de Trabajo actualizada con éxito en NeonDB');
-        return true;
-      }
-      return false;
+      return rowsAffected > 0;
     } catch (e) {
       print('Excepción en actualizarOrden: $e');
       return false;
     }
   }
 
-  Future<bool> eliminarOrden(String id) async {
+  Future<OrdenTrabajo?> obtenerOrdenPorOtId(String otId) async {
     try {
-      final rowsAffected = await _db.execute(
-        "DELETE FROM ordenes_trabajo WHERE id = CAST(@id AS uuid)",
-        params: {'id': id},
+      final results = await _db.query(
+        "SELECT * FROM ordenes_trabajo WHERE id::TEXT = @id LIMIT 1",
+        params: {'id': otId},
       );
 
-      if (rowsAffected > 0) {
-        print('Orden de Trabajo eliminada con éxito de NeonDB');
-        return true;
+      if (results.isNotEmpty) {
+        return OrdenTrabajo.fromJson(results.first);
       }
-      return false;
+      return null;
     } catch (e) {
-      print('Excepción en eliminarOrden: $e');
-      return false;
+      print('Excepción en obtenerOrdenPorOtId: $e');
+      return null;
     }
   }
 }

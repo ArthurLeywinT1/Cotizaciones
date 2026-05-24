@@ -87,8 +87,10 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side:BorderSide(
-          color: widget.modoProduccion ? Colors.grey[300]! : Colors.deepOrange[200]!,
+        side: BorderSide(
+          color: widget.modoProduccion
+              ? Colors.grey[300]!
+              : Colors.deepOrange[200]!,
           width: 1,
         ),
       ),
@@ -102,7 +104,9 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
               children: [
                 Icon(
                   Icons.local_shipping,
-                  color: widget.modoProduccion ? Colors.grey[700] : Colors.deepOrange[700],
+                  color: widget.modoProduccion
+                      ? Colors.grey[700]
+                      : Colors.deepOrange[700],
                   size: 24,
                 ),
                 const SizedBox(width: 8),
@@ -121,10 +125,14 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: widget.modoProduccion ? Colors.grey[50] : Colors.deepOrange[50],
+                      color: widget.modoProduccion
+                          ? Colors.grey[50]
+                          : Colors.deepOrange[50],
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: widget.modoProduccion ? Colors.grey[300]! : Colors.deepOrange[100]!,
+                        color: widget.modoProduccion
+                            ? Colors.grey[300]!
+                            : Colors.deepOrange[100]!,
                       ),
                     ),
                     child: Column(
@@ -135,7 +143,9 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: widget.modoProduccion ? Colors.grey[600] : Colors.deepOrange,
+                            color: widget.modoProduccion
+                                ? Colors.grey[600]
+                                : Colors.deepOrange,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -147,23 +157,31 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
                             hintText: "DD/MM/AAAA",
                             isDense: true,
                             filled: true,
-                            fillColor: widget.modoProduccion ? Colors.grey[100] : Colors.white,
+                            fillColor: widget.modoProduccion
+                                ? Colors.grey[100]
+                                : Colors.white,
                             border: const OutlineInputBorder(),
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                color: widget.modoProduccion ? Colors.grey[300]! : Colors.grey[400]!,
+                                color: widget.modoProduccion
+                                    ? Colors.grey[300]!
+                                    : Colors.grey[400]!,
                               ),
                             ),
                             prefixIcon: Icon(
                               Icons.calendar_today,
                               size: 18,
-                              color: widget.modoProduccion ? Colors.grey[500] : Colors.deepOrange,
+                              color: widget.modoProduccion
+                                  ? Colors.grey[500]
+                                  : Colors.deepOrange,
                             ),
                           ),
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: widget.modoProduccion ? Colors.black54 : Colors.black,
+                            color: widget.modoProduccion
+                                ? Colors.black54
+                                : Colors.black,
                           ),
                         ),
                       ],
@@ -191,23 +209,29 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
                         onChanged: widget.modoProduccion
                             ? null
                             : (v) => ref
-                                .read(ordenTrabajoProvider)
-                                .updateLogistica('transporte', v),
+                                  .read(ordenTrabajoProvider)
+                                  .updateLogistica('transporte', v),
                         decoration: InputDecoration(
                           hintText: "Ej: Camioneta 3.5 Ton, Paquetería...",
                           isDense: true,
                           filled: widget.modoProduccion,
-                          fillColor: widget.modoProduccion ? Colors.grey[100] : null,
+                          fillColor: widget.modoProduccion
+                              ? Colors.grey[100]
+                              : null,
                           border: const OutlineInputBorder(),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                              color: widget.modoProduccion ? Colors.grey[300]! : Colors.grey[400]!,
+                              color: widget.modoProduccion
+                                  ? Colors.grey[300]!
+                                  : Colors.grey[400]!,
                             ),
                           ),
                         ),
                         style: TextStyle(
                           fontSize: 13,
-                          color: widget.modoProduccion ? Colors.black54 : Colors.black,
+                          color: widget.modoProduccion
+                              ? Colors.black54
+                              : Colors.black,
                         ),
                       ),
                     ],
@@ -242,17 +266,22 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
                         onChanged: widget.modoProduccion
                             ? null
                             : (v) => ref
-                                .read(ordenTrabajoProvider)
-                                .updateLogistica('direccion', v),
+                                  .read(ordenTrabajoProvider)
+                                  .updateLogistica('direccion', v),
                         decoration: InputDecoration(
-                          hintText: "Dirección completa, referencias, horarios...",
+                          hintText:
+                              "Dirección completa, referencias, horarios...",
                           isDense: true,
                           filled: widget.modoProduccion,
-                          fillColor: widget.modoProduccion ? Colors.grey[100] : null,
+                          fillColor: widget.modoProduccion
+                              ? Colors.grey[100]
+                              : null,
                           border: const OutlineInputBorder(),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                              color: widget.modoProduccion ? Colors.grey[300]! : Colors.grey[400]!,
+                              color: widget.modoProduccion
+                                  ? Colors.grey[300]!
+                                  : Colors.grey[400]!,
                             ),
                           ),
                           prefixIcon: const Icon(
@@ -262,7 +291,9 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
                         ),
                         style: TextStyle(
                           fontSize: 13,
-                          color: widget.modoProduccion ? Colors.black54 : Colors.black,
+                          color: widget.modoProduccion
+                              ? Colors.black54
+                              : Colors.black,
                         ),
                       ),
                     ],
@@ -286,7 +317,6 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
                       const SizedBox(height: 4),
                       TextField(
                         controller: _totalController,
-                        readOnly: true,
                         decoration: InputDecoration(
                           hintText: "0",
                           isDense: true,
@@ -332,32 +362,41 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
               onChanged: widget.modoProduccion
                   ? null
                   : (v) => ref
-                      .read(ordenTrabajoProvider)
-                      .updateLogistica('notes', v), // Mantiene tu mapeo original
+                        .read(ordenTrabajoProvider)
+                        .updateLogistica(
+                          'notes',
+                          v,
+                        ), // Mantiene tu mapeo original
               decoration: InputDecoration(
                 hintText: widget.modoProduccion
                     ? "Sin notas o especificaciones logísticas adicionales"
                     : "Ej: instrucciones para la entrega, detalles de la dirección, cuidado especial para el transporte...",
                 isDense: true,
                 filled: true,
-                fillColor: widget.modoProduccion ? Colors.grey[100] : Colors.yellow[50],
+                fillColor: widget.modoProduccion
+                    ? Colors.grey[100]
+                    : Colors.yellow[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: widget.modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
+                    color: widget.modoProduccion
+                        ? Colors.grey[300]!
+                        : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: widget.modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
+                    color: widget.modoProduccion
+                        ? Colors.grey[300]!
+                        : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
               ),
               style: TextStyle(
-                fontSize: 13, 
+                fontSize: 13,
                 fontStyle: FontStyle.italic,
                 color: widget.modoProduccion ? Colors.black54 : Colors.black,
               ),

@@ -46,7 +46,7 @@ class _OrdenTrabajoScreenState extends ConsumerState<OrdenTrabajoScreen> {
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
         title: Text(
-          "Orden de Trabajo: ${controller.orderId}",
+          "Folio: ${controller.orderId}",
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ),

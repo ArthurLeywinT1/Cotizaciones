@@ -42,12 +42,8 @@ class BarnizUVSection extends ConsumerWidget {
                     TextFormField(
                       key: ValueKey("barniz_proyecto_${controller.sessionKey}"),
                       initialValue: controller.barnizProyecto,
-                      readOnly: true,
                       onChanged: null,
-                      decoration: _inputStyle(
-                        'Ej: Contraportada...',
-                        readOnly: true,
-                      ),
+                      decoration: _inputStyle('Ej: Contraportada...'),
                       style: const TextStyle(
                         fontSize: 13,
                         color: Colors.black54,
@@ -64,7 +60,6 @@ class BarnizUVSection extends ConsumerWidget {
                       initialValue: controller.barnizPliegos > 0
                           ? controller.barnizPliegos.toString()
                           : '',
-                      readOnly: true,
                       onChanged: null,
                       decoration: _inputStyle('Cant.', readOnly: true),
                       keyboardType: TextInputType.number,
@@ -86,7 +81,9 @@ class BarnizUVSection extends ConsumerWidget {
                 color: modoProduccion ? Colors.grey[100] : Colors.orange[50],
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: modoProduccion ? Colors.grey[300]! : Colors.orange[100]!,
+                  color: modoProduccion
+                      ? Colors.grey[300]!
+                      : Colors.orange[100]!,
                 ),
               ),
               child: Column(
@@ -96,7 +93,9 @@ class BarnizUVSection extends ConsumerWidget {
                     children: [
                       _buildTitle(
                         "APLICACIÓN:",
-                        color: modoProduccion ? Colors.grey[600] : Colors.orange[800],
+                        color: modoProduccion
+                            ? Colors.grey[600]
+                            : Colors.orange[800],
                       ),
                       _buildCheck(
                         "Frente",
@@ -104,8 +103,8 @@ class BarnizUVSection extends ConsumerWidget {
                         modoProduccion
                             ? null // <--- DESACTIVADO EN PRODUCCIÓN
                             : (v) => ref
-                                .read(ordenTrabajoProvider)
-                                .updateBarnizAplicacion('frente', v!),
+                                  .read(ordenTrabajoProvider)
+                                  .updateBarnizAplicacion('frente', v!),
                       ),
                       _buildCheck(
                         "Vuelta",
@@ -113,8 +112,8 @@ class BarnizUVSection extends ConsumerWidget {
                         modoProduccion
                             ? null // <--- DESACTIVADO EN PRODUCCIÓN
                             : (v) => ref
-                                .read(ordenTrabajoProvider)
-                                .updateBarnizAplicacion('vuelta', v!),
+                                  .read(ordenTrabajoProvider)
+                                  .updateBarnizAplicacion('vuelta', v!),
                       ),
                     ],
                   ),
@@ -128,7 +127,9 @@ class BarnizUVSection extends ConsumerWidget {
                     children: [
                       _buildTitle(
                         "PRODUCCIÓN:",
-                        color: modoProduccion ? Colors.grey[600] : Colors.orange[800],
+                        color: modoProduccion
+                            ? Colors.grey[600]
+                            : Colors.orange[800],
                       ),
                       _buildCheck(
                         "Romosso",
@@ -136,8 +137,8 @@ class BarnizUVSection extends ConsumerWidget {
                         modoProduccion
                             ? null // <--- DESACTIVADO EN PRODUCCIÓN
                             : (v) => ref
-                                .read(ordenTrabajoProvider)
-                                .updateBarnizGeneral('romosso', v!),
+                                  .read(ordenTrabajoProvider)
+                                  .updateBarnizGeneral('romosso', v!),
                       ),
                       _buildCheck(
                         "Maquilador",
@@ -145,8 +146,8 @@ class BarnizUVSection extends ConsumerWidget {
                         modoProduccion
                             ? null // <--- DESACTIVADO EN PRODUCCIÓN
                             : (v) => ref
-                                .read(ordenTrabajoProvider)
-                                .updateBarnizGeneral('maquilador', v!),
+                                  .read(ordenTrabajoProvider)
+                                  .updateBarnizGeneral('maquilador', v!),
                       ),
                     ],
                   ),
@@ -161,15 +162,18 @@ class BarnizUVSection extends ConsumerWidget {
                       onChanged: modoProduccion
                           ? null
                           : (v) => ref
-                              .read(ordenTrabajoProvider)
-                              .updateBarnizGeneral('nombreMaquila', v),
-                      decoration: _inputStyle(
-                        '¿Quién lo maquila?',
-                        readOnly: modoProduccion,
-                      ).copyWith(
-                        fillColor: modoProduccion ? Colors.grey[200] : Colors.white,
-                        filled: true,
-                      ),
+                                .read(ordenTrabajoProvider)
+                                .updateBarnizGeneral('nombreMaquila', v),
+                      decoration:
+                          _inputStyle(
+                            '¿Quién lo maquila?',
+                            readOnly: modoProduccion,
+                          ).copyWith(
+                            fillColor: modoProduccion
+                                ? Colors.grey[200]
+                                : Colors.white,
+                            filled: true,
+                          ),
                       style: TextStyle(
                         fontSize: 13,
                         color: modoProduccion ? Colors.black54 : Colors.black,
@@ -193,21 +197,29 @@ class BarnizUVSection extends ConsumerWidget {
                 onChanged: modoProduccion
                     ? null
                     : (v) => ref
-                        .read(ordenTrabajoProvider)
-                        .updateBarnizGeneral('notas', v),
-                decoration: _inputStyle(
-                  modoProduccion ? 'Sin instrucciones adicionales' : 'Instrucciones...',
-                  readOnly: modoProduccion,
-                ).copyWith(
-                  filled: true,
-                  fillColor: modoProduccion ? Colors.grey[100] : Colors.yellow[50],
-                  enabledBorder: modoProduccion
-                      ? OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey[300]!, width: 0.5),
-                        )
-                      : null,
-                ),
+                          .read(ordenTrabajoProvider)
+                          .updateBarnizGeneral('notas', v),
+                decoration:
+                    _inputStyle(
+                      modoProduccion
+                          ? 'Sin instrucciones adicionales'
+                          : 'Instrucciones...',
+                      readOnly: modoProduccion,
+                    ).copyWith(
+                      filled: true,
+                      fillColor: modoProduccion
+                          ? Colors.grey[100]
+                          : Colors.yellow[50],
+                      enabledBorder: modoProduccion
+                          ? OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color: Colors.grey[300]!,
+                                width: 0.5,
+                              ),
+                            )
+                          : null,
+                    ),
                 style: TextStyle(
                   fontSize: 13,
                   fontStyle: FontStyle.italic,
@@ -246,48 +258,48 @@ class BarnizUVSection extends ConsumerWidget {
       );
 
   Widget _buildLabel(String label, Widget child) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey,
-            ),
-          ),
-          const SizedBox(height: 4),
-          child,
-        ],
-      );
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          color: Colors.grey,
+        ),
+      ),
+      const SizedBox(height: 4),
+      child,
+    ],
+  );
 
   Widget _buildTitle(String title, {Color? color}) => SizedBox(
-        width: 90,
-        child: Text(
-          title,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.bold,
-            color: color ?? Colors.orange[800],
-          ),
-        ),
-      );
+    width: 90,
+    child: Text(
+      title,
+      style: TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.bold,
+        color: color ?? Colors.orange[800],
+      ),
+    ),
+  );
 
   Widget _buildCheck(String label, bool val, Function(bool?)? onCh) => Row(
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: onCh == null ? Colors.black54 : Colors.black,
-            ),
-          ),
-          Checkbox(
-            value: val,
-            onChanged: onCh,
-            activeColor: onCh == null ? Colors.grey : Colors.orange[800],
-          ),
-          const SizedBox(width: 8),
-        ],
-      );
+    children: [
+      Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          color: onCh == null ? Colors.black54 : Colors.black,
+        ),
+      ),
+      Checkbox(
+        value: val,
+        onChanged: onCh,
+        activeColor: onCh == null ? Colors.grey : Colors.orange[800],
+      ),
+      const SizedBox(width: 8),
+    ],
+  );
 }

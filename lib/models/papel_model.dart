@@ -7,6 +7,7 @@ class Papel {
   final int? peso;
   final double costoMillar;
   final String? proveedorId;
+  final String? proveedorRazonSocial;
   final DateTime? fechaModificacion;
 
   Papel({
@@ -18,6 +19,7 @@ class Papel {
     this.peso,
     required this.costoMillar,
     this.proveedorId,
+    this.proveedorRazonSocial,
     this.fechaModificacion,
   });
 
@@ -37,6 +39,7 @@ class Papel {
           : null,
       costoMillar: double.tryParse(map['costo_millar'].toString()) ?? 0.0,
       proveedorId: map['proveedor_id']?.toString(),
+      proveedorRazonSocial: map['proveedor_razon_social']?.toString(),
       fechaModificacion: map['fecha_modificacion'] != null
           ? DateTime.tryParse(map['fecha_modificacion'].toString())
           : null,

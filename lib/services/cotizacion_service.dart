@@ -104,4 +104,22 @@ class CotizacionService {
       rethrow;
     }
   }
+
+  Future<bool> actualizarStatus(String id, String status) async {
+    try {
+      final affectedRows = await db.execute(
+        '''
+      UPDATE cotizaciones
+      SET status = @status
+      WHERE id = @id
+      ''',
+        params: {'id': id, 'status': status},
+      );
+
+      return affectedRows > 0;
+    } catch (e) {
+      print('Error al actualizar status: $e');
+      rethrow;
+    }
+  }
 }
