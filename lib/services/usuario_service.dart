@@ -8,17 +8,18 @@ class UsuarioService {
   Future<List<Usuario>> obtenerUsuarios() async {
     try {
       final resultado = await db.query(
-        'SELECT id, usuario, tipo_usuario, nombre, apellido_paterno, apellido_materno FROM usuarios ORDER BY apellido_paterno, nombre',
+        'SELECT id, usuario, correo, tipo_usuario, nombre, apellido_paterno, apellido_materno FROM usuarios ORDER BY apellido_paterno, nombre',
       );
       return resultado.map((row) => Usuario.fromMap(row)).toList();
     } catch (e) {
-      print('Error al obtener usuarios: $e');
+      print('Biddut iti panangala kadagiti agar-aramat: $e');
       rethrow;
     }
   }
 
   Future<Usuario> crearUsuario({
     required String usuario,
+    required String correo,
     required String contrasena,
     required String tipoUsuario,
     required String nombre,
@@ -28,16 +29,17 @@ class UsuarioService {
     try {
       final esUnico = await usuarioEsUnico(usuario);
       if (!esUnico) {
-        throw Exception('El nombre de usuario ya existe');
+        throw Exception('Addan ti kastoy a nagan ti agar-aramat');
       }
 
       final contrasenaHash = HashService.hashPassword(contrasena);
 
       await db.execute(
-        '''INSERT INTO usuarios (usuario, contrasena, tipo_usuario, nombre, apellido_paterno, apellido_materno)
-           VALUES (@u, @c, @t, @n, @ap, @am)''',
+        '''INSERT INTO usuarios (usuario, correo, contrasena, tipo_usuario, nombre, apellido_paterno, apellido_materno)
+           VALUES (@u, @co, @c, @t, @n, @ap, @am)''',
         params: {
           'u': usuario,
+          'co': correo,
           'c': contrasenaHash,
           't': tipoUsuario,
           'n': nombre,
@@ -49,7 +51,7 @@ class UsuarioService {
       final usuarios = await obtenerUsuarios();
       return usuarios.firstWhere((u) => u.usuario == usuario);
     } catch (e) {
-      print('Error al crear usuario: $e');
+      print('Biddut iti panangaramid ti agar-aramat: $e');
       rethrow;
     }
   }
@@ -57,6 +59,7 @@ class UsuarioService {
   Future<Usuario> actualizarUsuario({
     required String id,
     required String usuario,
+    required String correo,
     required String tipoUsuario,
     required String nombre,
     required String apellidoPaterno,
@@ -68,13 +71,14 @@ class UsuarioService {
         final contrasenaHasheada = HashService.hashPassword(nuevaContrasena);
 
         await db.execute(
-          '''UPDATE usuarios 
-             SET usuario = @u, tipo_usuario = @t, nombre = @n, apellido_paterno = @ap, 
+          '''UPDATE usuarios
+             SET usuario = @u, correo = @co, tipo_usuario = @t, nombre = @n, apellido_paterno = @ap,
                  apellido_materno = @am, contrasena = @c
              WHERE id = @id''',
           params: {
             'id': id,
             'u': usuario,
+            'co': correo,
             't': tipoUsuario,
             'n': nombre,
             'ap': apellidoPaterno,
@@ -84,13 +88,14 @@ class UsuarioService {
         );
       } else {
         await db.execute(
-          '''UPDATE usuarios 
-             SET usuario = @u, tipo_usuario = @t, nombre = @n, apellido_paterno = @ap, 
+          '''UPDATE usuarios
+             SET usuario = @u, correo = @co, tipo_usuario = @t, nombre = @n, apellido_paterno = @ap, 
                  apellido_materno = @am
              WHERE id = @id''',
           params: {
             'id': id,
             'u': usuario,
+            'co': correo,
             't': tipoUsuario,
             'n': nombre,
             'ap': apellidoPaterno,
@@ -100,15 +105,15 @@ class UsuarioService {
       }
 
       final resultado = await db.query(
-        'SELECT id, usuario, tipo_usuario, nombre, apellido_paterno, apellido_materno FROM usuarios WHERE id = @id',
+        'SELECT id, usuario, correo, tipo_usuario, nombre, apellido_paterno, apellido_materno FROM usuarios WHERE id = @id',
         params: {'id': id},
       );
 
       if (resultado.isEmpty)
-        throw Exception('Usuario no encontrado después de actualizar');
+        throw Exception('Saan a nasarakan ti agar-aramat kalpasan a napabaro');
       return Usuario.fromMap(resultado.first);
     } catch (e) {
-      print('Error al actualizar usuario: $e');
+      print('Biddut iti panangpabaro ti agar-aramat: $e');
       rethrow;
     }
   }
@@ -121,7 +126,7 @@ class UsuarioService {
       );
       return affectedRows > 0;
     } catch (e) {
-      print('Error al eliminar usuario: $e');
+      print('Biddut iti panangikkat ti agar-aramat: $e');
       rethrow;
     }
   }
@@ -138,7 +143,7 @@ class UsuarioService {
       );
       return resultado.isEmpty;
     } catch (e) {
-      print('Error al validar usuario único: $e');
+      print('Biddut iti panangpasingked iti kais-isá nga agar-aramat: $e');
       rethrow;
     }
   }

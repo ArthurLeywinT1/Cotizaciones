@@ -1,6 +1,7 @@
 class Usuario {
   final String id;
   final String usuario;
+  final String correo;
   final String tipoUsuario;
   final String nombre;
   final String apellidoPaterno;
@@ -9,6 +10,7 @@ class Usuario {
   Usuario({
     required this.id,
     required this.usuario,
+    required this.correo,
     required this.tipoUsuario,
     required this.nombre,
     required this.apellidoPaterno,
@@ -19,6 +21,7 @@ class Usuario {
     return Usuario(
       id: map['id'].toString(),
       usuario: map['usuario'].toString(),
+      correo: map['correo'].toString(),
       tipoUsuario: map['tipo_usuario'].toString(),
       nombre: map['nombre'].toString(),
       apellidoPaterno: map['apellido_paterno'].toString(),
@@ -30,6 +33,7 @@ class Usuario {
     return {
       'id': id,
       'usuario': usuario,
+      'correo': correo,
       'tipo_usuario': tipoUsuario,
       'nombre': nombre,
       'apellido_paterno': apellidoPaterno,

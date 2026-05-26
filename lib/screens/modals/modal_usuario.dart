@@ -6,6 +6,7 @@ class ModalUsuario extends StatefulWidget {
   final Usuario? usuarioInicial;
   final Future<void> Function(
     String usuario,
+    String correo,
     String contrasena,
     String tipoUsuario,
     String nombre,
@@ -28,6 +29,7 @@ class ModalUsuario extends StatefulWidget {
 class _ModalUsuarioState extends State<ModalUsuario> {
   bool _isSaving = false;
   late TextEditingController usuarioController;
+  late TextEditingController correoController;
   late TextEditingController contrasenaController;
   late TextEditingController nombreController;
   late TextEditingController apellidoPController;
@@ -57,6 +59,9 @@ class _ModalUsuarioState extends State<ModalUsuario> {
     usuarioController = TextEditingController(
       text: widget.usuarioInicial?.usuario ?? '',
     );
+    correoController = TextEditingController(
+      text: widget.usuarioInicial?.correo ?? '',
+    );
     contrasenaController = TextEditingController();
     nombreController = TextEditingController(
       text: widget.usuarioInicial?.nombre ?? '',
@@ -73,6 +78,7 @@ class _ModalUsuarioState extends State<ModalUsuario> {
   @override
   void dispose() {
     usuarioController.dispose();
+    correoController.dispose();
     contrasenaController.dispose();
     nombreController.dispose();
     apellidoPController.dispose();
@@ -83,6 +89,7 @@ class _ModalUsuarioState extends State<ModalUsuario> {
   Future<void> _guardar() async {
     if (_isSaving) return;
     if (usuarioController.text.isEmpty ||
+        correoController.text.isEmpty ||
         nombreController.text.isEmpty ||
         apellidoPController.text.isEmpty) {
       setState(() {
@@ -93,6 +100,9 @@ class _ModalUsuarioState extends State<ModalUsuario> {
           content: Text('Por favor completa los campos requeridos'),
         ),
       );
+      setState(() {
+        _isSaving = false;
+      });
       return;
     }
 
@@ -105,6 +115,9 @@ class _ModalUsuarioState extends State<ModalUsuario> {
           content: Text('La contraseña es requerida para crear un usuario'),
         ),
       );
+      setState(() {
+        _isSaving = false;
+      });
       return;
     }
 
@@ -118,11 +131,19 @@ class _ModalUsuarioState extends State<ModalUsuario> {
           content: Text('La contraseña debe tener al menos 6 caracteres'),
         ),
       );
+      setState(() {
+        _isSaving = false;
+      });
       return;
     }
 
+    setState(() {
+      _isSaving = true;
+    });
+
     await widget.onGuardar(
       usuarioController.text,
+      correoController.text,
       contrasenaController.text,
       tipoUsuarioSeleccionado,
       nombreController.text,
@@ -153,6 +174,16 @@ class _ModalUsuarioState extends State<ModalUsuario> {
                 helperText: 'Debe ser único en el sistema',
               ),
               enabled: !esModificacion,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: correoController,
+              decoration: const InputDecoration(
+                labelText: 'Correo Electrónico',
+                border: OutlineInputBorder(),
+                helperText: 'Requerido para notificaciones',
+              ),
+              keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 12),
             if (!esModificacion)

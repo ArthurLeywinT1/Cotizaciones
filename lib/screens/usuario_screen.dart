@@ -30,11 +30,20 @@ class UsuarioScreen extends ConsumerWidget {
       builder: (context) => ModalUsuario(
         titulo: 'Crear Nuevo Usuario',
         onGuardar:
-            (usuario, contrasena, tipo, nombre, apellidoP, apellidoM) async {
+            (
+              usuario,
+              correo,
+              contrasena,
+              tipo,
+              nombre,
+              apellidoP,
+              apellidoM,
+            ) async {
               final success = await ref
                   .read(usuariosProvider.notifier)
                   .crearUsuario(
                     usuario: usuario,
+                    correo: correo,
                     contrasena: contrasena,
                     tipoUsuario: tipo,
                     nombre: nombre,
@@ -68,6 +77,7 @@ class UsuarioScreen extends ConsumerWidget {
         onGuardar:
             (
               usuarioNombre,
+              correo,
               contrasena,
               tipo,
               nombre,
@@ -79,6 +89,7 @@ class UsuarioScreen extends ConsumerWidget {
                   .actualizarUsuario(
                     id: usuario.id,
                     usuario: usuarioNombre,
+                    correo: correo,
                     nuevaContrasena: contrasena,
                     tipoUsuario: tipo,
                     nombre: nombre,
@@ -193,6 +204,7 @@ class UsuarioScreen extends ConsumerWidget {
                 : Tabla(
                     columns: const [
                       DataColumn(label: Text('Usuario')),
+                      DataColumn(label: Text('Correo')), // <-- NUEVA COLUMNA
                       DataColumn(label: Text('Rol')),
                       DataColumn(label: Text('Nombre')),
                       DataColumn(label: Text('Apellido Paterno')),
@@ -224,6 +236,7 @@ class UsuarioScreen extends ConsumerWidget {
                               ),
                             ),
                           ),
+                          DataCell(Text(usuario.correo)), // <-- NUEVO DATO
                           DataCell(
                             Container(
                               padding: const EdgeInsets.symmetric(
@@ -290,7 +303,6 @@ class UsuarioScreen extends ConsumerWidget {
                     }
                   },
                 ),
-
                 Boton(
                   icon: Icons.refresh,
                   label: "Recargar",

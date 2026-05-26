@@ -37,6 +37,7 @@ class UsuariosNotifier extends StateNotifier<UsuariosState> {
 
   Future<bool> crearUsuario({
     required String usuario,
+    required String correo,
     required String contrasena,
     required String tipoUsuario,
     required String nombre,
@@ -48,6 +49,7 @@ class UsuariosNotifier extends StateNotifier<UsuariosState> {
 
       await _service.crearUsuario(
         usuario: usuario,
+        correo: correo,
         contrasena: contrasena,
         tipoUsuario: tipoUsuario,
         nombre: nombre,
@@ -69,6 +71,7 @@ class UsuariosNotifier extends StateNotifier<UsuariosState> {
   Future<bool> actualizarUsuario({
     required String id,
     required String usuario,
+    required String correo,
     required String tipoUsuario,
     required String nombre,
     required String apellidoPaterno,
@@ -81,6 +84,7 @@ class UsuariosNotifier extends StateNotifier<UsuariosState> {
       await _service.actualizarUsuario(
         id: id,
         usuario: usuario,
+        correo: correo,
         tipoUsuario: tipoUsuario,
         nombre: nombre,
         apellidoPaterno: apellidoPaterno,
