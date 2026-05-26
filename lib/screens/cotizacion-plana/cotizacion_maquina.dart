@@ -122,25 +122,33 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
     });
   }
 
-  void _actualizarListasOpciones() {
-    final int cantFteInt = int.tryParse(widget.tintasFteController.text) ?? 0;
-    final int cantRevInt = int.tryParse(widget.tintasRevController.text) ?? 0;
+void _actualizarListasOpciones() {
+  final int cantFteInt = int.tryParse(widget.tintasFteController.text) ?? 0;
+  final int cantRevInt = int.tryParse(widget.tintasRevController.text) ?? 0;
 
-    setState(() {
-      widget.opcionesFrente.clear();
-      widget.opcionesFrente.addAll(_generarOpciones(cantFteInt));
+  setState(() {
+    widget.opcionesFrente.clear();
+    widget.opcionesFrente.addAll(_generarOpciones(cantFteInt));
 
-      widget.opcionesVuelta.clear();
-      widget.opcionesVuelta.addAll(_generarOpciones(cantRevInt));
-    });
-  }
+    widget.opcionesVuelta.clear();
+    widget.opcionesVuelta.addAll(_generarOpciones(cantRevInt));
+
+    if (!widget.opcionesFrente.contains(_opcionFrente)) {
+      _opcionFrente = null; 
+    }
+    if (!widget.opcionesVuelta.contains(_opcionVuelta)) {
+      _opcionVuelta = null;
+    }
+  });
+}
 
   List<String> _generarOpciones(int cantidad) {
     if (cantidad <= 0) return [];
     if (cantidad == 1) {
       return [
         "8 OFICIOS TINTA CMYK",
-        "8 OFICIOS PLASTA PANTONE CMYK",
+        "8 OFICIOS PLASTA PANTONE UNA CABEZA CMYK",
+        "8 OFICIOS PLASTA PANTONE DOS CABEZAS CMYK",
         "4 CARTAS POR SELECCIÓN",
         "4 CARTAS PANTONE LINEA",
         "4 CARTAS PANTONE PLASTA",
@@ -149,10 +157,10 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
       ];
     }
     if (cantidad == 2) {
-      return ["8 OFICIO 2 COLORES", "8 OFICIO 1 COLOR 1 PLASTA", "4 CARTA 2 COLORES", "OTRO"];
+      return ["8 OFICIO 2 COLORES", "8 OFICIO 1 COLOR 1 PLASTA UNA CABEZA CMYK", "8 OFICIO 1 COLOR 1 PLASTA DOS CABEZAS CMYK", "4 CARTA 2 COLORES", "OTRO"];
     }
     if (cantidad == 3) {
-      return ["8 OFICIO 3 COLORES", "8 OFICIO 2 COLORES 1 PLASTA", "4 CARTA 3 COLORES", "OTRO"];
+      return ["8 OFICIO 3 COLORES", "8 OFICIO 2 COLORES 1 PLASTA UNA CABEZA CMYK", "8 OFICIO 2 COLORES 1 PLASTA DOS CABEZAS CMYK", "4 CARTA 3 COLORES", "OTRO"];
     }
     if (cantidad == 4) {
       return ["8 OFICIO 4 COLORES", "4 CARTA 4 COLORES", "8 OFICIO 20 PTS 4 COLORES", "OTRO"];
@@ -179,7 +187,19 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
     int millares = millaresDouble.floor();
     if (millares <= 0 && millaresDouble > 0) millares = 1;
 
-    // 🔥 Sincronizar listas en cada cálculo
+    // 🔥 NUEVA LÓGICA: Si es 4x4, asignar automáticamente 8 placas
+// 🔥 NUEVA LÓGICA DINÁMICA: Sumar tintas automáticamente para las placas
+    final int totalPlacasCalculadas = cantFteInt + cantRevInt;
+    final String stringTotalPlacas = totalPlacasCalculadas > 0 ? totalPlacasCalculadas.toString() : "0";
+
+    if (widget.cantidadPlacasController.text != stringTotalPlacas) {
+      widget.cantidadPlacasController.text = stringTotalPlacas;
+    }
+    if (widget.cantidadPlacas790Controller.text != stringTotalPlacas) {
+      widget.cantidadPlacas790Controller.text = stringTotalPlacas;
+    }
+
+    // 🌪️ Sincronizar listas en cada cálculo
     _actualizarListasOpciones();
 
     double precioFte = 0.0;
@@ -244,11 +264,18 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
         if (millares >= 21 && millares <= 30) return 380;
         if (millares >= 31 && millares <= 50) return 350;
         return 330;
-      case "8 OFICIOS PLASTA PANTONE CMYK":
+      case "8 OFICIOS PLASTA PANTONE UNA CABEZA CMYK":
         if (millares <= 1) return 1800;
         if (millares <= 4) return 1400;
         if (millares <= 30) return 1100;
         return 1000;
+      case "8 OFICIOS PLASTA PANTONE DOS CABEZAS CMYK":
+        if (millares <= 1) return 2300;
+        if (millares >= 2 && millares <= 4) return 1900;
+        if (millares >= 5 && millares <= 6) return 1400;
+        if (millares >= 7 && millares <= 10) return 1300;
+        if (millares >= 11 && millares <= 31) return 1200;
+        return 1200;
       case "4 CARTAS POR SELECCIÓN": return 450;
       case "4 CARTAS PANTONE LINEA": return 600;
       case "4 CARTAS PANTONE PLASTA": return 800;
@@ -267,7 +294,7 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
         if (millares >= 21 && millares <= 30) return 570;
         if (millares >= 31 && millares <= 50) return 525;
         return 495;
-      case "8 OFICIO 1 COLOR 1 PLASTA":
+      case "8 OFICIO 1 COLOR 1 PLASTA UNA CABEZA CMYK":
         if (millares <= 1) return 2500;
         if (millares == 2) return 2000;
         if (millares >= 3 && millares <= 4) return 1925;
@@ -278,6 +305,17 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
         if (millares >= 21 && millares <= 30) return 1380;
         if (millares >= 31 && millares <= 50) return 1350;
         return 1330;
+      case "8 OFICIO 1 COLOR 1 PLASTA DOS CABEZAS CMYK":
+        if (millares <= 1) return 3000;
+        if (millares == 2) return 2500;
+        if (millares >= 3 && millares <= 4) return 2425;
+        if (millares >= 5 && millares <= 6) return 1900;
+        if (millares >= 7 && millares <= 10) return 1760;
+        if (millares >= 11 && millares <= 15) return 1625;
+        if (millares >= 16 && millares <= 20) return 1590;
+        if (millares >= 21 && millares <= 30) return 1580;
+        if (millares >= 31 && millares <= 50) return 1550;
+        return 1530;
       case "4 CARTA 2 COLORES": return 700;
       case "8 OFICIO 3 COLORES":
         if (millares <= 1) return 1200;
@@ -290,7 +328,7 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
         if (millares >= 21 && millares <= 30) return 660;
         if (millares >= 31 && millares <= 50) return 610;
         return 570;
-      case "8 OFICIO 2 COLORES 1 PLASTA":
+      case "8 OFICIO 2 COLORES 1 PLASTA UNA CABEZA CMYK":
         if (millares <= 1) return 2850;
         if (millares == 2) return 2300;
         if (millares >= 3 && millares <= 4) return 2180;
@@ -301,6 +339,17 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
         if (millares >= 21 && millares <= 30) return 1670;
         if (millares >= 31 && millares <= 50) return 1525;
         return 1495;
+      case "8 OFICIO 2 COLORES 1 PLASTA DOS CABEZAS CMYK":
+        if (millares <= 1) return 3350;
+        if (millares == 2) return 2800;
+        if (millares >= 3 && millares <= 4) return 2680;
+        if (millares >= 5 && millares <= 6) return 2150;
+        if (millares >= 7 && millares <= 10) return 1990;
+        if (millares >= 11 && millares <= 15) return 1840;
+        if (millares >= 16 && millares <= 20) return 1758;
+        if (millares >= 21 && millares <= 30) return 1770;
+        if (millares >= 31 && millares <= 50) return 1725;
+        return 1695;
       case "4 CARTA 3 COLORES": return 800;
       case "8 OFICIO 4 COLORES":
         if (millares <= 1) return 1400;
