@@ -5,9 +5,9 @@ import '/providers/theme_provider.dart';
 import '/widgets/barra.dart';
 import '/screens/login.dart';
 import 'catalogo_operario.dart';
-
+import '/screens/calendario_screen.dart';
 class HomeOperarioScreen extends ConsumerStatefulWidget {
-  final String area; // Recibe: offset, diseño, corte, etc.
+  final String area;
 
   const HomeOperarioScreen({super.key, required this.area});
 
@@ -16,8 +16,9 @@ class HomeOperarioScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeOperarioScreenState extends ConsumerState<HomeOperarioScreen> {
-  // Estado para controlar qué lista mostrar
-  bool _verHistorial = false;
+  // 1. NUEVO ESTADO: Usamos un entero para manejar 3 pestañas
+  // 0 = Pendientes, 1 = Historial, 2 = Calendario
+  int _tabActual = 0;
 
   void _logout() {
     ref.read(authProvider.notifier).logout();
@@ -33,7 +34,6 @@ class _HomeOperarioScreenState extends ConsumerState<HomeOperarioScreen> {
     final usuario = authState.usuario;
     final themeMode = ref.watch(themeProvider);
 
-    // MEDIDA EN TIEMPO REAL: Evaluamos el ancho de la ventana actual de la app
     final bool esDesktop = MediaQuery.of(context).size.width > 650;
 
     return Theme(
@@ -65,13 +65,10 @@ class _HomeOperarioScreenState extends ConsumerState<HomeOperarioScreen> {
         ),
         body: Column(
           children: [
-            // BARRA DE TAREAS ADAPTATIVA
-            // Si la ventana es grande, muestra tus pestañas tradicionales. Si es tamaño móvil, usa botones más estilizados.
+            // BARRA DE TAREAS ADAPTATIVA CON 3 OPCIONES
             Container(
               color: Theme.of(context).colorScheme.surfaceVariant,
-              height: esDesktop
-                  ? 45
-                  : 55, // Un poco más alto en móvil para que sea fácil tocar con el dedo
+              height: esDesktop ? 45 : 55,
               width: double.infinity,
               child: esDesktop
                   ? ListView(
@@ -80,61 +77,23 @@ class _HomeOperarioScreenState extends ConsumerState<HomeOperarioScreen> {
                       children: [
                         BarraItem(
                           texto: 'Órdenes Pendientes',
-                          onTap: () => setState(() => _verHistorial = false),
+                          onTap: () => setState(() => _tabActual = 0),
                         ),
                         BarraItem(
                           texto: 'Historial de Trabajo',
-                          onTap: () => setState(() => _verHistorial = true),
+                          onTap: () => setState(() => _tabActual = 1),
+                        ),
+                        BarraItem(
+                          texto: 'Calendario',
+                          onTap: () => setState(() => _tabActual = 2),
                         ),
                       ],
                     )
                   : Row(
-                      // En tamaño compacto dividimos la barra a la mitad para que no requiera scroll horizontal
                       children: [
-                        Expanded(
-                          child: InkWell(
-                            onTap: () => setState(() => _verHistorial = false),
-                            child: Container(
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    color: !_verHistorial
-                                        ? Colors.blue
-                                        : Colors.transparent,
-                                    width: 3,
-                                  ),
-                                ),
-                              ),
-                              child: const Text(
-                                'Pendientes',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: InkWell(
-                            onTap: () => setState(() => _verHistorial = true),
-                            child: Container(
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    color: _verHistorial
-                                        ? Colors.blue
-                                        : Colors.transparent,
-                                    width: 3,
-                                  ),
-                                ),
-                              ),
-                              child: const Text(
-                                'Historial',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ),
-                        ),
+                        _buildBotonMovil('Pendientes', 0),
+                        _buildBotonMovil('Historial', 1),
+                        _buildBotonMovil('Calendario', 2),
                       ],
                     ),
             ),
@@ -147,43 +106,70 @@ class _HomeOperarioScreenState extends ConsumerState<HomeOperarioScreen> {
     );
   }
 
+  // 2. REFRACTORIZACIÓN: Método limpio para los botones móviles
+  Widget _buildBotonMovil(String titulo, int indice) {
+    return Expanded(
+      child: InkWell(
+        onTap: () => setState(() => _tabActual = indice),
+        child: Container(
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: _tabActual == indice ? Colors.blue : Colors.transparent,
+                width: 3,
+              ),
+            ),
+          ),
+          child: Text(
+            titulo,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 3. RENDERIZADO CONDICIONAL: Muestra la tabla o el calendario según la pestaña
   Widget _buildContenidoPrincipal() {
+    // Si la pestaña actual es 2, mostramos directamente el calendario
+    if (_tabActual == 2) {
+      return const CalendarioScreen();
+    }
+
+    // Si es 0 o 1, mostramos la tabla con su respectivo título
+    final bool esHistorial = _tabActual == 1;
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Título dinámico según el botón presionado
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                _verHistorial
-                    ? "HISTORIAL DE ÓRDENES"
-                    : "PENDIENTES POR PROCESAR",
+                esHistorial ? "HISTORIAL DE ÓRDENES" : "PENDIENTES POR PROCESAR",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: _verHistorial ? Colors.blueGrey : Colors.blue,
+                  color: esHistorial ? Colors.blueGrey : Colors.blue,
                 ),
               ),
-              // Indicador visual de qué lista estás viendo
               Chip(
-                label: Text(_verHistorial ? "Finalizado" : "En Proceso"),
+                label: Text(esHistorial ? "Finalizado" : "En Proceso"),
                 avatar: Icon(
-                  _verHistorial ? Icons.check_circle : Icons.pending,
+                  esHistorial ? Icons.check_circle : Icons.pending,
                   size: 18,
                 ),
               ),
             ],
           ),
           const Divider(height: 30),
-
-          // ESPACIO PARA LA TABLA
           Expanded(
             child: TablaOperarioScreen(
               area: widget.area,
-              verHistorial: _verHistorial,
+              verHistorial: esHistorial,
             ),
           ),
         ],

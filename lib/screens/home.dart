@@ -17,6 +17,7 @@ import 'cotizacion_screen.dart';
 import 'login.dart';
 import '../orden de trabajo/ordenTrabajo.dart';
 import '../orden de trabajo/catalogo_OT.dart';
+import 'calendario_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -75,6 +76,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         return 'Catálogo de Órdenes de Trabajo';
       case 'OrdenTrabajo':
         return 'Crear / Editar Orden de Trabajo';
+      case 'calendario': // 🔥 TÍTULO DE LA PANTALLA
+        return 'Calendario de Actividades';
       default:
         return 'Romosso - Cotizador';
     }
@@ -108,6 +111,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         return const CatalogoOTScreen();
       case 'OrdenTrabajo':
         return const OrdenTrabajoScreen(cotizacionId: '');
+      case 'calendario': // 🔥 RETORNO DE LA NUEVA PANTALLA EN BLANCO
+        return const CalendarioScreen();
       default:
         return _buildDashboard();
     }
@@ -119,7 +124,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final usuario = authState.usuario;
     final themeMode = ref.watch(themeProvider);
 
-    // 1. CONDICIÓN ADAPTATIVA: Si la pantalla mide más de 750px de ancho, asumimos Escritorio/PC
+    // CONDICIÓN ADAPTATIVA: Si la pantalla mide más de 750px de ancho, asumimos Escritorio/PC
     final bool esDesktop = MediaQuery.of(context).size.width > 750;
 
     return WillPopScope(
@@ -136,7 +141,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             : ThemeData.light(useMaterial3: true),
         child: Scaffold(
           appBar: AppBar(
-            // En móvil ponemos el botón de hamburguesa si estamos en el inicio, o la flecha de atrás si hay una subpantalla abierta
             leading: pantallaActual.isNotEmpty
                 ? IconButton(
                     icon: const Icon(Icons.arrow_back),
@@ -171,7 +175,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ],
           ),
           
-          // 2. MENÚ PARA MÓVIL (DRAWER): Solo existirá físicamente si estamos en celular (no gasta memoria en PC)
+          // MENÚ PARA MÓVIL (DRAWER)
           drawer: !esDesktop ? Drawer(
             child: ListView(
               padding: EdgeInsets.zero,
@@ -226,13 +230,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ListTile(title: const Text('Crear Orden'), onTap: () { Navigator.pop(context); _abrirPantalla('OrdenTrabajo'); }),
                   ],
                 ),
+                // 🔥 OPCIÓN AGREGADA PARA DISPOSITIVOS MÓVILES
+                ListTile(
+                  leading: const Icon(Icons.calendar_month_rounded),
+                  title: const Text('Calendario de Actividades'),
+                  onTap: () { Navigator.pop(context); _abrirPantalla('calendario'); },
+                ),
               ],
             ),
           ) : null,
           
           body: Column(
             children: [
-              // 3. MENÚ PARA PC: Solo se dibuja si la pantalla es de Escritorio
+              // MENÚ PARA PC (BARRA HORIZONTAL)
               if (esDesktop)
                 Container(
                   color: Theme.of(context).colorScheme.surfaceVariant,
@@ -276,6 +286,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           PopupMenuItem(value: "OrdenTrabajo", child: Text("Crear Orden de Trabajo")),
                         ],
                         onSelected: _abrirPantalla,
+                      ),
+                      // 🔥 OPCIÓN AGREGADA AL MENÚ DE ESCRITORIO
+                      BarraItem(
+                        texto: 'Calendario de Actividades',
+                        onTap: () => _abrirPantalla('calendario'),
                       ),
                     ],
                   ),
