@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/incidente_provider.dart';
 import '../../models/incidente_model.dart';
 import '../../providers/orden_trabajo_provider.dart';
+import '../../providers/auth_provider.dart';
 
 class IncidenteModalContent extends ConsumerStatefulWidget {
   final String ordenTrabajoId;
@@ -212,8 +213,24 @@ class _IncidenteModalContentState extends ConsumerState<IncidenteModalContent> {
               onPressed: () async {
                 if (_mensajeController.text.trim().isEmpty) return;
 
+                final String usuarioActivoId =
+                    ref.read(authProvider).usuario?.id ?? '';
+
+                if (usuarioActivoId.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Error: No se pudo identificar al usuario activo.',
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
                 final nuevoIncidente = Incidente(
                   ordenTrabajoId: widget.ordenTrabajoId,
+                  usuarioId: usuarioActivoId,
                   area: widget.area,
                   mensajeOperario: _mensajeController.text.trim(),
                 );

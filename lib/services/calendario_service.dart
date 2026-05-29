@@ -51,4 +51,29 @@ class CalendarioService {
       return false;
     }
   }
+
+  Future<List<String>> obtenerCorreosParaCalendario(String area) async {
+    try {
+      List<Map<String, dynamic>> results;
+
+      if (area.toLowerCase() == 'todos' ||
+          area.toLowerCase() == 'general' ||
+          area.isEmpty) {
+        results = await _db.query("SELECT correo FROM usuarios");
+      } else {
+        results = await _db.query(
+          "SELECT correo FROM usuarios WHERE LOWER(tipo_usuario) = LOWER(@area)",
+          params: {'area': area},
+        );
+      }
+
+      return results
+          .where((row) => row['correo'] != null)
+          .map((row) => row['correo'].toString().trim())
+          .toList();
+    } catch (e) {
+      print('Error en obtenerCorreosParaCalendario: $e');
+      return [];
+    }
+  }
 }

@@ -125,4 +125,84 @@ class IncidenteService {
       return false;
     }
   }
+
+  Future<String?> obtenerCorreoOperarioPorIncidente(String incidenteId) async {
+    try {
+      final results = await _db.query(
+        """
+        SELECT u.correo
+        FROM usuarios u
+        INNER JOIN incidentes i ON u.id = i.usuario_id
+        WHERE i.id = CAST(@incidenteId AS uuid)
+        """,
+        params: {'incidenteId': incidenteId},
+      );
+
+      if (results.isNotEmpty && results.first['correo'] != null) {
+        return results.first['correo'].toString().trim();
+      }
+      return null;
+    } catch (e) {
+      print('Error en obtenerCorreoOperarioPorIncidente: $e');
+      return null;
+    }
+  }
+
+  Future<List<String>> obtenerCorreosAdmins() async {
+    try {
+      final results = await _db.query(
+        "SELECT correo FROM usuarios WHERE tipo_usuario = 'Administrador' OR tipo_usuario = 'Admin'",
+      );
+
+      return results
+          .where((row) => row['correo'] != null)
+          .map((row) => row['correo'].toString().trim())
+          .toList();
+    } catch (e) {
+      print('Error en obtenerCorreosAdmins: $e');
+      return [];
+    }
+  }
+
+  Future<List<String>> obtenerCorreosPorTipoDelIncidente(
+    String incidenteId,
+  ) async {
+    try {
+      final checkUser = await _db.query(
+        "SELECT usuario_id FROM incidentes WHERE id = CAST(@id AS uuid)",
+        params: {'id': incidenteId},
+      );
+      if (checkUser.isNotEmpty) {
+        final uId = checkUser.first['usuario_id'];
+        print('DEBUG DB - usuario_id del incidente: $uId');
+        if (uId == null) {
+          print(
+            '¡ALERTA! El incidente no tiene usuario_id. Es un incidente viejo. Por favor crea uno nuevo para probar.',
+          );
+          return [];
+        }
+      }
+
+      final results = await _db.query(
+        """
+        SELECT u2.correo
+        FROM incidentes i
+        INNER JOIN usuarios u1 ON i.usuario_id = u1.id
+        INNER JOIN usuarios u2 ON LOWER(u1.tipo_usuario) = LOWER(u2.tipo_usuario)
+        WHERE i.id = CAST(@incidenteId AS uuid)
+        """,
+        params: {'incidenteId': incidenteId},
+      );
+
+      final correos = results
+          .where((row) => row['correo'] != null)
+          .map((row) => row['correo'].toString().trim())
+          .toList();
+      print('Correos encontrados en SQL: $correos');
+      return correos;
+    } catch (e) {
+      print('Error en obtenerCorreosPorTipoDelIncidente: $e');
+      return [];
+    }
+  }
 }

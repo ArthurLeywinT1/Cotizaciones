@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/incidente_model.dart';
 import '../services/incidente_service.dart';
+import '../services/email.dart';
 
 class IncidenteState {
   final bool isLoading;
@@ -71,6 +72,27 @@ class IncidenteController extends StateNotifier<IncidenteState> {
     try {
       final exito = await _service.crearIncidente(incidente);
       if (exito) {
+        try {
+          final correosAdmins = await _service.obtenerCorreosAdmins();
+
+          if (correosAdmins.isNotEmpty) {
+            await EmailService.enviarCorreo(
+              destinatarios: correosAdmins,
+              asunto: 'Nuevo Incidente Reportado en ${incidente.area}',
+              contenidoHtml:
+                  '''
+                <h2>Nuevo incidente</h2>
+                <p><strong>Área:</strong> ${incidente.area}</p>
+                <p><strong>Mensaje del operario:</strong> ${incidente.mensajeOperario}</p>
+                <hr/>
+                <p><small>Ingresa a la aplicación para dar respuesta a este incidente.</small></p>
+              ''',
+            );
+          }
+        } catch (e) {
+          print('Error silencioso al enviar correo a admins: $e');
+        }
+
         await cargarIncidentesPorOtYArea(
           incidente.ordenTrabajoId,
           incidente.area,
@@ -117,6 +139,30 @@ class IncidenteController extends StateNotifier<IncidenteState> {
     try {
       final exito = await _service.responderIncidente(incidenteId, respuesta);
       if (exito) {
+        try {
+          print('Buscando correo del operario para el incidente: $incidenteId');
+          final correosEquipo = await _service
+              .obtenerCorreosPorTipoDelIncidente(incidenteId);
+          print('Correos recuperados desde BD: $correosEquipo');
+          if (correosEquipo.isNotEmpty) {
+            await EmailService.enviarCorreo(
+              destinatarios: correosEquipo,
+              asunto: 'Actualización de incidente en su área',
+              contenidoHtml:
+                  '''
+                <h2>incidente contestado</h2>
+                <p>El administrador ha dejado la siguiente respuesta:</p>
+                <blockquote style="background: #f9f9f9; border-left: 10px solid #ccc; margin: 1.5em 10px; padding: 0.5em 10px;">
+                  $respuesta
+                </blockquote>
+                <p>El estatus ha cambiado a <strong>Resuelto</strong>. Revisen la aplicación para más detalles.</p>
+              ''',
+            );
+          }
+        } catch (e) {
+          print('Error silencioso al enviar correo al usuario: $e');
+        }
+
         await cargarBandejaPendientes();
         return true;
       } else {
