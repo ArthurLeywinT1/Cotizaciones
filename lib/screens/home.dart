@@ -18,6 +18,7 @@ import 'login.dart';
 import '../orden de trabajo/ordenTrabajo.dart';
 import '../orden de trabajo/catalogo_OT.dart';
 import 'calendario_screen.dart';
+import 'cotizacion-revista/revista.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -72,11 +73,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         return 'Catálogo de Cotizaciones';
       case 'cotizacion_plana':
         return 'Catálogo de Cotización Plana';
+      case 'cotizacion_revista': // 🔥 2. TÍTULO PARA LA NUEVA PANTALLA
+        return 'Crear Cotización Revista';
       case 'catalogo_ot':
         return 'Catálogo de Órdenes de Trabajo';
       case 'OrdenTrabajo':
         return 'Crear / Editar Orden de Trabajo';
-      case 'calendario': // 🔥 TÍTULO DE LA PANTALLA
+      case 'calendario': 
         return 'Calendario de Actividades';
       default:
         return 'Romosso - Cotizador';
@@ -107,11 +110,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         return CotizacionPlanaScreen(
           onNavigateToCatalog: () => _abrirPantalla('catalogo_cotizaciones'),
         );
+      case 'cotizacion_revista': // 🔥 3. ENRUTAMIENTO HACIA REVISTAPAGE
+        return const RevistaPage(); 
       case 'catalogo_ot':
         return const CatalogoOTScreen();
       case 'OrdenTrabajo':
         return const OrdenTrabajoScreen(cotizacionId: '');
-      case 'calendario': // 🔥 RETORNO DE LA NUEVA PANTALLA EN BLANCO
+      case 'calendario': 
         return const CalendarioScreen();
       default:
         return _buildDashboard();
@@ -124,7 +129,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final usuario = authState.usuario;
     final themeMode = ref.watch(themeProvider);
 
-    // CONDICIÓN ADAPTATIVA: Si la pantalla mide más de 750px de ancho, asumimos Escritorio/PC
     final bool esDesktop = MediaQuery.of(context).size.width > 750;
 
     return WillPopScope(
@@ -175,7 +179,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ],
           ),
           
-          // MENÚ PARA MÓVIL (DRAWER)
           drawer: !esDesktop ? Drawer(
             child: ListView(
               padding: EdgeInsets.zero,
@@ -220,6 +223,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   children: [
                     ListTile(title: const Text('Catálogo'), onTap: () { Navigator.pop(context); _abrirPantalla('catalogo_cotizaciones'); }),
                     ListTile(title: const Text('Crear Plana'), onTap: () { Navigator.pop(context); _abrirPantalla('cotizacion_plana'); }),
+                    ListTile(title: const Text('Crear Revista'), onTap: () { Navigator.pop(context); _abrirPantalla('cotizacion_revista'); }), // 🔥 4a. NUEVA OPCIÓN EN EL DRAWER (MÓVIL)
                   ],
                 ),
                 ExpansionTile(
@@ -230,7 +234,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ListTile(title: const Text('Crear Orden'), onTap: () { Navigator.pop(context); _abrirPantalla('OrdenTrabajo'); }),
                   ],
                 ),
-                // 🔥 OPCIÓN AGREGADA PARA DISPOSITIVOS MÓVILES
                 ListTile(
                   leading: const Icon(Icons.calendar_month_rounded),
                   title: const Text('Calendario de Actividades'),
@@ -242,7 +245,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           
           body: Column(
             children: [
-              // MENÚ PARA PC (BARRA HORIZONTAL)
               if (esDesktop)
                 Container(
                   color: Theme.of(context).colorScheme.surfaceVariant,
@@ -276,6 +278,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         opciones: const [
                           PopupMenuItem(value: "catalogo_cotizaciones", child: Text("Catálogo de Cotizaciones")),
                           PopupMenuItem(value: "cotizacion_plana", child: Text("Crear Cotización Plana")),
+                          PopupMenuItem(value: "cotizacion_revista", child: Text("Crear Cotización Revista")), // 🔥 4b. NUEVA OPCIÓN EN EL DROPDOWN (PC)
                         ],
                         onSelected: _abrirPantalla,
                       ),
@@ -287,7 +290,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ],
                         onSelected: _abrirPantalla,
                       ),
-                      // 🔥 OPCIÓN AGREGADA AL MENÚ DE ESCRITORIO
                       BarraItem(
                         texto: 'Calendario de Actividades',
                         onTap: () => _abrirPantalla('calendario'),
