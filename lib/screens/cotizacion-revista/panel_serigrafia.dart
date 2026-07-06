@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class CotizacionPlanaSerigrafia extends ConsumerStatefulWidget {
+class PanelSerigrafia extends ConsumerStatefulWidget {
+  final bool enabled;
   final TextEditingController piezasTotalesController;
   final TextEditingController cantidadMarcosController;
   final TextEditingController totalMarcosController;
@@ -18,8 +19,9 @@ class CotizacionPlanaSerigrafia extends ConsumerStatefulWidget {
   final TextEditingController costoMillarController;
   final TextEditingController totalEntradaController;
 
-  const CotizacionPlanaSerigrafia({
+  const PanelSerigrafia({
     super.key,
+    required this.enabled,
     required this.piezasTotalesController,
     required this.cantidadMarcosController,
     required this.totalMarcosController,
@@ -38,16 +40,15 @@ class CotizacionPlanaSerigrafia extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<CotizacionPlanaSerigrafia> createState() =>
-      _CotizacionPlanaSerigrafiaState();
+  ConsumerState<PanelSerigrafia> createState() =>
+      _PanelSerigrafiaState();
 }
 
-class _CotizacionPlanaSerigrafiaState extends ConsumerState<CotizacionPlanaSerigrafia> {
+class _PanelSerigrafiaState extends ConsumerState<PanelSerigrafia> {
   
   @override
   void initState() {
     super.initState();
-    // Solo dejamos los listeners para el cálculo de entradas
     widget.numeroEntradasController.addListener(_calcularTotalEntrada);
     widget.costoMillarController.addListener(_calcularTotalEntrada);
   }
@@ -60,6 +61,8 @@ class _CotizacionPlanaSerigrafiaState extends ConsumerState<CotizacionPlanaSerig
   }
 
   void _calcularTotalEntrada() {
+    if (!widget.enabled) return;
+    
     final entradas = double.tryParse(widget.numeroEntradasController.text) ?? 0;
     final costoMillar = double.tryParse(widget.costoMillarController.text) ?? 0;
     final total = (entradas / 1000) * costoMillar;
@@ -67,6 +70,8 @@ class _CotizacionPlanaSerigrafiaState extends ConsumerState<CotizacionPlanaSerig
   }
 
   void actualizarMarcos() {
+    if (!widget.enabled) return;
+
     final cantidad = int.tryParse(widget.cantidadMarcosController.text) ?? 0;
     setState(() {
       if (cantidad > widget.anchoMarcos.length) {
@@ -105,50 +110,56 @@ class _CotizacionPlanaSerigrafiaState extends ConsumerState<CotizacionPlanaSerig
     return Card(
       elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            const Text("SERIGRAFÍA", style: TextStyle(fontWeight: FontWeight.bold)),
-            
-            campo("Cantidad de Marcos", widget.cantidadMarcosController, onChanged: (_) => actualizarMarcos()),
-            
-            ...List.generate(widget.anchoMarcos.length, (index) => Row(
+      child: Opacity(
+        opacity: widget.enabled ? 1.0 : 0.4,
+        child: IgnorePointer(
+          ignoring: !widget.enabled,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
               children: [
-                Expanded(child: campo("Ancho ${index + 1}", widget.anchoMarcos[index])),
-                const SizedBox(width: 5),
-                Expanded(child: campo("Alto ${index + 1}", widget.altoMarcos[index])),
-                const SizedBox(width: 5),
-                Expanded(child: campo("Precio ${index + 1}", widget.precioMarcos[index])),
+                const Text("SERIGRAFÍA", style: TextStyle(fontWeight: FontWeight.bold)),
+                
+                campo("Cantidad de Marcos", widget.cantidadMarcosController, onChanged: (_) => actualizarMarcos()),
+                
+                ...List.generate(widget.anchoMarcos.length, (index) => Row(
+                  children: [
+                    Expanded(child: campo("Ancho ${index + 1}", widget.anchoMarcos[index])),
+                    const SizedBox(width: 5),
+                    Expanded(child: campo("Alto ${index + 1}", widget.altoMarcos[index])),
+                    const SizedBox(width: 5),
+                    Expanded(child: campo("Precio ${index + 1}", widget.precioMarcos[index])),
+                  ],
+                )),
+                
+                campo("Total Marcos", widget.totalMarcosController),
+                
+                Row(children: [
+                  Expanded(child: campo("Cantidad Negativos", widget.cantidadNegativosController)),
+                  const SizedBox(width: 5),
+                  Expanded(child: campo("Precio Negativo", widget.precioNegativoController)),
+                  const SizedBox(width: 5),
+                  Expanded(child: campo("Total Negativos", widget.totalNegativosController)),
+                ]),
+                
+                Row(children: [
+                  Expanded(child: campo("Cantidad Tintas", widget.cantidadTintasController)),
+                  const SizedBox(width: 5),
+                  Expanded(child: campo("Costo por Tinta", widget.costoTintasController)),
+                  const SizedBox(width: 5),
+                  Expanded(child: campo("Total Tintas", widget.totalTintasController)),
+                ]),
+                
+                Row(children: [
+                  Expanded(child: campo("# de Entrada", widget.numeroEntradasController)),
+                  const SizedBox(width: 5),
+                  Expanded(child: campo("Costo por Millar", widget.costoMillarController)),
+                  const SizedBox(width: 5),
+                  Expanded(child: campo("Total por Entrada", widget.totalEntradaController)),
+                ]),
               ],
-            )),
-            
-            campo("Total Marcos", widget.totalMarcosController),
-            
-            Row(children: [
-              Expanded(child: campo("Cantidad Negativos", widget.cantidadNegativosController)),
-              const SizedBox(width: 5),
-              Expanded(child: campo("Precio Negativo", widget.precioNegativoController)),
-              const SizedBox(width: 5),
-              Expanded(child: campo("Total Negativos", widget.totalNegativosController)),
-            ]),
-            
-            Row(children: [
-              Expanded(child: campo("Cantidad Tintas", widget.cantidadTintasController)),
-              const SizedBox(width: 5),
-              Expanded(child: campo("Costo por Tinta", widget.costoTintasController)),
-              const SizedBox(width: 5),
-              Expanded(child: campo("Total Tintas", widget.totalTintasController)),
-            ]),
-            
-            Row(children: [
-              Expanded(child: campo("# de Entrada", widget.numeroEntradasController)),
-              const SizedBox(width: 5),
-              Expanded(child: campo("Costo por Millar", widget.costoMillarController)),
-              const SizedBox(width: 5),
-              Expanded(child: campo("Total por Entrada", widget.totalEntradaController)),
-            ]),
-          ],
+            ),
+          ),
         ),
       ),
     );
