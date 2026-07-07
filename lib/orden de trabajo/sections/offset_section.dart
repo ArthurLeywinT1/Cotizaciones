@@ -1,4 +1,3 @@
-// lib/screens/sections/offset_section.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/orden_trabajo_provider.dart';
@@ -47,7 +46,7 @@ class OffsetSection extends ConsumerWidget {
                   200,
                   controller.offsetTipoTrabajo,
                   "offset_tipo_trabajo_${controller.sessionKey}",
-                  readOnly: modoProduccion, // <--- DINÁMICO
+                  readOnly: modoProduccion,
                   onChanged: (v) => ref
                       .read(ordenTrabajoProvider)
                       .updateOffsetTexto('tipo', v),
@@ -61,10 +60,21 @@ class OffsetSection extends ConsumerWidget {
                       : "",
                   "offset_piezas_pedidas_${controller.sessionKey}",
                   esNumero: true,
-                  readOnly: modoProduccion, // <--- DINÁMICO
+                  readOnly: modoProduccion,
                   onChanged: (v) => ref
                       .read(ordenTrabajoProvider)
                       .updateOffsetTexto('piezas', v),
+                ),
+                _buildInput(
+                  "NOMBRE DEL PAPEL",
+                  "Ej: Couché 150g",
+                  200,
+                  controller.offsetNombrePapel,
+                  "offset_nombre_papel_${controller.sessionKey}",
+                  readOnly: modoProduccion,
+                  onChanged: (v) => ref
+                      .read(ordenTrabajoProvider)
+                      .updateOffsetTexto('nombre_papel', v),
                 ),
                 _buildInput(
                   "PAPEL NECESARIO",
@@ -72,7 +82,7 @@ class OffsetSection extends ConsumerWidget {
                   150,
                   controller.offsetPapelNecesario,
                   "offset_papel_necesario_${controller.sessionKey}",
-                  readOnly: modoProduccion, // <--- DINÁMICO
+                  readOnly: modoProduccion,
                   onChanged: (v) => ref
                       .read(ordenTrabajoProvider)
                       .updateOffsetTexto('necesario', v),
@@ -83,7 +93,7 @@ class OffsetSection extends ConsumerWidget {
                   150,
                   controller.offsetPapelLlegara,
                   "offset_papel_llegara_${controller.sessionKey}",
-                  readOnly: modoProduccion, // <--- DINÁMICO
+                  readOnly: modoProduccion,
                   onChanged: (v) => ref
                       .read(ordenTrabajoProvider)
                       .updateOffsetTexto('llegara', v),
@@ -92,7 +102,7 @@ class OffsetSection extends ConsumerWidget {
             ),
             const SizedBox(height: 20),
 
-            // --- MATRIZ DE TINTAS ---
+            // --- MATRIZ DE TINTAS PRINCIPAL ---
             Text(
               "TINTAS REQUERIDAS",
               style: TextStyle(
@@ -103,28 +113,32 @@ class OffsetSection extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
 
-            // Fila de Frente
+            // Fila de Frente Principal
             _buildInkRow(
               context,
               ref,
-              'frente',
               'FRENTE',
               controller.offsetData['frente'],
-              controller.sessionKey,
-              modoProduccion, // <--- INYECTADO
+              "frente_${controller.sessionKey}",
+              modoProduccion,
+              onChanged: (colorKey, value) => ref
+                  .read(ordenTrabajoProvider)
+                  .updateOffsetInk('frente', colorKey, value),
             ),
             const Divider(height: 16),
-            // Fila de Vuelta
+            
+            // Fila de Vuelta Principal
             _buildInkRow(
               context,
               ref,
-              'vuelta',
               'VUELTA',
               controller.offsetData['vuelta'],
-              controller.sessionKey,
-              modoProduccion, // <--- INYECTADO
+              "vuelta_${controller.sessionKey}",
+              modoProduccion,
+              onChanged: (colorKey, value) => ref
+                  .read(ordenTrabajoProvider)
+                  .updateOffsetInk('vuelta', colorKey, value),
             ),
-
             const SizedBox(height: 16),
             const Divider(height: 1, thickness: 0.5),
             const SizedBox(height: 12),
@@ -132,18 +146,14 @@ class OffsetSection extends ConsumerWidget {
             // --- NOTAS / INSTRUCCIONES EXTRAS ---
             const Text(
               "NOTAS / INSTRUCCIONES EXTRAS",
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey,
-              ),
+              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey),
             ),
             const SizedBox(height: 4),
             TextFormField(
               key: ValueKey("offset_notas_extras_${controller.sessionKey}"),
               initialValue: controller.offsetNotas,
               maxLines: 3,
-              readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+              readOnly: modoProduccion,
               onChanged: modoProduccion
                   ? null
                   : (v) => ref
@@ -156,27 +166,147 @@ class OffsetSection extends ConsumerWidget {
                 isDense: true,
                 filled: true,
                 fillColor: modoProduccion ? Colors.grey[100] : Colors.yellow[50],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(
-                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
-                    width: 0.5,
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(
-                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
-                    width: 0.5,
-                  ),
-                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
               ),
-              style: TextStyle(
-                fontSize: 13, 
-                fontStyle: FontStyle.italic,
-                color: modoProduccion ? Colors.black54 : Colors.black,
-              ),
+              style: TextStyle(fontSize: 13, color: modoProduccion ? Colors.black54 : Colors.black),
             ),
+            const Divider(height: 32),
+
+            // --- REPETICIÓN DE PIEZAS / PAPELES ---
+            const Text(
+              "REPETICIÓN DE PIEZAS / PAPELES ADICIONALES",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            ...controller.papelesExtra.asMap().entries.map((entry) {
+              int idx = entry.key;
+              final item = entry.value;
+              return Card(
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Set Adicional ${idx + 1}",
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: modoProduccion
+                                ? null
+                                : () => ref
+                                    .read(ordenTrabajoProvider)
+                                    .eliminarPapelExtra(item.id),
+                          )
+                        ],
+                      ),
+                      const Divider(),
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: [
+                          _buildInput(
+                            "NOMBRE PAPEL",
+                            "Ej: Couché",
+                            140,
+                            item.nombrePapel,
+                            "n_${item.id}",
+                            readOnly: modoProduccion,
+                            onChanged: (v) => ref
+                                .read(ordenTrabajoProvider)
+                                .updatePapelExtra(idx, 'nombre', v),
+                          ),
+                          _buildInput(
+                            "PIEZAS",
+                            "0",
+                            80,
+                            item.piezas,
+                            "p_${item.id}",
+                            esNumero: true,
+                            readOnly: modoProduccion,
+                            onChanged: (v) => ref
+                                .read(ordenTrabajoProvider)
+                                .updatePapelExtra(idx, 'piezas', v),
+                          ),
+                          _buildInput(
+                            "NECESARIO",
+                            "0",
+                            100,
+                            item.papelNecesario,
+                            "ncs_${item.id}",
+                            readOnly: modoProduccion,
+                            onChanged: (v) => ref
+                                .read(ordenTrabajoProvider)
+                                .updatePapelExtra(idx, 'necesario', v),
+                          ),
+                          _buildInput(
+                            "LLEGARÁ",
+                            "0",
+                            100,
+                            item.papelLlegara,
+                            "lgr_${item.id}",
+                            readOnly: modoProduccion,
+                            onChanged: (v) => ref
+                                .read(ordenTrabajoProvider)
+                                .updatePapelExtra(idx, 'llegara', v),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // >>> REPETICIÓN DE LA MATRIZ DE TINTAS PARA EL SET ADICIONAL <<<
+                      const Text(
+                        "TINTAS REQUERIDAS PARA ESTE SET",
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      _buildInkRow(
+                        context,
+                        ref,
+                        'FRENTE',
+                        item.tintas['frente'],
+                        "frente_${item.id}",
+                        modoProduccion,
+                        onChanged: (colorKey, value) => ref
+                            .read(ordenTrabajoProvider)
+                            .updatePapelExtraInk(idx, 'frente', colorKey, value),
+                      ),
+                      const Divider(height: 16),
+                      _buildInkRow(
+                        context,
+                        ref,
+                        'VUELTA',
+                        item.tintas['vuelta'],
+                        "vuelta_${item.id}",
+                        modoProduccion,
+                        onChanged: (colorKey, value) => ref
+                            .read(ordenTrabajoProvider)
+                            .updatePapelExtraInk(idx, 'vuelta', colorKey, value),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+            
+            if (!modoProduccion)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.add_circle_outline),
+                  label: const Text("Agregar otro set de piezas"),
+                  onPressed: () => ref.read(ordenTrabajoProvider).agregarPapelExtra(),
+                ),
+              ),
 
             if (modoProduccion) ...[
               const Divider(height: 32, thickness: 1),
@@ -207,14 +337,7 @@ class OffsetSection extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey,
-            ),
-          ),
+          Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
           const SizedBox(height: 4),
           TextFormField(
             key: ValueKey(fieldKey),
@@ -227,36 +350,29 @@ class OffsetSection extends ConsumerWidget {
               isDense: true,
               filled: true,
               fillColor: readOnly ? Colors.grey[100] : Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color: readOnly ? Colors.grey[300]! : Colors.grey[400]!,
-                ),
+                borderSide: BorderSide(color: readOnly ? Colors.grey[300]! : Colors.grey[400]!),
               ),
             ),
-            style: TextStyle(
-              fontSize: 13,
-              color: readOnly ? Colors.black54 : Colors.black,
-            ),
+            style: TextStyle(fontSize: 13, color: readOnly ? Colors.black54 : Colors.black),
           ),
         ],
       ),
     );
   }
 
-  // Helper para crear las filas de tintas (Frente / Vuelta)
+  // >>> HELPER REFACTORIZADO CON CALLBACK "onChanged" DESACOPLADO <<<
   Widget _buildInkRow(
     BuildContext context,
     WidgetRef ref,
-    String caraKey,
     String label,
     Map<String, dynamic> data,
-    String sessionKey,
-    bool modoProd,
-  ) {
+    String uniqueId,
+    bool modoProd, {
+    required Function(String colorKey, dynamic value) onChanged,
+  }) {
     return Wrap(
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
@@ -271,44 +387,23 @@ class OffsetSection extends ConsumerWidget {
             ),
           ),
         ),
-        _buildInkCheck(ref, caraKey, 'C', 'C', Colors.cyan, data['C'], modoProd),
-        _buildInkCheck(ref, caraKey, 'M', 'M', Colors.pink, data['M'], modoProd),
-        _buildInkCheck(ref, caraKey, 'Y', 'Y', Colors.yellow[700]!, data['Y'], modoProd),
-        _buildInkCheck(ref, caraKey, 'K', 'K', Colors.black, data['K'], modoProd),
+        _buildInkCheck('C', Colors.cyan, data['C'] ?? false, modoProd, (v) => onChanged('C', v)),
+        _buildInkCheck('M', Colors.pink, data['M'] ?? false, modoProd, (v) => onChanged('M', v)),
+        _buildInkCheck('Y', Colors.yellow[700]!, data['Y'] ?? false, modoProd, (v) => onChanged('Y', v)),
+        _buildInkCheck('K', Colors.black, data['K'] ?? false, modoProd, (v) => onChanged('K', v)),
         const SizedBox(width: 8),
-        _buildInkCheck(
-          ref,
-          caraKey,
-          'especial',
-          'Especial',
-          Colors.deepPurple,
-          data['especial'],
-          modoProd,
-        ),
-        _buildInkCheck(
-          ref,
-          caraKey,
-          'pantone',
-          'Pantone',
-          Colors.orange,
-          data['pantone'],
-          modoProd,
-        ),
+        _buildInkCheck('Especial', Colors.deepPurple, data['especial'] ?? false, modoProd, (v) => onChanged('especial', v)),
+        _buildInkCheck('Pantone', Colors.orange, data['pantone'] ?? false, modoProd, (v) => onChanged('pantone', v)),
 
-        // El cuadro de texto aparece solo si marcan Especial o Pantone
-        if (data['especial'] || data['pantone'])
+        if ((data['especial'] ?? false) || (data['pantone'] ?? false))
           Container(
             width: 150,
             margin: const EdgeInsets.only(left: 8, top: 4),
             child: TextFormField(
-              key: ValueKey("offset_tinta_esp_${caraKey}_$sessionKey"),
+              key: ValueKey("offset_tinta_esp_${uniqueId}"),
               initialValue: data['tinta_esp'] ?? '',
               readOnly: modoProd,
-              onChanged: modoProd
-                  ? null
-                  : (v) => ref
-                      .read(ordenTrabajoProvider)
-                      .updateOffsetInk(caraKey, 'tinta_esp', v),
+              onChanged: modoProd ? null : (v) => onChanged('tinta_esp', v),
               decoration: InputDecoration(
                 hintText: "Especifique tinta...",
                 isDense: true,
@@ -316,30 +411,23 @@ class OffsetSection extends ConsumerWidget {
                 fillColor: modoProd ? Colors.grey[100] : Colors.white,
                 border: const OutlineInputBorder(),
                 enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: modoProd ? Colors.grey[300]! : Colors.grey[400]!,
-                  ),
+                  borderSide: BorderSide(color: modoProd ? Colors.grey[300]! : Colors.grey[400]!),
                 ),
               ),
-              style: TextStyle(
-                fontSize: 12,
-                color: modoProd ? Colors.black54 : Colors.black,
-              ),
+              style: TextStyle(fontSize: 12, color: modoProd ? Colors.black54 : Colors.black),
             ),
           ),
       ],
     );
   }
 
-  // Helper para los checkboxes de cada color
+  // Helper para los checkboxes individuales
   Widget _buildInkCheck(
-    WidgetRef ref,
-    String cara,
-    String colorKey,
     String label,
     Color color,
     bool value,
     bool modoProd,
+    Function(bool?) onChanged,
   ) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -347,9 +435,7 @@ class OffsetSection extends ConsumerWidget {
         Checkbox(
           value: value,
           activeColor: color,
-          onChanged: modoProd
-              ? null // <--- DESACTIVADO EN PRODUCCIÓN
-              : (v) => ref.read(ordenTrabajoProvider).updateOffsetInk(cara, colorKey, v),
+          onChanged: modoProd ? null : onChanged,
         ),
         Text(
           label,

@@ -45,6 +45,17 @@ class DesignTask {
 
   DesignTask({required this.id, this.desc = ''});
 }
+class PapelExtraItem {
+  String id = DateTime.now().millisecondsSinceEpoch.toString();
+  String nombrePapel = "";
+  String piezas = "";
+  String papelNecesario = "";
+  String papelLlegara = "";
+  Map<String, dynamic> tintas = {
+    'frente': {'C': false, 'M': false, 'Y': false, 'K': false, 'especial': false, 'pantone': false, 'tinta_esp': ''},
+    'vuelta': {'C': false, 'M': false, 'Y': false, 'K': false, 'especial': false, 'pantone': false, 'tinta_esp': ''}
+  };
+}
 
 class AcabadoManualItem {
   String id;
@@ -119,6 +130,35 @@ class OrdenTrabajoController extends ChangeNotifier {
     'embalaje': TiempoProceso(),
     'logistica': TiempoProceso(),
   };
+
+  List<PapelExtraItem> papelesExtra = [];
+
+  void agregarPapelExtra() {
+    papelesExtra.add(PapelExtraItem());
+    notifyListeners();
+  }
+
+  void eliminarPapelExtra(String id) {
+    papelesExtra.removeWhere((p) => p.id == id);
+    notifyListeners();
+  }
+
+  void updatePapelExtra(int index, String campo, String valor) {
+    if (index < papelesExtra.length) {
+      if (campo == 'nombre') papelesExtra[index].nombrePapel = valor;
+      if (campo == 'piezas') papelesExtra[index].piezas = valor;
+      if (campo == 'necesario') papelesExtra[index].papelNecesario = valor;
+      if (campo == 'llegara') papelesExtra[index].papelLlegara = valor;
+      notifyListeners();
+    }
+  }
+
+  void updatePapelExtraInk(int index, String cara, String color, dynamic valor) {
+    if (index < papelesExtra.length) {
+      papelesExtra[index].tintas[cara][color] = valor;
+      notifyListeners();
+    }
+  }
 
   void toggleSection(String section) {
     activeSections[section] = !activeSections[section]!;
@@ -245,7 +285,7 @@ class OrdenTrabajoController extends ChangeNotifier {
       }
     }
 
-    if (dbData['offset'] != null) {
+if (dbData['offset'] != null) {
       offsetTipoTrabajo = dbData['offset']['tipoTrabajo'] ?? '';
       offsetPiezasPedidas = dbData['offset']['piezasPedidas'] ?? 0;
       offsetPapelNecesario = dbData['offset']['papelNecesario'] ?? '';
@@ -257,6 +297,23 @@ class OrdenTrabajoController extends ChangeNotifier {
           'frente': Map<String, dynamic>.from(tintasDb['frente'] ?? {}),
           'vuelta': Map<String, dynamic>.from(tintasDb['vuelta'] ?? {}),
         };
+      }
+      
+      // >>> CARGAR PAPELES EXTRA DE LA BD EN MEMORIA <<<
+      papelesExtra.clear();
+      if (dbData['offset']['papelesExtra'] != null) {
+        for (var p in (dbData['offset']['papelesExtra'] as List? ?? [])) {
+          final item = PapelExtraItem();
+          item.id = p['id'] ?? DateTime.now().millisecondsSinceEpoch.toString();
+          item.nombrePapel = p['nombrePapel'] ?? '';
+          item.piezas = p['piezas']?.toString() ?? '';
+          item.papelNecesario = p['papelNecesario']?.toString() ?? '';
+          item.papelLlegara = p['papelLlegara']?.toString() ?? '';
+          if (p['tintas'] != null) {
+            item.tintas = Map<String, dynamic>.from(p['tintas']);
+          }
+          papelesExtra.add(item);
+        }
       }
     }
 
@@ -746,7 +803,9 @@ class OrdenTrabajoController extends ChangeNotifier {
   }
 
   // --- 3. OFFSET ---
+  
   String offsetTipoTrabajo = '';
+  String offsetNombrePapel = ''; // <--- Añade esto para que el getter exista
   int offsetPiezasPedidas = 0;
   String offsetPapelNecesario = '';
   String offsetPapelLlegara = '';
@@ -1061,7 +1120,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "notas": disenoNotas,
           "tareas": designTasks.map((t) => {"desc": t.desc}).toList(),
         },
-        "offset": {
+          "offset": {
           "estatus": tiempos['offset']?.estatus,
           "inicio": tiempos['offset']?.inicio,
           "fin": tiempos['offset']?.fin,
@@ -1071,6 +1130,15 @@ class OrdenTrabajoController extends ChangeNotifier {
           "papelLlegara": offsetPapelLlegara,
           "tintas": offsetData,
           "notas": offsetNotas,
+          // >>> MAPEAR LOS SETS ADICIONALES CON SUS TINTAS PARA GUARDAR EN POSTGRES <<<
+          "papelesExtra": papelesExtra.map((p) => {
+            "id": p.id,
+            "nombrePapel": p.nombrePapel,
+            "piezas": p.piezas,
+            "papelNecesario": p.papelNecesario,
+            "papelLlegara": p.papelLlegara,
+            "tintas": p.tintas,
+            }).toList(),
         },
         "corte": {
           "estatus": tiempos['corte']?.estatus,
