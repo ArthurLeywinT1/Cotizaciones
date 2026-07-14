@@ -163,7 +163,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
               const SizedBox(height: 16),
               TextField(
                 decoration: const InputDecoration(
-                  labelText: 'Título o No. de Orden',
+                  labelText: 'No. de Orden y proyecto',
                   border: OutlineInputBorder(),
                 ),
                 onChanged: (val) => titulo = val,

@@ -107,6 +107,17 @@ class PanelClientes extends ConsumerStatefulWidget {
 }
 
 class _PanelClientesState extends ConsumerState<PanelClientes> {
+  
+  // 🔹 NUEVO: Agregamos initState para precargar el valor por defecto
+  @override
+  void initState() {
+    super.initState();
+    // Si el controlador viene vacío de origen, le asignamos el 0.5 por defecto
+    if (widget.medianilController.text.isEmpty) {
+      widget.medianilController.text = "0.5";
+    }
+  }
+
   void _buscarCliente() {
     showDialog(
       context: context,
@@ -159,7 +170,6 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
               "Datos del Cliente y del Trabajo Solicitado",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 8),
 
             /// RAZÓN SOCIAL
@@ -187,7 +197,6 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                 ),
               ],
             ),
-
             const SizedBox(height: 8),
 
             /// PROYECTO
@@ -198,7 +207,6 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                 border: OutlineInputBorder(),
               ),
             ),
-
             const SizedBox(height: 8),
 
             /// DESCRIPCIÓN
@@ -210,7 +218,6 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                 border: OutlineInputBorder(),
               ),
             ),
-
             const SizedBox(height: 12),
 
             /// PROCESOS
@@ -218,7 +225,6 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
               "Procesos del Trabajo",
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
               title: const Text("Offset"),
@@ -272,7 +278,6 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
             if (widget.offset) ...[
               const SizedBox(height: 10),
               const Text("Medidas del Trabajo (cm)"),
-
               Row(
                 children: [
                   Expanded(
@@ -292,16 +297,14 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 6),
-
               Row(
                 children: [
                   SizedBox(
                     width: 120,
                     child: TextField(
-                      controller: widget.medianilController,
-                      keyboardType: TextInputType.number,
+                      controller: widget.medianilController, // 🔹 Sigue siendo editable
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       decoration: const InputDecoration(labelText: "Medianil"),
                     ),
                   ),
@@ -312,7 +315,6 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 8),
 
               /// PRUEBA DE COLOR
@@ -329,7 +331,6 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                 value: widget.pruebaCarta,
                 onChanged: widget.onPruebaCartaChanged,
               ),
-
               if (widget.pruebaCarta)
                 Row(
                   children: [
@@ -337,9 +338,7 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                       child: TextField(
                         controller: widget.cantidadCartaController,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: "Cantidad Carta",
-                        ),
+                        decoration: const InputDecoration(labelText: "Cantidad Carta"),
                         onChanged: (value) => calcularTotal(
                           widget.cantidadCartaController,
                           widget.precioCartaController,
@@ -352,9 +351,7 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                       child: TextField(
                         controller: widget.precioCartaController,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: "Precio Carta",
-                        ),
+                        decoration: const InputDecoration(labelText: "Precio Carta"),
                         onChanged: (value) => calcularTotal(
                           widget.cantidadCartaController,
                           widget.precioCartaController,
@@ -384,7 +381,6 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                 value: widget.pruebaTabloide,
                 onChanged: widget.onPruebaTabloideChanged,
               ),
-
               if (widget.pruebaTabloide)
                 Row(
                   children: [
@@ -392,9 +388,7 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                       child: TextField(
                         controller: widget.cantidadTabloideController,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: "Cantidad Tabloide",
-                        ),
+                        decoration: const InputDecoration(labelText: "Cantidad Tabloide"),
                         onChanged: (value) => calcularTotal(
                           widget.cantidadTabloideController,
                           widget.precioTabloideController,
@@ -407,9 +401,7 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                       child: TextField(
                         controller: widget.precioTabloideController,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: "Precio Tabloide",
-                        ),
+                        decoration: const InputDecoration(labelText: "Precio Tabloide"),
                         onChanged: (value) => calcularTotal(
                           widget.cantidadTabloideController,
                           widget.precioTabloideController,
@@ -439,7 +431,6 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                 value: widget.pruebaMediaCarta,
                 onChanged: widget.onPruebaMediaCartaChanged,
               ),
-
               if (widget.pruebaMediaCarta)
                 Row(
                   children: [
@@ -447,9 +438,7 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                       child: TextField(
                         controller: widget.cantidadMediaCartaController,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: "Cantidad Media Carta",
-                        ),
+                        decoration: const InputDecoration(labelText: "Cantidad Media Carta"),
                         onChanged: (value) => calcularTotal(
                           widget.cantidadMediaCartaController,
                           widget.precioMediaCartaController,
@@ -462,9 +451,7 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                       child: TextField(
                         controller: widget.precioMediaCartaController,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: "Precio Media Carta",
-                        ),
+                        decoration: const InputDecoration(labelText: "Precio Media Carta"),
                         onChanged: (value) => calcularTotal(
                           widget.cantidadMediaCartaController,
                           widget.precioMediaCartaController,
@@ -487,14 +474,12 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                   ],
                 ),
             ],
-
             const SizedBox(height: 10),
 
             const Text(
               "Piezas totales solicitadas",
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 8),
 
             TextField(

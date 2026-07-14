@@ -23,6 +23,10 @@ class _SegmentacionPliegosScreenState extends State<SegmentacionPliegosScreen> {
 
   final TextEditingController anchoController = TextEditingController();
   final TextEditingController altoController = TextEditingController();
+  
+  // 🔹 NUEVO: Controladores fijos para que la "Medida Especial" no pierda el foco al borrar
+  final TextEditingController especialAnchoController = TextEditingController();
+  final TextEditingController especialAltoController = TextEditingController();
 
   final List<Map<String, dynamic>> panels = [
     {"titulo": "Mitad del Pliego (4 Cartas)", "ancho": 57.0, "alto": 43.5},
@@ -63,12 +67,14 @@ class _SegmentacionPliegosScreenState extends State<SegmentacionPliegosScreen> {
   void dispose() {
     anchoController.dispose();
     altoController.dispose();
+    // 🔹 NUEVO: Limpiamos los controladores especiales al salir de la pantalla
+    especialAnchoController.dispose();
+    especialAltoController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // DETECTAMOS EL ANCHO DE LA PANTALLA
     final double anchoPantalla = MediaQuery.of(context).size.width;
     final bool esDesktop = anchoPantalla > 750;
 
@@ -86,7 +92,6 @@ class _SegmentacionPliegosScreenState extends State<SegmentacionPliegosScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text("Segmentación de Pliegos")),
       backgroundColor: Colors.grey[200],
-      // Envolvemos la columna principal en un SingleChildScrollView para asegurar el scroll en móviles
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -105,12 +110,10 @@ class _SegmentacionPliegosScreenState extends State<SegmentacionPliegosScreen> {
                 ),
               ),
 
-            /// PANEL MEDIDAS DEL TRABAJO (ADAPTATIVO)
             Card(
               margin: const EdgeInsets.all(12),
               child: Padding(
                 padding: const EdgeInsets.all(12),
-                // Si es Desktop usa Row, si es móvil muta a un Wrap para no desbordar a la derecha
                 child: esDesktop
                     ? Row(
                         children: _construirFilaMedidas(),
@@ -124,20 +127,17 @@ class _SegmentacionPliegosScreenState extends State<SegmentacionPliegosScreen> {
               ),
             ),
 
-            /// CONTENEDOR DE LA CUADRÍCULA (RESPONSIVA)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: GridView.builder(
-                shrinkWrap: true, // Permite que conviva dentro del SingleChildScrollView
-                physics: const NeverScrollableScrollPhysics(), // Delega el scroll al padre
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
                 itemCount: compatibles.length,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  // 3 columnas en PC, 2 en pantallas medianas, 1 sola columna en celular
                   crossAxisCount: anchoPantalla > 950 ? 3 : (anchoPantalla > 600 ? 2 : 1),
                   crossAxisSpacing: 14,
                   mainAxisSpacing: 14,
-                  // Reemplazamos childAspectRatio por una altura fija (mainAxisExtent) para que no se aplasten
-                  mainAxisExtent: 210, 
+                  mainAxisExtent: 210,
                 ),
                 itemBuilder: (context, index) {
                   final p = compatibles[index];
@@ -241,11 +241,12 @@ class _SegmentacionPliegosScreenState extends State<SegmentacionPliegosScreen> {
                               children: [
                                 Expanded(
                                   child: TextField(
-                                    controller: TextEditingController(
-                                      text: p["ancho"] == 0
-                                          ? ""
-                                          : p["ancho"].toString(),
-                                    ),
+                                    // 🔹 NUEVO: Si es la tarjeta especial, usa el controlador persistente
+                                    controller: especial 
+                                        ? especialAnchoController 
+                                        : TextEditingController(
+                                            text: p["ancho"] == 0 ? "" : p["ancho"].toString(),
+                                          ),
                                     enabled: especial,
                                     decoration: const InputDecoration(
                                       labelText: "Ancho",
@@ -256,8 +257,7 @@ class _SegmentacionPliegosScreenState extends State<SegmentacionPliegosScreen> {
                                     onChanged: especial
                                         ? (v) {
                                             setState(() {
-                                              p["ancho"] =
-                                                  double.tryParse(v) ?? 0;
+                                              p["ancho"] = double.tryParse(v) ?? 0;
                                             });
                                           }
                                         : null,
@@ -266,11 +266,12 @@ class _SegmentacionPliegosScreenState extends State<SegmentacionPliegosScreen> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: TextField(
-                                    controller: TextEditingController(
-                                      text: p["alto"] == 0
-                                          ? ""
-                                          : p["alto"].toString(),
-                                    ),
+                                    // 🔹 NUEVO: Si es la tarjeta especial, usa el controlador persistente
+                                    controller: especial 
+                                        ? especialAltoController 
+                                        : TextEditingController(
+                                            text: p["ancho"] == 0 ? "" : p["alto"].toString(),
+                                          ),
                                     enabled: especial,
                                     decoration: const InputDecoration(
                                       labelText: "Alto",
@@ -292,7 +293,6 @@ class _SegmentacionPliegosScreenState extends State<SegmentacionPliegosScreen> {
 
                             const Divider(height: 10),
 
-                            // Bloque de piezas Normal
                             Row(
                               children: [
                                 const Icon(Icons.arrow_downward, color: Colors.green, size: 16),
@@ -306,7 +306,6 @@ class _SegmentacionPliegosScreenState extends State<SegmentacionPliegosScreen> {
                               ],
                             ),
 
-                            // Bloque de piezas Invertido
                             Row(
                               children: [
                                 const Icon(Icons.sync_alt, color: Colors.green, size: 16),
@@ -334,7 +333,6 @@ class _SegmentacionPliegosScreenState extends State<SegmentacionPliegosScreen> {
     );
   }
 
-  /// Método modular para generar los widgets de control superiores sin duplicar código
   List<Widget> _construirFilaMedidas() {
     return [
       const Text(

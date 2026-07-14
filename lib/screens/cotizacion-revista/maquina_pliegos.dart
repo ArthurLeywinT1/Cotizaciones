@@ -210,11 +210,19 @@ class _PanelMaquinaPliegoState extends ConsumerState<PanelMaquinaPliego> {
       precioRev = cantRevInt > 0 ? costoFijoTinta : 0.0;
     }
 
+    // 1. Asignamos los costos UNITARIOS por millar a los controladores correspondientes
     widget.costoUnitFteController.text = precioFte.toStringAsFixed(2);
     widget.costoUnitRevController.text = precioRev.toStringAsFixed(2);
-    widget.costoTotalFteController.text = precioFte.toStringAsFixed(2);
-    widget.costoTotalRevController.text = precioRev.toStringAsFixed(2);
-    widget.costoGranTotalTintasController.text = (precioFte + precioRev).toStringAsFixed(2);
+
+    // 2. Calculamos los costos TOTALES multiplicando el costo unitario por los millares a cobrar
+    double costoTotalFte = precioFte * millares;
+    double costoTotalRev = precioRev * millares;
+
+    widget.costoTotalFteController.text = costoTotalFte.toStringAsFixed(2);
+    widget.costoTotalRevController.text = costoTotalRev.toStringAsFixed(2);
+
+    // 3. El gran total de tintas ahora sí sumará los subtotales multiplicados correspondientes
+    widget.costoGranTotalTintasController.text = (costoTotalFte + costoTotalRev).toStringAsFixed(2);
 
     double precioBarnizFte = 0;
     double precioBarnizRev = 0;
@@ -547,6 +555,8 @@ class _PanelMaquinaPliegoState extends ConsumerState<PanelMaquinaPliego> {
               ],
             ),
             const SizedBox(height: 20),
+            
+            // --- AQUÍ SE INTEGRÓ TU NUEVA SECCIÓN ---
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -554,9 +564,13 @@ class _PanelMaquinaPliegoState extends ConsumerState<PanelMaquinaPliego> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Costo por Tinta Frontal:"),
+                      const Text("Costo Tinta Frontal (Millar):"),
                       const SizedBox(height: 4),
                       _MonedaInput(controller: widget.costoUnitFteController, readOnly: !widget.cambiarPrecioTinta),
+                      const SizedBox(height: 8),
+                      const Text("Subtotal Frente:"),
+                      const SizedBox(height: 4),
+                      _MonedaInput(controller: widget.costoTotalFteController, readOnly: true), // Campo de solo lectura para el total multiplicado
                     ],
                   ),
                 ),
@@ -565,14 +579,20 @@ class _PanelMaquinaPliegoState extends ConsumerState<PanelMaquinaPliego> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Costo por Tinta Reverso:"),
+                      const Text("Costo Tinta Reverso (Millar):"),
                       const SizedBox(height: 4),
                       _MonedaInput(controller: widget.costoUnitRevController, readOnly: !widget.cambiarPrecioTinta),
+                      const SizedBox(height: 8),
+                      const Text("Subtotal Reverso:"),
+                      const SizedBox(height: 4),
+                      _MonedaInput(controller: widget.costoTotalRevController, readOnly: true), // Campo de solo lectura para el total multiplicado
                     ],
                   ),
                 ),
               ],
             ),
+            // --- FIN DE TU NUEVA SECCIÓN ---
+            
             const SizedBox(height: 12),
             const Text("Costo Total Tintas:", style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),

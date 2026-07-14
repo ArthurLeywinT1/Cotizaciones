@@ -69,6 +69,11 @@ class _CantidadPliegosState extends State<CantidadPliegos> {
       pliego['totalPliegosUtilizarCtrl']?.dispose();
       pliego['millaresImprimirCtrl']?.dispose();
 
+      // Nuevos controladores para la funcionalidad de Revista/Interiores
+      pliego['paginasInternasPiezaCtrl']?.dispose();
+      pliego['paginasInternasTotalesCtrl']?.dispose();
+      pliego['pliegosPorPiezaCtrl']?.dispose();
+
       pliego['nombrePapelCtrl']?.dispose();
       pliego['tipoPapelCtrl']?.dispose();
       pliego['anchoPapelCtrl']?.dispose();
@@ -103,7 +108,6 @@ class _CantidadPliegosState extends State<CantidadPliegos> {
       pliego['costoUnitBarnizRevCtrl']?.dispose();
       pliego['millaresCtrl']?.dispose();
 
-      // Limpieza de controladores de pruebas de color
       if (pliego['pruebasColor'] is Map) {
         (pliego['pruebasColor'] as Map).forEach((_, value) {
           value['cantidadController']?.dispose();
@@ -112,7 +116,6 @@ class _CantidadPliegosState extends State<CantidadPliegos> {
         });
       }
 
-      // Limpieza de nuevos controladores de acabados y laminados
       pliego['anchoFinalCtrl']?.dispose();
       pliego['altoFinalCtrl']?.dispose();
       
@@ -145,9 +148,7 @@ class _CantidadPliegosState extends State<CantidadPliegos> {
       suaje['largo']?.dispose();
       suaje['pliegos']?.dispose();
       suaje['costoMillar']?.dispose();
-      
     }
-
   }
 
   @override
@@ -176,6 +177,14 @@ class _CantidadPliegosState extends State<CantidadPliegos> {
         'pliegosSobrantesCtrl': TextEditingController(text: '0'),
         'totalPliegosUtilizarCtrl': TextEditingController(text: '0'),
         'millaresImprimirCtrl': TextEditingController(text: '0.00'),
+
+        // Estados y controladores para la opción de Revista
+        'isPortada': false,
+        'isInteriores': false,
+        'multiploImpresion': 2, // 2 o 4
+        'paginasInternasPiezaCtrl': TextEditingController(text: '0'),
+        'paginasInternasTotalesCtrl': TextEditingController(text: '0'),
+        'pliegosPorPiezaCtrl': TextEditingController(text: '0.00'),
 
         'nombrePapelCtrl': TextEditingController(),
         'tipoPapelCtrl': TextEditingController(),
@@ -253,7 +262,6 @@ class _CantidadPliegosState extends State<CantidadPliegos> {
           },
         },
 
-        // --- ESTADO PARA ACABADOS (BARNIZ UV) ---
         'anchoFinalCtrl': TextEditingController(text: '0.00'),
         'altoFinalCtrl': TextEditingController(text: '0.00'),
         'acabadosData': {
@@ -272,7 +280,6 @@ class _CantidadPliegosState extends State<CantidadPliegos> {
           'Barniz UV Mate Plasta': TextEditingController(text: '0.00'),
         },
 
-        // --- ESTADO PARA LAMINADOS ---
         'laminadosData': {
           'Plastificado Brillante': {'frente': false, 'vuelta': false},
           'Plastificado Mate': {'frente': false, 'vuelta': false},
@@ -286,68 +293,103 @@ class _CantidadPliegosState extends State<CantidadPliegos> {
           'Plastificado Mate': TextEditingController(text: '0.00'),
         },
         'grabadoCtrl': {
-        'cantidadPlacas': TextEditingController(text: '0'),
-        'costoPlaca': TextEditingController(text: '0.00'),
-        'costoTotalPlacas': TextEditingController(text: '0.00'),
-        'costoEntrada': TextEditingController(text: '0.00'),
-        'costoTotalEntrada': TextEditingController(text: '0.00'),
-        'costoTotalGrabado': TextEditingController(text: '0.00'),
+          'cantidadPlacas': TextEditingController(text: '0'),
+          'costoPlaca': TextEditingController(text: '0.00'),
+          'costoTotalPlacas': TextEditingController(text: '0.00'),
+          'costoEntrada': TextEditingController(text: '0.00'),
+          'costoTotalEntrada': TextEditingController(text: '0.00'),
+          'costoTotalGrabado': TextEditingController(text: '0.00'),
         },
         'serigrafiaCtrl': {
-        'cantidadMarcos': TextEditingController(text: '0'),
-        'totalMarcos': TextEditingController(text: '0.00'),
-        'anchoMarcos': <TextEditingController>[],
-        'altoMarcos': <TextEditingController>[],
-        'precioMarcos': <TextEditingController>[],
-        'cantidadNegativos': TextEditingController(text: '0'),
-        'precioNegativo': TextEditingController(text: '0.00'),
-        'totalNegativos': TextEditingController(text: '0.00'),
-        'cantidadTintas': TextEditingController(text: '0'),
-        'costoTintas': TextEditingController(text: '0.00'),
-        'totalTintas': TextEditingController(text: '0.00'),
-        'numeroEntradas': TextEditingController(text: '0'),
-        'costoMillar': TextEditingController(text: '0.00'),
-        'totalEntrada': TextEditingController(text: '0.00'),
+          'cantidadMarcos': TextEditingController(text: '0'),
+          'totalMarcos': TextEditingController(text: '0.00'),
+          'anchoMarcos': <TextEditingController>[],
+          'altoMarcos': <TextEditingController>[],
+          'precioMarcos': <TextEditingController>[],
+          'cantidadNegativos': TextEditingController(text: '0'),
+          'precioNegativo': TextEditingController(text: '0.00'),
+          'totalNegativos': TextEditingController(text: '0.00'),
+          'cantidadTintas': TextEditingController(text: '0'),
+          'costoTintas': TextEditingController(text: '0.00'),
+          'totalTintas': TextEditingController(text: '0.00'),
+          'numeroEntradas': TextEditingController(text: '0'),
+          'costoMillar': TextEditingController(text: '0.00'),
+          'totalEntrada': TextEditingController(text: '0.00'),
         },
         'acabadosEspecialesCtrl': {
-        'activos': List.generate(5, (_) => false),
-        'descripcion': List.generate(5, (_) => TextEditingController()),
-        'costoMillar': List.generate(5, (_) => TextEditingController()),
-        'costoTotal': List.generate(5, (_) => TextEditingController(text: '0.00')),
+          'activos': List.generate(5, (_) => false),
+          'descripcion': List.generate(5, (_) => TextEditingController()),
+          'costoMillar': List.generate(5, (_) => TextEditingController()),
+          'costoTotal': List.generate(5, (_) => TextEditingController(text: '0.00')),
         },
         'suajeCtrl': {
-        'tamanoSuaje': TextEditingController(text: '0.00'),
-        'costoSuajeCm': TextEditingController(text: '0.00'),
-        'costoTotalSuaje': TextEditingController(text: '0.00'),
-        'costoArreglo': TextEditingController(text: '0.00'),
-        'costoTotalSuajado': TextEditingController(text: '0.00'),
-        'ancho': TextEditingController(text: '0.00'),
-        'largo': TextEditingController(text: '0.00'),
-        'seCuentaConSuaje': false,
-        'pliegos': TextEditingController(text: '0'),
-        'costoMillar': TextEditingController(text: '0.00'),
+          'tamanoSuaje': TextEditingController(text: '0.00'),
+          'costoSuajeCm': TextEditingController(text: '0.00'),
+          'costoTotalSuaje': TextEditingController(text: '0.00'),
+          'costoArreglo': TextEditingController(text: '0.00'),
+          'costoTotalSuajado': TextEditingController(text: '0.00'),
+          'ancho': TextEditingController(text: '0.00'),
+          'largo': TextEditingController(text: '0.00'),
+          'seCuentaConSuaje': false,
+          'pliegos': TextEditingController(text: '0'),
+          'costoMillar': TextEditingController(text: '0.00'),
         },
       };
     });
   }
 
-void _ejecutarCalculosProduccion(Map<String, dynamic> pliego) {
+  void _ejecutarCalculosProduccion(Map<String, dynamic> pliego) {
     int piezasTotalesSolicitadas = widget.piezasTotales;
     int cantidadOcupar = int.tryParse(pliego['cantidadOcuparCtrl'].text) ?? 0;
-    int piezasPorPliego = int.tryParse(pliego['piezasController'].text) ?? 0;
+    int piezasPorPliegoOriginal = int.tryParse(pliego['piezasController'].text) ?? 0;
     int pliegosExtra = int.tryParse(pliego['pliegosExtraCtrl'].text) ?? 0;
 
+    bool isInteriores = pliego['isInteriores'] == true;
+
+    // 1. Manejo dinámico de Piezas/Páginas por pliego (frente y vuelta si es interiores)
+    int piezasPorPliego = piezasPorPliegoOriginal;
+    if (isInteriores && piezasPorPliegoOriginal > 0) {
+      piezasPorPliego = piezasPorPliegoOriginal * 2; 
+    }
+
+    // 2. Cálculos específicos de Interiores (Revistas)
+    double pliegosPorPieza = 0.0;
+    double pliegosPorPiezaRedondeado = 0.0;
+
+    if (isInteriores) {
+      int paginasInternasPieza = int.tryParse(pliego['paginasInternasPiezaCtrl'].text) ?? 0;
+      int paginasTotales = paginasInternasPieza * piezasTotalesSolicitadas;
+      pliego['paginasInternasTotalesCtrl'].text = paginasTotales.toString();
+
+      if (piezasPorPliego > 0) {
+        pliegosPorPieza = paginasInternasPieza / piezasPorPliego;
+        pliego['pliegosPorPiezaCtrl'].text = pliegosPorPieza.toStringAsFixed(4);
+        pliegosPorPiezaRedondeado = pliegosPorPieza.ceilToDouble();
+      }
+    }
+
+    // 3. Cálculos estándar e influencia del factor revista
     if (piezasPorPliego > 0 && piezasTotalesSolicitadas > 0 && cantidadOcupar > 0) {
       double cantidadTotalPliego = (cantidadOcupar * piezasTotalesSolicitadas) / piezasPorPliego;
       pliego['cantidadTotalPliegoCtrl'].text = cantidadTotalPliego.toStringAsFixed(2);
-      int cantidadPliegos = cantidadTotalPliego.ceil();
-      pliego['cantidadPliegosCtrl'].text = cantidadPliegos.toString();
+      
+      int cantidadPliegosBase = cantidadTotalPliego.ceil();
+      
+      // Aplicar lógica de compensación por decimales si es revista
+      if (isInteriores && pliegosPorPieza > 0) {
+        double residuoDecimal = pliegosPorPiezaRedondeado - pliegosPorPieza;
+        if (residuoDecimal > 0) {
+          double pliegosAdicionales = residuoDecimal * piezasTotalesSolicitadas;
+          cantidadPliegosBase += pliegosAdicionales.ceil();
+        }
+      }
+
+      pliego['cantidadPliegosCtrl'].text = cantidadPliegosBase.toString();
       int sobrantes = ((cantidadOcupar * piezasTotalesSolicitadas) % piezasPorPliego == 0) ? 0 : 1;
       pliego['pliegosSobrantesCtrl'].text = sobrantes.toString();
       
-      int totalUtilizar = cantidadPliegos + pliegosExtra;
+      int totalUtilizar = cantidadPliegosBase + pliegosExtra;
       pliego['totalPliegosUtilizarCtrl'].text = totalUtilizar.toString();
-      
       pliego['totalPliegosCtrl'].text = totalUtilizar.toString();
 
       double millares = totalUtilizar / 1000.0;
@@ -359,6 +401,10 @@ void _ejecutarCalculosProduccion(Map<String, dynamic> pliego) {
       pliego['totalPliegosUtilizarCtrl'].text = '0';
       pliego['totalPliegosCtrl'].text = '0';
       pliego['millaresImprimirCtrl'].text = '0.00';
+      if (isInteriores) {
+        pliego['paginasInternasTotalesCtrl'].text = '0';
+        pliego['pliegosPorPiezaCtrl'].text = '0.00';
+      }
     }
   }
 
@@ -368,6 +414,7 @@ void _ejecutarCalculosProduccion(Map<String, dynamic> pliego) {
     double total = cantidad * precio;
     pruebaData['totalController'].text = total.toStringAsFixed(2);
   }
+
   void _recalcularCostoTotal() {
     double granTotalProduccion = 0.0;
 
@@ -375,10 +422,19 @@ void _ejecutarCalculosProduccion(Map<String, dynamic> pliego) {
       granTotalProduccion += double.tryParse(pliego['costoTotalPapelConIvaCtrl']?.text ?? '0') ?? 0.0;
       
       if (pliego['procesos']['Offset'] == true) {
-        granTotalProduccion += double.tryParse(pliego['costoGranTotalTintasCtrl']?.text ?? '0') ?? 0.0;
-        granTotalProduccion += double.tryParse(pliego['costoTotalPlacasCtrl']?.text ?? '0') ?? 0.0;
-        granTotalProduccion += double.tryParse(pliego['costoTotalPlacas790Ctrl']?.text ?? '0') ?? 0.0;
-        granTotalProduccion += double.tryParse(pliego['costoBarnizCtrl']?.text ?? '0') ?? 0.0;
+        double totalPliegosPieza = double.tryParse(pliego['pliegosPorPiezaCtrl']?.text ?? '1.0') ?? 1.0;
+        double factorMultiplicador = pliego['isInteriores'] == true ? totalPliegosPieza.ceilToDouble() : 1.0;
+
+        // Multiplicamos costos de máquina y placas por la cantidad de pliegos por pieza si es revista
+        double costoTintas = double.tryParse(pliego['costoGranTotalTintasCtrl']?.text ?? '0') ?? 0.0;
+        double costoPlacas = double.tryParse(pliego['costoTotalPlacasCtrl']?.text ?? '0') ?? 0.0;
+        double costoPlacas790 = double.tryParse(pliego['costoTotalPlacas790Ctrl']?.text ?? '0') ?? 0.0;
+        double costoBarniz = double.tryParse(pliego['costoBarnizCtrl']?.text ?? '0') ?? 0.0;
+
+        granTotalProduccion += costoTintas * factorMultiplicador;
+        granTotalProduccion += costoPlacas * factorMultiplicador;
+        granTotalProduccion += costoPlacas790 * factorMultiplicador;
+        granTotalProduccion += costoBarniz * factorMultiplicador;
         
         var pruebas = pliego['pruebasColor'] as Map<String, dynamic>?;
         if (pruebas != null) {
@@ -488,7 +544,7 @@ void _ejecutarCalculosProduccion(Map<String, dynamic> pliego) {
             'peso': pliego['pesoPapelCtrl'].text,
             'proveedor': pliego['proveedorPapelCtrl'].text,
             'costo_millar': pliego['costoMillarCtrl'].text,
-            'total_pliegos_asignados': pliego['totalPliegosCtrl'].text,
+            'total_pliegos_assigned': pliego['totalPliegosCtrl'].text,
             'descuento_aplicado': pliego['descuentoPapelCtrl'].text,
             'costo_total_sin_iva': pliego['costoTotalPapelSinIvaCtrl'].text,
             'costo_total_con_iva': pliego['costoTotalPapelConIvaCtrl'].text,
@@ -519,36 +575,39 @@ void _ejecutarCalculosProduccion(Map<String, dynamic> pliego) {
     }).toList();
   }
 
-@override
-Widget build(BuildContext context) {
-  if (datosPliegos.isEmpty) {
+  @override
+  Widget build(BuildContext context) {
+    if (datosPliegos.isEmpty) {
       return const SizedBox.shrink();
     }
-  List<Widget> contenido = datosPliegos.map((pliego) => _buildCardPliego(pliego)).toList();
-  contenido.add(
-    PanelCostoTotalPliegos(
-      piezasTotales: widget.piezasTotales,
-      costoTotalController: _costoGlobalProduccionCtrl,
-      margenController: _margenCtrl,
-      descuentoController: _descuentoGlobalCtrl,
-      diasEntregaController: _diasEntregaCtrl,
-      precioUtilidadController: _precioUtilidadCtrl,
-      precioDescuentoController: _precioDescuentoCtrl,
-      precioUnitarioController: _precioUnitarioCtrl,
-      ivaController: _ivaGlobalCtrl,
-      precioConIvaController: _precioConIvaCtrl,
-      onRecalcular: _recalcularCostoTotal, 
-    )
-  );
+    List<Widget> contenido = datosPliegos.map((pliego) => _buildCardPliego(pliego)).toList();
+    contenido.add(
+      PanelCostoTotalPliegos(
+        piezasTotales: widget.piezasTotales,
+        costoTotalController: _costoGlobalProduccionCtrl,
+        margenController: _margenCtrl,
+        descuentoController: _descuentoGlobalCtrl,
+        diasEntregaController: _diasEntregaCtrl,
+        precioUtilidadController: _precioUtilidadCtrl,
+        precioDescuentoController: _precioDescuentoCtrl,
+        precioUnitarioController: _precioUnitarioCtrl,
+        ivaController: _ivaGlobalCtrl,
+        precioConIvaController: _precioConIvaCtrl,
+        onRecalcular: _recalcularCostoTotal, 
+      )
+    );
 
-  return Column(children: contenido);
-}
+    return Column(children: contenido);
+  }
 
   Widget _buildCardPliego(Map<String, dynamic> pliego) {
     bool esOffsetActivo = pliego['procesos']['Offset'] == true;
     bool esBarnizUVActivo = pliego['procesos']['Barniz UV'] == true;
     bool esLaminadoActivo = pliego['procesos']['Plastificado/Laminado'] == true;
     bool esGrabadoActivo = pliego['procesos']['Grabado'] == true;
+
+    bool isPortada = pliego['isPortada'] == true;
+    bool isInteriores = pliego['isInteriores'] == true;
 
     double anchoTrabajo = double.tryParse(pliego['anchoTrabajoCtrl'].text) ?? 0.0;
     double altoTrabajo = double.tryParse(pliego['altoTrabajoCtrl'].text) ?? 0.0;
@@ -557,7 +616,6 @@ Widget build(BuildContext context) {
     double anchoFinal = anchoTrabajo + medianil;
     double altoFinal = altoTrabajo + medianil;
     
-    // Inyectamos las medidas finales para los paneles de acabados
     pliego['anchoFinalCtrl'].text = anchoFinal.toStringAsFixed(2);
     pliego['altoFinalCtrl'].text = altoFinal.toStringAsFixed(2);
 
@@ -589,13 +647,106 @@ Widget build(BuildContext context) {
                     controlAffinity: ListTileControlAffinity.leading,
                     contentPadding: EdgeInsets.zero,
                     onChanged: (bool? valor) {
-                      setState(() { pliego['procesos'][nombreProceso] = valor!; });
+                      setState(() { 
+                        pliego['procesos'][nombreProceso] = valor!; 
+                        if (nombreProceso == 'Offset' && !valor) {
+                          pliego['isPortada'] = false;
+                          pliego['isInteriores'] = false;
+                        }
+                      });
                     },
                   ),
                 );
               }).toList(),
             ),
+
+            // Checkboxes adicionales dinámicos para Portada e Interiores
+            if (esOffsetActivo) ...[
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.only(left: 12.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: CheckboxListTile(
+                        title: const Text('Portada', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                        value: pliego['isPortada'],
+                        dense: true,
+                        controlAffinity: ListTileControlAffinity.leading,
+                        onChanged: (val) {
+                          setState(() {
+                            pliego['isPortada'] = val ?? false;
+                            if (val == true) pliego['isInteriores'] = false;
+                          });
+                        },
+                      ),
+                    ),
+                    Expanded(
+                      child: CheckboxListTile(
+                        title: const Text('Interiores', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                        value: pliego['isInteriores'],
+                        dense: true,
+                        controlAffinity: ListTileControlAffinity.leading,
+                        onChanged: (val) {
+                          setState(() {
+                            pliego['isInteriores'] = val ?? false;
+                            if (val == true) pliego['isPortada'] = false;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 20),
+
+            // Contenedor dinámico si la opción "Interiores" está seleccionada
+            if (esOffsetActivo && isInteriores) ...[
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.blueGrey.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.blueGrey.shade200),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Configuración de Interiores de Revista', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.blueGrey)),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButtonFormField<int>(
+                            value: pliego['multiploImpresion'],
+                            decoration: const InputDecoration(labelText: 'Múltiplo', border: OutlineInputBorder(), isDense: true, filled: true, fillColor: Colors.white),
+                            items: const [
+                              DropdownMenuItem(value: 2, child: Text('2')),
+                              DropdownMenuItem(value: 4, child: Text('4')),
+                            ],
+                            onChanged: (val) {
+                              setState(() {
+                                pliego['multiploImpresion'] = val;
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildInput('Pág. Internas x Pieza', pliego['paginasInternasPiezaCtrl'], esNumerico: true),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildInputResultado('Pág. Internas Totales', pliego['paginasInternasTotalesCtrl']),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
 
             if (esOffsetActivo) ...[
               const Divider(color: Colors.blueGrey, thickness: 1),
@@ -753,11 +904,28 @@ Widget build(BuildContext context) {
 
               Row(
                 children: [
-                  Expanded(child: _buildInput('Piezas x Pliego plano', pliego['piezasController'], esNumerico: true)),
+                  Expanded(
+                    child: _buildInput(
+                      isInteriores ? 'Páginas por pliego' : 'Piezas x Pliego plano', 
+                      pliego['piezasController'], 
+                      esNumerico: true
+                    ),
+                  ),
                   const SizedBox(width: 12),
                   Expanded(child: _buildInput('Cantidad pliegos extra (Merma)', pliego['pliegosExtraCtrl'], esNumerico: true)),
                 ],
               ),
+              
+              if (isInteriores) ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildInputResultado('Cantidad de pliegos por pieza', pliego['pliegosPorPiezaCtrl']),
+                    ),
+                  ],
+                ),
+              ],
               const SizedBox(height: 24),
 
               const Text('Resultados de Operación e Impresión', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
@@ -827,8 +995,6 @@ Widget build(BuildContext context) {
                 costoUnitBarnizFteController: pliego['costoUnitBarnizFteCtrl'],
                 costoUnitBarnizRevController: pliego['costoUnitBarnizRevCtrl'],
                 millaresController: pliego['millaresCtrl'],
-                
-                // 🔥 AQUÍ SE SOLUCIONÓ EL ERROR DE LA PANTALLA ROJA
                 totalHojasController: pliego['totalPliegosUtilizarCtrl'], 
                 
                 opcionesFrente: pliego['opcionesFrente'],
@@ -878,8 +1044,8 @@ Widget build(BuildContext context) {
               PanelAcabados(
                 read_Only: true, 
                 acabados: pliego['acabadosData'],
-                pliegoAnchoController: pliego['anchoPliegoCtrl'], // <--- AQUÍ SE APLICÓ LA CORRECCIÓN
-                pliegoAltoController: pliego['altoPliegoCtrl'],   // <--- AQUÍ SE APLICÓ LA CORRECCIÓN
+                pliegoAnchoController: pliego['anchoPliegoCtrl'], 
+                pliegoAltoController: pliego['altoPliegoCtrl'],   
                 totalPliegosController: pliego['totalPliegosUtilizarCtrl'],
                 controllersCostoCm2: pliego['acabadosCostoCm2Ctrl'],
                 controllersCostoTotal: pliego['acabadosCostoTotalCtrl'],
@@ -923,7 +1089,7 @@ Widget build(BuildContext context) {
               const SizedBox(height: 10),
               PanelGrabado(
                 enabled: true,
-                piezasTotalesController: TextEditingController(text: widget.piezasTotales.toString()), // Considera crear un controlador persistente si lo necesitas
+                piezasTotalesController: TextEditingController(text: widget.piezasTotales.toString()), 
                 cantidadPlacasController: pliego['grabadoCtrl']['cantidadPlacas'],
                 costoPlacaController: pliego['grabadoCtrl']['costoPlaca'],
                 costoTotalPlacasController: pliego['grabadoCtrl']['costoTotalPlacas'],
@@ -974,7 +1140,6 @@ Widget build(BuildContext context) {
                   setState(() => pliego['acabadosEspecialesCtrl']['activos'][index] = value);
                 },
                 onCalcularCosto: (index) {
-                  // Si necesitas realizar alguna suma global al cambiar un costo
                   setState(() {}); 
                 },
               ),
@@ -996,7 +1161,7 @@ Widget build(BuildContext context) {
                 largoSuajeController: pliego['suajeCtrl']['largo'],
                 seCuentaConSuaje: pliego['suajeCtrl']['seCuentaConSuaje'],
                 onSeCuentaConSuajeChanged: (v) => setState(() => pliego['suajeCtrl']['seCuentaConSuaje'] = v ?? false),
-                pliegosSuajeController: pliego['totalPliegosUtilizarCtrl'], // Sincronizado con el total de pliegos
+                pliegosSuajeController: pliego['totalPliegosUtilizarCtrl'], 
                 costoMillarSuajeController: pliego['suajeCtrl']['costoMillar'],
               ),
             ],
