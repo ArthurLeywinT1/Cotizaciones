@@ -12,6 +12,7 @@ class PanelGrabado extends ConsumerStatefulWidget {
   final TextEditingController costoEntradaController;
   final TextEditingController costoTotalEntradaController;
   final TextEditingController costoTotalGrabadoController;
+  final VoidCallback? onChanged;
 
   const PanelGrabado({
     super.key,
@@ -23,6 +24,7 @@ class PanelGrabado extends ConsumerStatefulWidget {
     required this.costoEntradaController,
     required this.costoTotalEntradaController,
     required this.costoTotalGrabadoController,
+    this.onChanged,
   });
 
   @override
@@ -30,15 +32,31 @@ class PanelGrabado extends ConsumerStatefulWidget {
 }
 
 class _PanelGrabadoState extends ConsumerState<PanelGrabado> {
+  final TextEditingController _millaresController = TextEditingController();
+  bool _editadoManualmente = false;
+
   @override
   void initState() {
     super.initState();
-    widget.cantidadPlacasController.addListener(calcular);
-    widget.costoPlacaController.addListener(calcular);
-    widget.costoEntradaController.addListener(calcular);
-    widget.piezasTotalesController.addListener(calcular);
+    widget.cantidadPlacasController.addListener(_onFieldChanged);
+    widget.costoPlacaController.addListener(_onFieldChanged);
+    widget.costoEntradaController.addListener(_onFieldChanged);
+    widget.piezasTotalesController.addListener(_onPiezasChanged);
+    _millaresController.addListener(_onFieldChanged);
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _cargarCostosBD());
+  }
+
+  void _onPiezasChanged() {
+    if (!_editadoManualmente) {
+      final piezas = double.tryParse(widget.piezasTotalesController.text) ?? 0;
+      _millaresController.text = (piezas / 1000).toStringAsFixed(2);
+    }
+    _onFieldChanged();
+  }
+
+  void _onFieldChanged() {
+    calcular();
   }
 
   void _cargarCostosBD() {
@@ -70,32 +88,46 @@ class _PanelGrabadoState extends ConsumerState<PanelGrabado> {
       }
     } catch (_) {}
 
+    if (_millaresController.text.isEmpty) {
+      final piezas = double.tryParse(widget.piezasTotalesController.text) ?? 0;
+      _millaresController.text = (piezas / 1000).toStringAsFixed(2);
+    }
+
     calcular();
   }
 
   void calcular() {
     if (!widget.enabled) return;
 
-    final piezas = double.tryParse(widget.piezasTotalesController.text) ?? 0;
     final cantidadPlacas = double.tryParse(widget.cantidadPlacasController.text) ?? 0;
     final costoPlaca = double.tryParse(widget.costoPlacaController.text) ?? 0;
     final costoEntrada = double.tryParse(widget.costoEntradaController.text) ?? 0;
+    final millares = double.tryParse(_millaresController.text) ?? 0;
 
     final totalPlacas = cantidadPlacas * costoPlaca;
-    final totalEntrada = (piezas / 1000) * costoEntrada;
+    final totalEntrada = millares * costoEntrada;
     final totalGrabado = totalPlacas + totalEntrada;
 
     widget.costoTotalPlacasController.text = totalPlacas.toStringAsFixed(2);
     widget.costoTotalEntradaController.text = totalEntrada.toStringAsFixed(2);
     widget.costoTotalGrabadoController.text = totalGrabado.toStringAsFixed(2);
+
+    // Disparo inmediato para refrescar al padre sin retardo en el mismo microtask
+    if (widget.onChanged != null) {
+      Future.microtask(() {
+        if (mounted) widget.onChanged!();
+      });
+    }
   }
 
   @override
   void dispose() {
-    widget.cantidadPlacasController.removeListener(calcular);
-    widget.costoPlacaController.removeListener(calcular);
-    widget.costoEntradaController.removeListener(calcular);
-    widget.piezasTotalesController.removeListener(calcular);
+    widget.cantidadPlacasController.removeListener(_onFieldChanged);
+    widget.costoPlacaController.removeListener(_onFieldChanged);
+    widget.costoEntradaController.removeListener(_onFieldChanged);
+    widget.piezasTotalesController.removeListener(_onPiezasChanged);
+    _millaresController.removeListener(_onFieldChanged);
+    _millaresController.dispose();
     super.dispose();
   }
 
@@ -125,6 +157,7 @@ class _PanelGrabadoState extends ConsumerState<PanelGrabado> {
                       child: TextField(
                         controller: widget.cantidadPlacasController,
                         keyboardType: TextInputType.number,
+                        onChanged: (_) => _onFieldChanged(),
                         decoration: const InputDecoration(
                           labelText: "Cantidad de Placas",
                         ),
@@ -154,12 +187,34 @@ class _PanelGrabadoState extends ConsumerState<PanelGrabado> {
                   ),
                 ),
                 const Divider(height: 24),
-                TextField(
-                  controller: widget.costoEntradaController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(
-                    labelText: "Costo de Entrada (por millar)",
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _millaresController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        onChanged: (_) {
+                          _editadoManualmente = true;
+                          _onFieldChanged();
+                        },
+                        decoration: const InputDecoration(
+                          labelText: "Millares a Cobrar",
+                          hintText: "0.00",
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: widget.costoEntradaController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        onChanged: (_) => _onFieldChanged(),
+                        decoration: const InputDecoration(
+                          labelText: "Costo Entrada (x Millar)",
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 TextField(

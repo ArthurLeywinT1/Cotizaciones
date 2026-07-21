@@ -163,7 +163,7 @@ class _CantidadPliegosState extends State<CantidadPliegos> {
         'titulo': 'Pliego ${index + 1}',
         'anchoTrabajoCtrl': TextEditingController(),
         'altoTrabajoCtrl': TextEditingController(),
-        'medianilCtrl': TextEditingController(),
+        'medianilCtrl': TextEditingController(text: '0.50'),
         
         'anchoPliegoCtrl': TextEditingController(),
         'altoPliegoCtrl': TextEditingController(),
@@ -214,8 +214,8 @@ class _CantidadPliegosState extends State<CantidadPliegos> {
         'cantidadPlacas790Ctrl': TextEditingController(text: '0'),
         'costoPlaca790Ctrl': TextEditingController(text: '0.00'),
         'costoTotalPlacas790Ctrl': TextEditingController(text: '0.00'),
-        'barnizFteCtrl': TextEditingController(),
-        'barnizRevCtrl': TextEditingController(),
+        'barnizFteCtrl': TextEditingController(text: '0.00'),
+        'barnizRevCtrl': TextEditingController(text: '0.00'),
         'costoUnitBarnizFteCtrl': TextEditingController(text: '0.00'),
         'costoUnitBarnizRevCtrl': TextEditingController(text: '0.00'),
         'millaresCtrl': TextEditingController(text: '1'),
@@ -415,26 +415,24 @@ class _CantidadPliegosState extends State<CantidadPliegos> {
     pruebaData['totalController'].text = total.toStringAsFixed(2);
   }
 
-  void _recalcularCostoTotal() {
+void _recalcularCostoTotal() {
     double granTotalProduccion = 0.0;
 
     for (var pliego in datosPliegos) {
       granTotalProduccion += double.tryParse(pliego['costoTotalPapelConIvaCtrl']?.text ?? '0') ?? 0.0;
       
       if (pliego['procesos']['Offset'] == true) {
-        double totalPliegosPieza = double.tryParse(pliego['pliegosPorPiezaCtrl']?.text ?? '1.0') ?? 1.0;
-        double factorMultiplicador = pliego['isInteriores'] == true ? totalPliegosPieza.ceilToDouble() : 1.0;
-
-        // Multiplicamos costos de máquina y placas por la cantidad de pliegos por pieza si es revista
+        // --- SE ELIMINA factorMultiplicador ---
+        // Sumamos los costos directamente tal como se calcularon para este pliego:
         double costoTintas = double.tryParse(pliego['costoGranTotalTintasCtrl']?.text ?? '0') ?? 0.0;
         double costoPlacas = double.tryParse(pliego['costoTotalPlacasCtrl']?.text ?? '0') ?? 0.0;
         double costoPlacas790 = double.tryParse(pliego['costoTotalPlacas790Ctrl']?.text ?? '0') ?? 0.0;
         double costoBarniz = double.tryParse(pliego['costoBarnizCtrl']?.text ?? '0') ?? 0.0;
 
-        granTotalProduccion += costoTintas * factorMultiplicador;
-        granTotalProduccion += costoPlacas * factorMultiplicador;
-        granTotalProduccion += costoPlacas790 * factorMultiplicador;
-        granTotalProduccion += costoBarniz * factorMultiplicador;
+        granTotalProduccion += costoTintas;
+        granTotalProduccion += costoPlacas;
+        granTotalProduccion += costoPlacas790;
+        granTotalProduccion += costoBarniz;
         
         var pruebas = pliego['pruebasColor'] as Map<String, dynamic>?;
         if (pruebas != null) {
@@ -445,6 +443,7 @@ class _CantidadPliegosState extends State<CantidadPliegos> {
           });
         }
       }
+
 
       if (pliego['procesos']['Barniz UV'] == true) {
         var uv = pliego['acabadosCostoTotalCtrl'] as Map<String, TextEditingController>?;
@@ -483,9 +482,6 @@ class _CantidadPliegosState extends State<CantidadPliegos> {
 
       if (pliego['procesos']['Suaje'] == true) {
         granTotalProduccion += double.tryParse(pliego['suajeCtrl']['costoTotalSuajado']?.text ?? '0') ?? 0.0;
-        if (pliego['suajeCtrl']['seCuentaConSuaje'] == false) {
-           granTotalProduccion += double.tryParse(pliego['suajeCtrl']['costoTotalSuaje']?.text ?? '0') ?? 0.0;
-        }
       }
     }
 
@@ -735,7 +731,13 @@ class _CantidadPliegosState extends State<CantidadPliegos> {
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: _buildInput('Pág. Internas x Pieza', pliego['paginasInternasPiezaCtrl'], esNumerico: true),
+                          child: _buildInput('Pág. Internas x Pieza', pliego['paginasInternasPiezaCtrl'], esNumerico: true,
+                          onChangedExtra: (val) {
+                          if (pliego['isInteriores'] == true) {
+                            // Asigna en automático el valor al controlador de cantidad a ocupar
+                            pliego['cantidadOcuparCtrl'].text = val;
+                          }
+                        },),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -1096,6 +1098,7 @@ class _CantidadPliegosState extends State<CantidadPliegos> {
                 costoEntradaController: pliego['grabadoCtrl']['costoEntrada'],
                 costoTotalEntradaController: pliego['grabadoCtrl']['costoTotalEntrada'],
                 costoTotalGrabadoController: pliego['grabadoCtrl']['costoTotalGrabado'],
+                onChanged: _recalcularCostoTotal,
               ),
             ],
 
@@ -1171,24 +1174,34 @@ class _CantidadPliegosState extends State<CantidadPliegos> {
     );
   }
 
-  Widget _buildInput(String label, TextEditingController controller, {bool esNumerico = false}) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: esNumerico ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.text,
-      onChanged: (_) => setState(() {}), 
-      style: const TextStyle(fontSize: 14, color: Color(0xFF1C1B1F)),
-      decoration: InputDecoration(
-        labelText: label, 
-        labelStyle: const TextStyle(color: Color(0xFF49454F), fontSize: 13),
-        floatingLabelBehavior: FloatingLabelBehavior.always, 
-        filled: true,
-        fillColor: const Color(0xFFF4F2F7),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        focusedBorder: OutlineInputBorder(borderSide: const BorderSide(color: Colors.blue, width: 1.5), borderRadius: BorderRadius.circular(4)),
-        enabledBorder: OutlineInputBorder(borderSide: const BorderSide(color: Color(0xFF79747E), width: 1), borderRadius: BorderRadius.circular(4)),
-      ),
-    );
-  }
+Widget _buildInput(
+  String label, 
+  TextEditingController controller, {
+  bool esNumerico = false, 
+  Function(String)? onChangedExtra, // 👈 Se agrega este callback opcional
+}) {
+  return TextFormField(
+    controller: controller,
+    keyboardType: esNumerico ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.text,
+    onChanged: (val) {
+      if (onChangedExtra != null) {
+        onChangedExtra(val); 
+      }
+      setState(() {}); 
+    }, 
+    style: const TextStyle(fontSize: 14, color: Color(0xFF1C1B1F)),
+    decoration: InputDecoration(
+      labelText: label, 
+      labelStyle: const TextStyle(color: Color(0xFF49454F), fontSize: 13),
+      floatingLabelBehavior: FloatingLabelBehavior.always, 
+      filled: true,
+      fillColor: const Color(0xFFF4F2F7),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      focusedBorder: OutlineInputBorder(borderSide: const BorderSide(color: Colors.blue, width: 1.5), borderRadius: BorderRadius.circular(4)),
+      enabledBorder: OutlineInputBorder(borderSide: const BorderSide(color: Color(0xFF79747E), width: 1), borderRadius: BorderRadius.circular(4)),
+    ),
+  );
+}
 
   Widget _buildInputResultado(String label, TextEditingController controller) {
     return TextFormField(

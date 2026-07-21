@@ -17,7 +17,7 @@ class _RevistaClienteState extends State<RevistaCliente> with AutomaticKeepAlive
   final TextEditingController proyectoController = TextEditingController();
   final TextEditingController descripcionController = TextEditingController();
   final TextEditingController piezasController = TextEditingController();
-  final TextEditingController pliegosController = TextEditingController();
+  final TextEditingController pliegosController = TextEditingController(text: '2');
   final TextEditingController anchoPliegoCtrl = TextEditingController();
   final TextEditingController altoPliegoCtrl = TextEditingController();
 
