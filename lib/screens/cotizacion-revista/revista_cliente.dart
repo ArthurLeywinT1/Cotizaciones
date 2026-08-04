@@ -1,17 +1,25 @@
 // revista_cliente.dart
 import 'package:flutter/material.dart';
+// Asegúrate de importar la ubicación correcta de tu DialogoSelectorCliente y Cliente model
+import '../../screens/cotizacion-plana/buscador_cliente.dart'; 
+import '../../models/cliente_model.dart'; 
 
 class RevistaCliente extends StatefulWidget {
   final Function(String)? onPliegosChanged;
-  final Function(String)? onPiezasChanged; // 🔥 Agregado al contrato
+  final Function(String)? onPiezasChanged;
+  final Function(Cliente)? onClienteSeleccionado; // Opcional: si deseas notificar el cliente al padre
 
-  const RevistaCliente({super.key, this.onPliegosChanged, this.onPiezasChanged});
+  const RevistaCliente({
+    super.key, 
+    this.onPliegosChanged, 
+    this.onPiezasChanged,
+    this.onClienteSeleccionado,
+  });
 
   @override
   State<RevistaCliente> createState() => _RevistaClienteState();
 }
 
-// 1. Se agregó "with AutomaticKeepAliveClientMixin" para preservar el estado al hacer scroll
 class _RevistaClienteState extends State<RevistaCliente> with AutomaticKeepAliveClientMixin {
   final TextEditingController clienteController = TextEditingController();
   final TextEditingController proyectoController = TextEditingController();
@@ -21,13 +29,44 @@ class _RevistaClienteState extends State<RevistaCliente> with AutomaticKeepAlive
   final TextEditingController anchoPliegoCtrl = TextEditingController();
   final TextEditingController altoPliegoCtrl = TextEditingController();
 
-  // 2. Este getter es obligatorio para que el Mixin funcione y no borre los datos
+  Cliente? clienteSeleccionado;
+
   @override
   bool get wantKeepAlive => true;
 
   @override
+  void dispose() {
+    clienteController.dispose();
+    proyectoController.dispose();
+    descripcionController.dispose();
+    piezasController.dispose();
+    pliegosController.dispose();
+    anchoPliegoCtrl.dispose();
+    altoPliegoCtrl.dispose();
+    super.dispose();
+  }
+
+  void _abrirBuscadorCliente() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return DialogoSelectorCliente(
+          onSeleccionado: (cliente) {
+            setState(() {
+              clienteSeleccionado = cliente;
+              clienteController.text = cliente.razonSocial;
+            });
+            if (widget.onClienteSeleccionado != null) {
+              widget.onClienteSeleccionado!(cliente);
+            }
+          },
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // 3. Es obligatorio llamar a super.build(context) al inicio
     super.build(context);
 
     return Card(
@@ -48,16 +87,23 @@ class _RevistaClienteState extends State<RevistaCliente> with AutomaticKeepAlive
             ),
             const SizedBox(height: 20),
 
-            // FILA 1: RAZÓN SOCIAL
+            // FILA 1: RAZÓN SOCIAL CON BUSCADOR INTEGRADO
             Row(
               children: [
                 Expanded(
                   child: TextFormField(
                     controller: clienteController,
-                    decoration: const InputDecoration(
+                    readOnly: true, // Evita escritura manual para forzar el uso del selector (Opcional)
+                    onTap: _abrirBuscadorCliente, // Abre el buscador al tocar el campo
+                    decoration: InputDecoration(
                       labelText: 'Razón Social Cliente', 
-                      border: OutlineInputBorder(), 
-                      prefixIcon: Icon(Icons.business)
+                      border: const OutlineInputBorder(), 
+                      prefixIcon: const Icon(Icons.business),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.search),
+                        onPressed: _abrirBuscadorCliente,
+                        tooltip: 'Buscar Cliente',
+                      ),
                     ),
                   ),
                 ),
@@ -98,7 +144,7 @@ class _RevistaClienteState extends State<RevistaCliente> with AutomaticKeepAlive
                   child: TextFormField(
                     controller: piezasController,
                     keyboardType: TextInputType.number,
-                    onChanged: widget.onPiezasChanged, // 🔥 Notifica cambio de piezas
+                    onChanged: widget.onPiezasChanged,
                     decoration: const InputDecoration(labelText: 'Piezas totales solicitadas', border: OutlineInputBorder()),
                   ),
                 ),
