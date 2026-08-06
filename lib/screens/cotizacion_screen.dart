@@ -5,6 +5,7 @@ import '../providers/cotizacion_provider.dart';
 import '../widgets/boton.dart';
 import '../widgets/tabla.dart';
 import 'cotizacion-plana/cotizacion_plana.dart';
+import 'cotizacion-revista/revista.dart';
 import 'modals/pdf.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import '../orden de trabajo/ordenTrabajo.dart';
@@ -12,11 +13,41 @@ import '../orden de trabajo/ordenTrabajo.dart';
 class CatalogoCotizacionesScreen extends ConsumerWidget {
   const CatalogoCotizacionesScreen({super.key});
 
-  void _nuevaCotizacion(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const CotizacionPlanaScreen()),
+  Future<void> _nuevaCotizacion(BuildContext context) async {
+    final tipoSeleccionado = await showDialog<String>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: const Text('Selecciona el tipo de cotización'),
+        children: [
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, 'P'),
+            child: const Text('Cotización Plana'),
+          ),
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, 'R'),
+            child: const Text('Cotización Revista'),
+          ),
+        ],
+      ),
     );
+
+    if (!context.mounted || tipoSeleccionado == null) return;
+
+    if (tipoSeleccionado == 'P') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const CotizacionPlanaScreen(),
+        ),
+      );
+    } else if (tipoSeleccionado == 'R') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const RevistaPage(),
+        ),
+      );
+    }
   }
 
   void _eliminar(BuildContext context, WidgetRef ref, Cotizacion cotizacion) {
@@ -68,71 +99,71 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
             child: cotizacionesState.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : cotizacionesState.error.isNotEmpty
-                ? Center(
-                    child: Text(
-                      'Error al guardar cotizacion',
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  )
-                : cotizacionesState.cotizaciones.isEmpty
-                ? const Center(child: Text('No hay cotizaciones registradas'))
-                : Tabla(
-                    columns: const [
-                      DataColumn(label: Text('Folio')),
-                      DataColumn(label: Text('Fecha\nCreación')),
-                      DataColumn(label: Text('Cliente')),
-                      DataColumn(label: Text('Descripción')),
-                      DataColumn(label: Text('Medida\nTrabajo (cm)')),
-                      DataColumn(label: Text('Tintas')),
-                      DataColumn(label: Text('Cantidad\nImpresiones')),
-                      DataColumn(label: Text('Total\nPliegos')),
-                      DataColumn(label: Text('Precio\nsin IVA')),
-                      DataColumn(label: Text('Precio\nUnitario')),
-                      DataColumn(label: Text('Precio\ncon IVA')),
-                      DataColumn(label: Text('Estatus')),
-                      DataColumn(label: Text('Usuario')),
-                    ],
-                    rows: cotizacionesState.cotizaciones.map((c) {
-                      final isSelected = seleccionado?.id == c.id;
-                      return DataRow(
-                        selected: isSelected,
-                        onSelectChanged: (_) {
-                          ref
-                              .read(cotizacionSeleccionadaProvider.notifier)
-                              .state = isSelected
-                              ? null
-                              : c;
-                        },
-                        cells: [
-                          DataCell(Text(c.folio ?? '-')),
-                          DataCell(
-                            Text(
-                              c.fechaCreacion != null
-                                  ? '${c.fechaCreacion!.day.toString().padLeft(2, '0')}/${c.fechaCreacion!.month.toString().padLeft(2, '0')}/${c.fechaCreacion!.year}'
-                                  : '-',
-                            ),
+                    ? Center(
+                        child: Text(
+                          'Error al guardar cotizacion',
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      )
+                    : cotizacionesState.cotizaciones.isEmpty
+                        ? const Center(child: Text('No hay cotizaciones registradas'))
+                        : Tabla(
+                            columns: const [
+                              DataColumn(label: Text('Folio')),
+                              DataColumn(label: Text('Fecha\nCreación')),
+                              DataColumn(label: Text('Tipo')),
+                              DataColumn(label: Text('Cliente')),
+                              DataColumn(label: Text('Descripción')),
+                              DataColumn(label: Text('Medida\nTrabajo (cm)')),
+                              DataColumn(label: Text('Tintas')),
+                              DataColumn(label: Text('Cantidad\nImpresiones')),
+                              DataColumn(label: Text('Total\nPliegos')),
+                              DataColumn(label: Text('Precio\nsin IVA')),
+                              DataColumn(label: Text('Precio\nUnitario')),
+                              DataColumn(label: Text('Precio\ncon IVA')),
+                              DataColumn(label: Text('Estatus')),
+                              DataColumn(label: Text('Usuario')),
+                            ],
+                            rows: cotizacionesState.cotizaciones.map((c) {
+                              final isSelected = seleccionado?.id == c.id;
+                              return DataRow(
+                                selected: isSelected,
+                                onSelectChanged: (_) {
+                                  ref
+                                      .read(cotizacionSeleccionadaProvider.notifier)
+                                      .state = isSelected ? null : c;
+                                },
+                                cells: [
+                                  DataCell(Text(c.folio ?? '-')),
+                                  DataCell(
+                                    Text(
+                                      c.fechaCreacion != null
+                                          ? '${c.fechaCreacion!.day.toString().padLeft(2, '0')}/${c.fechaCreacion!.month.toString().padLeft(2, '0')}/${c.fechaCreacion!.year}'
+                                          : '-',
+                                    ),
+                                  ),
+                                  DataCell(Text(c.tipoCotizacionLabel)),
+                                  DataCell(Text(c.clienteNombre ?? 'Desconocido')),
+                                  DataCell(Text(c.descripcion)),
+                                  DataCell(Text(c.medidas)),
+                                  DataCell(Text(c.tintas)),
+                                  DataCell(Text(c.cantidadImpresiones.toString())),
+                                  DataCell(Text(c.totalPliegos.toString())),
+                                  DataCell(
+                                    Text('\$${c.precioSinIva.toStringAsFixed(2)}'),
+                                  ),
+                                  DataCell(
+                                    Text('\$${c.precioUnitario.toStringAsFixed(4)}'),
+                                  ),
+                                  DataCell(
+                                    Text('\$${c.precioConIva.toStringAsFixed(2)}'),
+                                  ),
+                                  DataCell(Text(c.status)),
+                                  DataCell(Text(c.usuarioNombre ?? 'Desconocido')),
+                                ],
+                              );
+                            }).toList(),
                           ),
-                          DataCell(Text(c.clienteNombre ?? 'Desconocido')),
-                          DataCell(Text(c.descripcion)),
-                          DataCell(Text(c.medidas)),
-                          DataCell(Text(c.tintas)),
-                          DataCell(Text(c.cantidadImpresiones.toString())),
-                          DataCell(Text(c.totalPliegos.toString())),
-                          DataCell(
-                            Text('\$${c.precioSinIva.toStringAsFixed(2)}'),
-                          ),
-                          DataCell(
-                            Text('\$${c.precioUnitario.toStringAsFixed(4)}'),
-                          ),
-                          DataCell(
-                            Text('\$${c.precioConIva.toStringAsFixed(2)}'),
-                          ),
-                          DataCell(Text(c.status)),
-                          DataCell(Text(c.usuarioNombre ?? 'Desconocido')),
-                        ],
-                      );
-                    }).toList(),
-                  ),
           ),
           Container(
             width: double.infinity,
@@ -161,12 +192,15 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                         orElse: () => seleccionado,
                       );
 
+                      final esRevista = cotizacionFresca.tipoCotizacion == 'R';
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => CotizacionPlanaScreen(
-                            cotizacionAEditar: cotizacionFresca,
-                          ),
+                          builder: (context) => esRevista
+                              ? RevistaPage(cotizacionAEditar: cotizacionFresca)
+                              : CotizacionPlanaScreen(
+                                  cotizacionAEditar: cotizacionFresca,
+                                ),
                         ),
                       ).then((_) {
                         final listaActualizada = ref
@@ -177,14 +211,12 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                             (c) => c.id == seleccionado.id,
                           );
                           ref
-                                  .read(cotizacionSeleccionadaProvider.notifier)
-                                  .state =
-                              actualizada;
+                              .read(cotizacionSeleccionadaProvider.notifier)
+                              .state = actualizada;
                         } catch (_) {
                           ref
-                                  .read(cotizacionSeleccionadaProvider.notifier)
-                                  .state =
-                              null;
+                              .read(cotizacionSeleccionadaProvider.notifier)
+                              .state = null;
                         }
                       });
                     } else {
@@ -293,6 +325,9 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                         precioUnitario: seleccionado.precioUnitario,
                         precioConIva: seleccionado.precioConIva,
                         status: 'Orden de Trabajo',
+
+                        tipoCotizacion: seleccionado.tipoCotizacion,
+
                         configClientes: seleccionado.configClientes,
                         configPliegos: seleccionado.configPliegos,
                         configDatosPapel: seleccionado.configDatosPapel,

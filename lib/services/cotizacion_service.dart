@@ -30,7 +30,7 @@ class CotizacionService {
       await db.execute('''INSERT INTO cotizaciones (
              cliente_id, usuario_id, descripcion, ancho_medida, alto_medida,
              tinta_frontal, tinta_reverso, cantidad_impresiones, total_pliegos,
-             precio_sin_iva, precio_unitario, precio_con_iva, status,
+             precio_sin_iva, precio_unitario, precio_con_iva, status, tipo_cotizacion,
 
              config_acabados_especiales, config_acabados, config_clientes,
              config_corte, config_costo_papel, config_costo_total,
@@ -40,7 +40,7 @@ class CotizacionService {
            ) VALUES (
              @cliente_id, @usuario_id, @descripcion, @ancho_medida, @alto_medida,
              @tinta_frontal, @tinta_reverso, @cantidad_impresiones, @total_pliegos,
-             @precio_sin_iva, @precio_unitario, @precio_con_iva, @status,
+             @precio_sin_iva, @precio_unitario, @precio_con_iva, @status, @tipo_cotizacion,
 
              @config_acabados_especiales, @config_acabados, @config_clientes,
              @config_corte, @config_costo_papel, @config_costo_total,
@@ -70,6 +70,7 @@ class CotizacionService {
                precio_unitario = @precio_unitario,
                precio_con_iva = @precio_con_iva,
                status = @status,
+               tipo_cotizacion = @tipo_cotizacion,
 
                config_acabados_especiales = @config_acabados_especiales,
                config_acabados = @config_acabados,

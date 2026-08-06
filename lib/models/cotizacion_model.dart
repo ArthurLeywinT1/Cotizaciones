@@ -19,6 +19,7 @@ class Cotizacion {
   final double precioConIva;
   final String status;
   final DateTime? fechaCreacion;
+  final String? tipoCotizacion;
 
   final Map<String, dynamic>? configAcabadosEspeciales;
   final Map<String, dynamic>? configAcabados;
@@ -54,6 +55,7 @@ class Cotizacion {
     this.precioConIva = 0.0,
     this.status = 'Esperando Aprobacion',
     this.fechaCreacion,
+    this.tipoCotizacion,
 
     this.configAcabadosEspeciales,
     this.configAcabados,
@@ -107,6 +109,7 @@ class Cotizacion {
       fechaCreacion: map['fecha_creacion'] != null
           ? DateTime.tryParse(map['fecha_creacion'].toString())
           : null,
+      tipoCotizacion: map['tipo_cotizacion']?.toString(),
 
       configAcabadosEspeciales: _parseJson(map['config_acabados_especiales']),
       configAcabados: _parseJson(map['config_acabados']),
@@ -141,6 +144,7 @@ class Cotizacion {
       'precio_unitario': precioUnitario,
       'precio_con_iva': precioConIva,
       'status': status,
+      'tipo_cotizacion': tipoCotizacion,
 
       'config_acabados_especiales': configAcabadosEspeciales != null
           ? jsonEncode(configAcabadosEspeciales)
@@ -185,4 +189,14 @@ class Cotizacion {
 
   String get medidas => "$anchoMedida x $altoMedida";
   String get tintas => "$tintaFrontal x $tintaReverso";
+  String get tipoCotizacionLabel {
+    switch (tipoCotizacion) {
+      case 'P':
+        return 'Plana';
+      case 'R':
+        return 'Revista';
+      default:
+        return '-';
+    }
+  }
 }

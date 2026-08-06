@@ -9,27 +9,99 @@ class RevistaCliente extends StatefulWidget {
   final Function(String)? onPiezasChanged;
   final Function(Cliente)? onClienteSeleccionado; // Opcional: si deseas notificar el cliente al padre
 
+  final String? clienteIdInicial;
+  final String? clienteNombreInicial;
+  final String? proyectoInicial;
+  final String? descripcionInicial;
+  final double? anchoMedidaInicial;
+  final double? altoMedidaInicial;
+  final int? cantidadPliegosInicial;
+  final int? piezasTotalesInicial;
+
   const RevistaCliente({
-    super.key, 
-    this.onPliegosChanged, 
+    super.key,
+    this.onPliegosChanged,
     this.onPiezasChanged,
     this.onClienteSeleccionado,
+    this.clienteIdInicial,
+    this.clienteNombreInicial,
+    this.proyectoInicial,
+    this.descripcionInicial,
+    this.anchoMedidaInicial,
+    this.altoMedidaInicial,
+    this.cantidadPliegosInicial,
+    this.piezasTotalesInicial,
   });
 
+
   @override
-  State<RevistaCliente> createState() => _RevistaClienteState();
+  State<RevistaCliente> createState() => RevistaClienteState();
 }
 
-class _RevistaClienteState extends State<RevistaCliente> with AutomaticKeepAliveClientMixin {
+class RevistaClienteState extends State<RevistaCliente> with AutomaticKeepAliveClientMixin {
   final TextEditingController clienteController = TextEditingController();
   final TextEditingController proyectoController = TextEditingController();
   final TextEditingController descripcionController = TextEditingController();
   final TextEditingController piezasController = TextEditingController();
-  final TextEditingController pliegosController = TextEditingController(text: '2');
+  final TextEditingController pliegosController = TextEditingController();
   final TextEditingController anchoPliegoCtrl = TextEditingController();
   final TextEditingController altoPliegoCtrl = TextEditingController();
 
   Cliente? clienteSeleccionado;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // AGREGAR: inicializar si hay valores iniciales
+    if (widget.clienteIdInicial != null) {
+      // Aquí deberías cargar el cliente completo desde un provider o dejar solo el nombre
+      clienteSeleccionado = Cliente(
+        id: widget.clienteIdInicial!,
+        razonSocial: widget.clienteNombreInicial ?? '',
+        rfc: '',
+      );
+      clienteController.text = widget.clienteNombreInicial ?? '';
+    }
+
+    if (widget.proyectoInicial != null) {
+      proyectoController.text = widget.proyectoInicial!;
+    }
+
+    if (widget.descripcionInicial != null) {
+      descripcionController.text = widget.descripcionInicial!;
+    }
+
+    if (widget.piezasTotalesInicial != null) {
+      piezasController.text = widget.piezasTotalesInicial.toString();
+    }
+
+    if (widget.cantidadPliegosInicial != null) {
+      pliegosController.text = widget.cantidadPliegosInicial.toString();
+    }
+
+    if (widget.anchoMedidaInicial != null) {
+      anchoPliegoCtrl.text = widget.anchoMedidaInicial.toString();
+    }
+
+    if (widget.altoMedidaInicial != null) {
+      altoPliegoCtrl.text = widget.altoMedidaInicial.toString();
+    }
+  }
+
+  Map<String, dynamic> obtenerDatos() {
+    return {
+      'cliente_id': clienteSeleccionado?.id,
+      'cliente_nombre': clienteController.text.trim(),
+      'proyecto': proyectoController.text.trim(),
+      'descripcion': descripcionController.text.trim(),
+      'piezas_totales': int.tryParse(piezasController.text) ?? 0,
+      'cantidad_pliegos': int.tryParse(pliegosController.text) ?? 0,
+      'ancho_medida': double.tryParse(anchoPliegoCtrl.text) ?? 0.0,
+      'alto_medida': double.tryParse(altoPliegoCtrl.text) ?? 0.0,
+    };
+  }
+
 
   @override
   bool get wantKeepAlive => true;

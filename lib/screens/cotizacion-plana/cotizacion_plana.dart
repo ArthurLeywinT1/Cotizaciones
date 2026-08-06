@@ -1139,6 +1139,7 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
           double.tryParse(precioConIvaController.text.replaceAll(',', '')) ??
           0.0,
       status: statusFinal,
+      tipoCotizacion: 'P',
       configClientes: mapClientes,
       configPliegos: mapPliegos,
       configDatosPapel: mapDatosPapel,
