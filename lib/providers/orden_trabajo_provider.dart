@@ -5,6 +5,7 @@ import '../models/cotizacion_model.dart';
 import '../models/ordenTrabajo_model.dart';
 import '../services/ordenTrabajo_service.dart';
 import 'cotizacion_provider.dart';
+import '../services/cotizacion_service.dart';
 
 // ==========================================
 // 1. MODELOS DE DATOS (Para estructurar la info)
@@ -93,12 +94,14 @@ class TiempoProceso {
 // ==========================================
 class OrdenTrabajoController extends ChangeNotifier {
   final OrdenTrabajoService _service = OrdenTrabajoService();
+  final _cotizacionService = CotizacionService();
 
   bool isLoading = false;
   String sessionKey = '';
   String orderId = "S/F"; // Número de orden simulado
   String currentCotizacionId = "";
   String? ordenTrabajoDbId;
+  String tipoCotizacionActual = '';
 
   // --- Visibilidad de Secciones (Filtros superiores) ---
   Map<String, bool> activeSections = {
@@ -206,20 +209,20 @@ class OrdenTrabajoController extends ChangeNotifier {
     notifyListeners();
 
     currentCotizacionId = id;
+    
     try {
       final cotizacion = ref
           .read(cotizacionesProvider)
           .cotizaciones
           .firstWhere((c) => c.id == id);
       orderId = cotizacion.folio ?? "S/F";
+      tipoCotizacionActual = cotizacion.tipoCotizacion ?? 'P';
     } catch (e) {
       orderId = "S/F";
-      print(
-        "⚠️ Aviso: No se encontró la cotización en memoria para extraer el folio.",
-      );
+      print("⚠️ Aviso: No se encontró la cotización en memoria para extraer el folio.");
     }
-    final ordenGuardada = await _service.obtenerOrdenPorCotizacionId(id);
 
+    final ordenGuardada = await _service.obtenerOrdenPorCotizacionId(id);
     if (ordenGuardada != null) {
       ordenTrabajoDbId = ordenGuardada.id;
       print("Orden existente encontrada en DB. Lista para actualizar.");
@@ -227,14 +230,31 @@ class OrdenTrabajoController extends ChangeNotifier {
     } else {
       ordenTrabajoDbId = null;
       print("Orden nueva. Se creará un nuevo registro.");
-      final cotizacionesState = ref.read(cotizacionesProvider);
+
+      Cotizacion? cotizacion;
       try {
-        final cotizacion = cotizacionesState.cotizaciones.firstWhere(
-          (c) => c.id == id,
-        );
-        cargarDatosDeCotizacion(cotizacion);
+        cotizacion = ref
+            .read(cotizacionesProvider)
+            .cotizaciones
+            .firstWhere((c) => c.id == id);
       } catch (e) {
-        print("⚠️ Error: No se encontró la cotización con ID $id en memoria.");
+        cotizacion = null;
+      }
+
+      if (cotizacion == null) {
+        try {
+          cotizacion = await _cotizacionService.obtenerCotizacionPorId(id);
+        } catch (e) {
+          print("❌ Error al cargar cotización desde servicio: $e");
+        }
+      }
+
+      if (cotizacion != null) {
+        orderId = cotizacion.folio ?? "S/F";
+        tipoCotizacionActual = cotizacion.tipoCotizacion ?? 'P';
+        cargarDatosDeCotizacion(cotizacion);
+      } else {
+        print("❌ No se pudo obtener la cotización con ID $id");
       }
     }
 
@@ -243,6 +263,8 @@ class OrdenTrabajoController extends ChangeNotifier {
   }
 
   void _cargarDesdeBaseDeDatos(Map<String, dynamic> dbData) {
+    tipoCotizacionActual = dbData['tipoCotizacion'] ?? 'P';
+
     if (dbData['activeSections'] != null) {
       activeSections = Map<String, bool>.from(dbData['activeSections']);
     }
@@ -285,7 +307,7 @@ class OrdenTrabajoController extends ChangeNotifier {
       }
     }
 
-if (dbData['offset'] != null) {
+  if (dbData['offset'] != null) {
       offsetTipoTrabajo = dbData['offset']['tipoTrabajo'] ?? '';
       offsetPiezasPedidas = dbData['offset']['piezasPedidas'] ?? 0;
       offsetPapelNecesario = dbData['offset']['papelNecesario'] ?? '';
@@ -438,10 +460,13 @@ if (dbData['offset'] != null) {
     for (var key in tiempos.keys) {
       tiempos[key] = TiempoProceso();
     }
-
     materials.clear();
-    int matIdCounter = 0;
+    papelesExtra.clear();
+    designTasks.clear();
+    cuts.clear();
+    acabadosManuales.clear();
 
+    int matIdCounter = 0;
     void agregarMaterial(String nombre, int cantidad) {
       if (cantidad > 0) {
         materials.add(
@@ -455,295 +480,460 @@ if (dbData['offset'] != null) {
     }
 
     try {
-      if (cotizacion.configDatosPapel != null) {
-        final dpInt = cotizacion.configDatosPapel!["interior"];
-        if (dpInt != null && dpInt["nombre"]?.toString().isNotEmpty == true) {
-          agregarMaterial(
-            'Papel Int: ${dpInt["nombre"]} - ${dpInt["peso"] ?? ""}',
-            cotizacion.totalPliegos,
-          );
-        }
-        final dpPort = cotizacion.configDatosPapel!["portada"];
-        if (dpPort != null && dpPort["nombre"]?.toString().isNotEmpty == true) {
-          final pliegosPortada =
+      final esRevista = cotizacion.tipoCotizacion == 'R';
+      adquisicionesNotas = '';
+      disenoNotas = '';
+      offsetNotas = '';
+      corteNotas = '';
+      laminadoNotas = '';
+      suajeNotas = '';
+      serigrafiaNotas = '';
+      grabadoNotas = '';
+      acabadoNotas = '';
+      barnizNotas = '';
+      embalajeNotas = '';
+      logisticaNotas = '';
+
+      if (esRevista) {
+        final detallePliegos =
+            cotizacion.configPliegos?["detalle_pliegos"] as List? ?? [];
+
+        offsetTipoTrabajo = cotizacion.descripcion;
+        offsetPiezasPedidas = cotizacion.cantidadImpresiones;
+
+        List<String> notasLaminadoList = [];
+        List<String> notasBarnizList = [];
+
+        for (int i = 0; i < detallePliegos.length; i++) {
+          final pliego = detallePliegos[i] as Map<String, dynamic>;
+          final titulo = pliego["titulo"] ?? "Pliego ${i + 1}";
+          final procesos = pliego["procesos"] as Map<String, dynamic>? ?? {};
+
+          final offsetData = pliego["offset_data"] as Map<String, dynamic>?;
+          if (offsetData != null) {
+            final papelDatos =
+                offsetData["papel_datos"] as Map<String, dynamic>?;
+            if (papelDatos != null &&
+                papelDatos["nombre"]?.toString().isNotEmpty == true) {
+              final pliegosAsignados =
+                  int.tryParse(
+                    papelDatos["total_pliegos_asignados"]?.toString() ?? "0",
+                  ) ??
+                  0;
+              agregarMaterial(
+                '$titulo: Papel ${papelDatos["nombre"]} - ${papelDatos["peso"] ?? ""}',
+                pliegosAsignados > 0 ? pliegosAsignados : cotizacion.totalPliegos,
+              );
+            }
+
+            final pruebasColor =
+                offsetData["pruebas_color"] as Map<String, dynamic>?;
+            if (pruebasColor != null) {
+              pruebasColor.forEach((key, val) {
+                if (val is Map && val["activo"] == true) {
+                  final cant =
+                      int.tryParse(val["cantidad"]?.toString() ?? "0") ?? 0;
+                  if (cant > 0) {
+                    agregarMaterial('$titulo: Prueba de Color $key', cant);
+                  }
+                }
+              });
+            }
+
+            final maquinaDatos =
+                offsetData["maquina_datos"] as Map<String, dynamic>?;
+            if (maquinaDatos != null) {
+              final cantPlacas =
+                  int.tryParse(
+                    maquinaDatos["cantidad_placas"]?.toString() ?? "0",
+                  ) ??
+                  0;
+              final cantPlacas790 =
+                  int.tryParse(
+                    maquinaDatos["cantidad_placas_790"]?.toString() ?? "0",
+                  ) ??
+                  0;
+              if (cantPlacas > 0) {
+                agregarMaterial(
+                  '$titulo: Placas Offset (Chicas)',
+                  cantPlacas,
+                );
+              }
+              if (cantPlacas790 > 0) {
+                agregarMaterial(
+                  '$titulo: Placas Offset (Grandes 790)',
+                  cantPlacas790,
+                );
+              }
+            }
+          }
+
+          final calculosImpresion =
+              pliego["calculos_impresion"] as Map<String, dynamic>?;
+          final int pliegosAImprimir =
               int.tryParse(
-                cotizacion.configPliegos?["portada"]?["totalPliegos"]
-                        ?.toString() ??
+                calculosImpresion?["cantidad_pliegos_imprimir"]?.toString() ??
                     "0",
               ) ??
               0;
-          agregarMaterial(
-            'Papel Portada: ${dpPort["nombre"]} - ${dpPort["peso"] ?? ""}',
-            pliegosPortada,
-          );
-        }
-      }
-
-      if (cotizacion.configClientes != null) {
-        final cli = cotizacion.configClientes!;
-        final pcInt = cli["pruebaColorInternasDetalles"];
-        if (pcInt != null) {
-          if (pcInt["carta"]?["activo"] == true)
-            agregarMaterial(
-              'Prueba Color Carta (Interna)',
-              int.tryParse(pcInt["carta"]["cantidad"]?.toString() ?? "0") ?? 0,
-            );
-          if (pcInt["tabloide"]?["activo"] == true)
-            agregarMaterial(
-              'Prueba Color Tabloide (Interna)',
-              int.tryParse(pcInt["tabloide"]["cantidad"]?.toString() ?? "0") ??
-                  0,
-            );
-          if (pcInt["mediaCarta"]?["activo"] == true)
-            agregarMaterial(
-              'Prueba Color Media Carta (Interna)',
+          final int pliegosTotales =
               int.tryParse(
-                    pcInt["mediaCarta"]["cantidad"]?.toString() ?? "0",
-                  ) ??
-                  0,
-            );
-        }
-        if (cli["pruebaColorPortada"] == true) {
-          final pcPort = cli["pruebaColorPortadaDetalles"];
-          if (pcPort != null) {
-            if (pcPort["carta"]?["activo"] == true)
-              agregarMaterial(
-                'Prueba Color Carta (Portada)',
-                int.tryParse(pcPort["carta"]["cantidad"]?.toString() ?? "0") ??
-                    0,
-              );
-            if (pcPort["tabloide"]?["activo"] == true)
-              agregarMaterial(
-                'Prueba Color Tabloide (Portada)',
-                int.tryParse(
-                      pcPort["tabloide"]["cantidad"]?.toString() ?? "0",
-                    ) ??
-                    0,
-              );
-            if (pcPort["mediaCarta"]?["activo"] == true)
-              agregarMaterial(
-                'Prueba Color Media Carta (Portada)',
-                int.tryParse(
-                      pcPort["mediaCarta"]["cantidad"]?.toString() ?? "0",
-                    ) ??
-                    0,
-              );
-          }
-        }
-      }
-
-      if (cotizacion.configMaquina != null &&
-          cotizacion.configMaquina!["offsetActivo"] == true) {
-        final maqInt = cotizacion.configMaquina!["interior"];
-        if (maqInt != null) {
-          agregarMaterial(
-            'Placas Offset 615x724 (Int)',
-            int.tryParse(maqInt["cantidadPlacas"]?.toString() ?? "0") ?? 0,
-          );
-          agregarMaterial(
-            'Placas Offset 790x724 (Int)',
-            int.tryParse(maqInt["cantidadPlacas790"]?.toString() ?? "0") ?? 0,
-          );
-        }
-        final maqPort = cotizacion.configMaquina!["portada"];
-        if (maqPort != null) {
-          agregarMaterial(
-            'Placas Offset 615x724 (Port)',
-            int.tryParse(maqPort["cantidadPlacas"]?.toString() ?? "0") ?? 0,
-          );
-          agregarMaterial(
-            'Placas Offset 790x724 (Port)',
-            int.tryParse(maqPort["cantidadPlacas790"]?.toString() ?? "0") ?? 0,
-          );
-        }
-      }
-
-      if (cotizacion.configSuaje != null &&
-          cotizacion.configSuaje!["suajeActivo"] == true) {
-        if (!(cotizacion.configSuaje!["seCuentaConSuaje"] ?? false)) {
-          agregarMaterial(
-            'Fabricación de Suaje Nuevo (${cotizacion.configSuaje!["tamanoSuaje"] ?? "S/M"})',
-            1,
-          );
-        }
-      }
-
-      if (cotizacion.configSerigrafia != null &&
-          cotizacion.configSerigrafia!["serigrafiaActivo"] == true) {
-        final sg = cotizacion.configSerigrafia!;
-        agregarMaterial(
-          'Marcos Serigrafía',
-          int.tryParse(sg["cantidadMarcos"]?.toString() ?? "0") ?? 0,
-        );
-        agregarMaterial(
-          'Negativos Serigrafía',
-          int.tryParse(sg["cantidadNegativos"]?.toString() ?? "0") ?? 0,
-        );
-        agregarMaterial(
-          'Tintas Serigrafía',
-          int.tryParse(sg["cantidadTintas"]?.toString() ?? "0") ?? 0,
-        );
-      }
-
-      if (cotizacion.configGrabado != null &&
-          cotizacion.configGrabado!["grabadoActivo"] == true) {
-        agregarMaterial(
-          'Placas Grabado',
-          int.tryParse(
-                cotizacion.configGrabado!["cantidadPlacas"]?.toString() ?? "0",
+                calculosImpresion?["total_pliegos_utilizar"]?.toString() ??
+                    "0",
               ) ??
-              0,
-        );
-      }
+              0;
 
-      if (cotizacion.configEmbalaje != null &&
-          cotizacion.configEmbalaje!["embalajeActivo"] == true) {
-        final items = cotizacion.configEmbalaje!["items"] as List?;
-        if (items != null) {
-          for (var item in items) {
-            agregarMaterial(
-              'Embalaje: ${item["item"]}',
-              int.tryParse(item["cantidad"]?.toString() ?? "0") ?? 0,
-            );
+          if (i == 0) {
+            offsetPapelNecesario = pliegosAImprimir.toString();
+            offsetPapelLlegara = pliegosTotales.toString();
+          } else {
+            final extra = PapelExtraItem();
+            final papelDatos = offsetData?["papel_datos"];
+            extra.nombrePapel = "$titulo: ${papelDatos?["nombre"] ?? ""}";
+            extra.piezas = cotizacion.cantidadImpresiones.toString();
+            extra.papelNecesario = pliegosAImprimir.toString();
+            extra.papelLlegara = pliegosTotales.toString();
+            papelesExtra.add(extra);
+          }
+
+          if (procesos["Plastificado/Laminado"] == true) {
+            final laminadoData =
+                pliego["laminado_data"] as Map<String, dynamic>?;
+            final seleccion =
+                laminadoData?["seleccion"] as Map<String, dynamic>?;
+            if (seleccion != null) {
+              seleccion.forEach((nombre, caras) {
+                if (caras is Map) {
+                  if (caras["frente"] == true) {
+                    laminadoAplicacion['frente'] = true;
+                    notasLaminadoList.add("$titulo - $nombre (Frente)");
+                  }
+                  if (caras["vuelta"] == true) {
+                    laminadoAplicacion['vuelta'] = true;
+                    notasLaminadoList.add("$titulo - $nombre (Vuelta)");
+                  }
+                }
+              });
+            }
+          }
+
+          if (procesos["Barniz UV"] == true) {
+            final barnizData =
+                pliego["barniz_uv_data"] as Map<String, dynamic>?;
+            final seleccion = barnizData?["seleccion"] as Map<String, dynamic>?;
+            if (seleccion != null) {
+              seleccion.forEach((nombre, caras) {
+                if (caras is Map) {
+                  if (caras["frente"] == true) {
+                    barnizAplicacion['frente'] = true;
+                    notasBarnizList.add("$titulo - $nombre (Frente)");
+                  }
+                  if (caras["vuelta"] == true) {
+                    barnizAplicacion['vuelta'] = true;
+                    notasBarnizList.add("$titulo - $nombre (Vuelta)");
+                  }
+                }
+              });
+            }
+          }
+
+          if (procesos["Suaje"] == true) {
+            final suajeData = pliego["suaje_data"] as Map<String, dynamic>?;
+            if (suajeData != null) {
+              suajePliegos +=
+                  int.tryParse(suajeData["pliegos"]?.toString() ?? "0") ?? 0;
+              if (suajeData["se_cuenta_con_suaje"] == false) {
+                agregarMaterial('$titulo: Suaje Nuevo', 1);
+                suajeMarcoNuevo = true;
+              } else {
+                suajeMarcoExistente = true;
+              }
+            }
+          }
+
+          if (procesos["Serigrafia"] == true) {
+            final serigrafiaData =
+                pliego["serigrafia_data"] as Map<String, dynamic>?;
+            if (serigrafiaData != null) {
+              final marcos =
+                  int.tryParse(
+                    serigrafiaData["cantidad_marcos"]?.toString() ?? "0",
+                  ) ??
+                  0;
+              if (marcos > 0) {
+                agregarMaterial('$titulo: Marcos Serigrafía', marcos);
+              }
+            }
+          }
+
+          if (procesos["Grabado"] == true) {
+            final grabadoData = pliego["grabado_data"] as Map<String, dynamic>?;
+            if (grabadoData != null) {
+              final placas =
+                  int.tryParse(
+                    grabadoData["cantidad_placas"]?.toString() ?? "0",
+                  ) ??
+                  0;
+              if (placas > 0) {
+                agregarMaterial('$titulo: Placas Grabado', placas);
+              }
+            }
+          }
+
+          if (procesos["Acabados Especiales"] == true) {
+            final acabadosData =
+                pliego["acabados_especiales_data"] as Map<String, dynamic>?;
+            final items = acabadosData?["items"] as List?;
+            if (items != null) {
+              for (var item in items) {
+                if (item is Map && item["activo"] == true) {
+                  final desc = item["descripcion"] ?? "";
+                  if (desc.toString().trim().isNotEmpty) {
+                    acabadosManuales.add(
+                      AcabadoManualItem(
+                        id:
+                            DateTime.now().millisecondsSinceEpoch.toString() +
+                            item.hashCode.toString(),
+                        desc: "$titulo: $desc",
+                        piezas: cotizacion.cantidadImpresiones.toString(),
+                      ),
+                    );
+                  }
+                }
+              }
+            }
           }
         }
-      }
 
-      disenoNotas = 'Revisar archivos para: ${cotizacion.descripcion}';
+        laminadoProyecto = cotizacion.descripcion;
+        laminadoPliegos = cotizacion.totalPliegos;
 
-      offsetTipoTrabajo = cotizacion.descripcion;
-      offsetPiezasPedidas = cotizacion.cantidadImpresiones;
+        barnizProyecto = cotizacion.descripcion;
+        barnizPliegos = cotizacion.totalPliegos;
 
-      int cantidadPliegos = 0;
-      int pliegosSobrantes = 0;
-      int totalPliegos = cotizacion.totalPliegos;
-
-      if (cotizacion.configPliegos != null &&
-          cotizacion.configPliegos!["interior"] != null) {
-        final pInt = cotizacion.configPliegos!["interior"];
-        cantidadPliegos =
-            int.tryParse(pInt["cantidadPliegos"]?.toString() ?? "0") ?? 0;
-        pliegosSobrantes =
-            int.tryParse(pInt["pliegosSobrantes"]?.toString() ?? "0") ?? 0;
-        if (totalPliegos == 0)
-          totalPliegos =
-              int.tryParse(pInt["totalPliegos"]?.toString() ?? "0") ?? 0;
-      }
-
-      offsetPapelNecesario = (cantidadPliegos + pliegosSobrantes).toString();
-      offsetPapelLlegara = totalPliegos.toString();
-
-      offsetNotas = '';
-      offsetData = {
-        'frente': {
-          'C': false,
-          'M': false,
-          'Y': false,
-          'K': false,
-          'especial': false,
-          'pantone': false,
-          'tinta_esp': '',
-        },
-        'vuelta': {
-          'C': false,
-          'M': false,
-          'Y': false,
-          'K': false,
-          'especial': false,
-          'pantone': false,
-          'tinta_esp': '',
-        },
-      };
-
-      laminadoProyecto = cotizacion.descripcion;
-      laminadoAcabado = 'Brillante';
-      laminadoPliegos = cotizacion.totalPliegos;
-      if (cotizacion.configLaminado != null) {
-        final lamInt = cotizacion.configLaminado!["interior"];
-        if (lamInt != null && lamInt["laminadosActivo"] == true) {
-          final detalles = lamInt["detalles"];
-          if (detalles != null) {
-            detalles.forEach((key, val) {
-              if (val["frente"] == true) laminadoAplicacion['frente'] = true;
-              if (val["vuelta"] == true) laminadoAplicacion['vuelta'] = true;
-              if (val["frente"] == true || val["vuelta"] == true)
-                laminadoNotas += "- $key\n";
-            });
-          }
-        }
-      }
-
-      barnizProyecto = cotizacion.descripcion;
-      barnizPliegos = cotizacion.totalPliegos;
-      barnizEsRomosso = true;
-      barnizEsMaquilador = false;
-      barnizNombreMaquila = '';
-      barnizNotas = '';
-      barnizAplicacion = {'frente': false, 'vuelta': false};
-
-      if (cotizacion.configAcabados != null) {
-        final acInt = cotizacion.configAcabados!["interior"];
-        if (acInt != null && acInt["barnizUV"] == true) {
-          final detalles = acInt["detalles"];
-          if (detalles != null) {
-            detalles.forEach((key, val) {
-              if (val["frente"] == true) barnizAplicacion['frente'] = true;
-              if (val["vuelta"] == true) barnizAplicacion['vuelta'] = true;
-              if (val["frente"] == true || val["vuelta"] == true)
-                barnizNotas += "- $key\n";
-            });
-          }
-        }
-      }
-
-      suajeProyecto = cotizacion.descripcion;
-      if (cotizacion.configSuaje != null &&
-          cotizacion.configSuaje!["suajeActivo"] == true) {
-        final sj = cotizacion.configSuaje!;
-        suajePliegos = int.tryParse(sj["pliegosSuaje"]?.toString() ?? "0") ?? 0;
-        suajeMarcoExistente = sj["seCuentaConSuaje"] ?? false;
-        suajeMarcoNuevo = !(sj["seCuentaConSuaje"] ?? false);
-      }
-
-      if (cotizacion.configSerigrafia != null &&
-          cotizacion.configSerigrafia!["serigrafiaActivo"] == true) {
-        final sg = cotizacion.configSerigrafia!;
+        suajeProyecto = cotizacion.descripcion;
         serigrafiaProyecto = cotizacion.descripcion;
-        serigrafiaPiezas =
-            int.tryParse(sg["numeroEntradas"]?.toString() ?? "0") ?? 0;
-        serigrafiaMarcos = "${sg["cantidadMarcos"]?.toString() ?? '0'} Marcos";
-        serigrafiaPantoneCode =
-            "${sg["cantidadTintas"]?.toString() ?? '0'} Tintas";
-      }
-
-      grabadoProyecto = cotizacion.descripcion;
-      grabadoPiezas = cotizacion.cantidadImpresiones;
-      if (cotizacion.configGrabado != null &&
-          cotizacion.configGrabado!["grabadoActivo"] == true) {
-        final gr = cotizacion.configGrabado!;
-        grabadoPlacas = gr["cantidadPlacas"]?.toString() ?? "0";
-      }
-
-      acabadoProyecto = cotizacion.descripcion;
-      acabadoCantidad = 0;
-      acabadoDescripcion = '';
-      acabadosManuales.clear();
-
-      if (cotizacion.configAcabadosEspeciales != null &&
-          cotizacion.configAcabadosEspeciales!["activo"] == true) {
-        final detallesAcabados =
-            cotizacion.configAcabadosEspeciales!["detalles"] as List?;
-        if (detallesAcabados != null) {
-          for (var detalle in detallesAcabados) {
-            acabadosManuales.add(
-              AcabadoManualItem(
-                id:
-                    DateTime.now().millisecondsSinceEpoch.toString() +
-                    detalle.hashCode.toString(),
-                desc: detalle["descripcion"] ?? '',
-                piezas: cotizacion.cantidadImpresiones.toString(),
-              ),
+        grabadoProyecto = cotizacion.descripcion;
+        grabadoPiezas = cotizacion.cantidadImpresiones;
+        acabadoProyecto = cotizacion.descripcion;
+      } else {
+        if (cotizacion.configDatosPapel != null) {
+          final dpInt = cotizacion.configDatosPapel!["interior"];
+          if (dpInt != null && dpInt["nombre"]?.toString().isNotEmpty == true) {
+            agregarMaterial(
+              'Papel Int: ${dpInt["nombre"]} - ${dpInt["peso"] ?? ""}',
+              cotizacion.totalPliegos,
             );
+          }
+          final dpPort = cotizacion.configDatosPapel!["portada"];
+          if (dpPort != null && dpPort["nombre"]?.toString().isNotEmpty == true) {
+            final pliegosPortada =
+                int.tryParse(
+                  cotizacion.configPliegos?["portada"]?["totalPliegos"]
+                          ?.toString() ??
+                      "0",
+                ) ??
+                0;
+            agregarMaterial(
+              'Papel Portada: ${dpPort["nombre"]} - ${dpPort["peso"] ?? ""}',
+              pliegosPortada,
+            );
+          }
+        }
+
+        if (cotizacion.configClientes != null) {
+          final cli = cotizacion.configClientes!;
+          final pcInt = cli["pruebaColorInternasDetalles"];
+          if (pcInt != null) {
+            if (pcInt["carta"]?["activo"] == true) {
+              agregarMaterial(
+                'Prueba Color Carta (Interna)',
+                int.tryParse(pcInt["carta"]["cantidad"]?.toString() ?? "0") ??
+                    0,
+              );
+            }
+            if (pcInt["tabloide"]?["activo"] == true) {
+              agregarMaterial(
+                'Prueba Color Tabloide (Interna)',
+                int.tryParse(
+                      pcInt["tabloide"]["cantidad"]?.toString() ?? "0",
+                    ) ??
+                    0,
+              );
+            }
+            if (pcInt["mediaCarta"]?["activo"] == true) {
+              agregarMaterial(
+                'Prueba Color Media Carta (Interna)',
+                int.tryParse(
+                      pcInt["mediaCarta"]["cantidad"]?.toString() ?? "0",
+                    ) ??
+                    0,
+              );
+            }
+          }
+        }
+
+        if (cotizacion.configMaquina != null &&
+            cotizacion.configMaquina!["offsetActivo"] == true) {
+          final maqInt = cotizacion.configMaquina!["interior"];
+          if (maqInt != null) {
+            agregarMaterial(
+              'Placas Offset 615x724 (Int)',
+              int.tryParse(maqInt["cantidadPlacas"]?.toString() ?? "0") ?? 0,
+            );
+            agregarMaterial(
+              'Placas Offset 790x724 (Int)',
+              int.tryParse(maqInt["cantidadPlacas790"]?.toString() ?? "0") ?? 0,
+            );
+          }
+        }
+
+        if (cotizacion.configSuaje != null &&
+            cotizacion.configSuaje!["suajeActivo"] == true) {
+          if (!(cotizacion.configSuaje!["seCuentaConSuaje"] ?? false)) {
+            agregarMaterial(
+              'Fabricación de Suaje Nuevo (${cotizacion.configSuaje!["tamanoSuaje"] ?? "S/M"})',
+              1,
+            );
+          }
+        }
+
+        if (cotizacion.configSerigrafia != null &&
+            cotizacion.configSerigrafia!["serigrafiaActivo"] == true) {
+          final sg = cotizacion.configSerigrafia!;
+          agregarMaterial(
+            'Marcos Serigrafía',
+            int.tryParse(sg["cantidadMarcos"]?.toString() ?? "0") ?? 0,
+          );
+        }
+
+        if (cotizacion.configGrabado != null &&
+            cotizacion.configGrabado!["grabadoActivo"] == true) {
+          agregarMaterial(
+            'Placas Grabado',
+            int.tryParse(
+                  cotizacion.configGrabado!["cantidadPlacas"]?.toString() ??
+                      "0",
+                ) ??
+                0,
+          );
+        }
+
+        if (cotizacion.configEmbalaje != null &&
+            cotizacion.configEmbalaje!["embalajeActivo"] == true) {
+          final items = cotizacion.configEmbalaje!["items"] as List?;
+          if (items != null) {
+            for (var item in items) {
+              agregarMaterial(
+                'Embalaje: ${item["item"]}',
+                int.tryParse(item["cantidad"]?.toString() ?? "0") ?? 0,
+              );
+            }
+          }
+        }
+
+        offsetTipoTrabajo = cotizacion.descripcion;
+        offsetPiezasPedidas = cotizacion.cantidadImpresiones;
+
+        int cantidadPliegos = 0;
+        int pliegosSobrantes = 0;
+        int totalPliegos = cotizacion.totalPliegos;
+
+        if (cotizacion.configPliegos != null &&
+            cotizacion.configPliegos!["interior"] != null) {
+          final pInt = cotizacion.configPliegos!["interior"];
+          cantidadPliegos =
+              int.tryParse(pInt["cantidadPliegos"]?.toString() ?? "0") ?? 0;
+          pliegosSobrantes =
+              int.tryParse(pInt["pliegosSobrantes"]?.toString() ?? "0") ?? 0;
+          if (totalPliegos == 0) {
+            totalPliegos =
+                int.tryParse(pInt["totalPliegos"]?.toString() ?? "0") ?? 0;
+          }
+        }
+
+        offsetPapelNecesario = (cantidadPliegos + pliegosSobrantes).toString();
+        offsetPapelLlegara = totalPliegos.toString();
+
+        laminadoProyecto = cotizacion.descripcion;
+        laminadoPliegos = cotizacion.totalPliegos;
+        if (cotizacion.configLaminado != null) {
+          final lamInt = cotizacion.configLaminado!["interior"];
+          if (lamInt != null && lamInt["laminadosActivo"] == true) {
+            final detalles = lamInt["detalles"];
+            if (detalles != null && detalles is Map) {
+              detalles.forEach((key, val) {
+                if (val["frente"] == true) laminadoAplicacion['frente'] = true;
+                if (val["vuelta"] == true) laminadoAplicacion['vuelta'] = true;
+              });
+            }
+          }
+        }
+
+        barnizProyecto = cotizacion.descripcion;
+        barnizPliegos = cotizacion.totalPliegos;
+        if (cotizacion.configAcabados != null) {
+          final acInt = cotizacion.configAcabados!["interior"];
+          if (acInt != null && acInt["barnizUV"] == true) {
+            final detalles = acInt["detalles"];
+            if (detalles != null && detalles is Map) {
+              detalles.forEach((key, val) {
+                if (val["frente"] == true) barnizAplicacion['frente'] = true;
+                if (val["vuelta"] == true) barnizAplicacion['vuelta'] = true;
+              });
+            }
+          }
+        }
+
+        suajeProyecto = cotizacion.descripcion;
+        if (cotizacion.configSuaje != null &&
+            cotizacion.configSuaje!["suajeActivo"] == true) {
+          final sj = cotizacion.configSuaje!;
+          suajePliegos =
+              int.tryParse(sj["pliegosSuaje"]?.toString() ?? "0") ?? 0;
+          suajeMarcoExistente = sj["seCuentaConSuaje"] ?? false;
+          suajeMarcoNuevo = !(sj["seCuentaConSuaje"] ?? false);
+        }
+
+        if (cotizacion.configSerigrafia != null &&
+            cotizacion.configSerigrafia!["serigrafiaActivo"] == true) {
+          final sg = cotizacion.configSerigrafia!;
+          serigrafiaProyecto = cotizacion.descripcion;
+          serigrafiaPiezas =
+              int.tryParse(sg["numeroEntradas"]?.toString() ?? "0") ?? 0;
+          serigrafiaMarcos =
+              "${sg["cantidadMarcos"]?.toString() ?? '0'} Marcos";
+          serigrafiaPantoneCode =
+              "${sg["cantidadTintas"]?.toString() ?? '0'} Tintas";
+        }
+
+        grabadoProyecto = cotizacion.descripcion;
+        grabadoPiezas = cotizacion.cantidadImpresiones;
+        if (cotizacion.configGrabado != null &&
+            cotizacion.configGrabado!["grabadoActivo"] == true) {
+          final gr = cotizacion.configGrabado!;
+          grabadoPlacas = gr["cantidadPlacas"]?.toString() ?? "0";
+        }
+
+        acabadoProyecto = cotizacion.descripcion;
+        if (cotizacion.configAcabadosEspeciales != null &&
+            cotizacion.configAcabadosEspeciales!["activo"] == true) {
+          final detallesAcabados =
+              cotizacion.configAcabadosEspeciales!["detalles"] as List?;
+          if (detallesAcabados != null) {
+            for (var detalle in detallesAcabados) {
+              if (detalle is Map) {
+                acabadosManuales.add(
+                  AcabadoManualItem(
+                    id:
+                        DateTime.now().millisecondsSinceEpoch.toString() +
+                        detalle.hashCode.toString(),
+                    desc: detalle["descripcion"] ?? '',
+                    piezas: cotizacion.cantidadImpresiones.toString(),
+                  ),
+                );
+              }
+            }
           }
         }
       }
@@ -753,8 +943,8 @@ if (dbData['offset'] != null) {
       logisticaTransporte = '';
       logisticaTotalEntregar = cotizacion.cantidadImpresiones;
       logisticaNotas = '';
-    } catch (e) {
-      print("⚠️ Error al parsear los datos de la cotización: $e");
+    } catch (e, stack) {
+      print("⚠️ Error al parsear los datos de la cotización: $e\n$stack");
     }
   }
 
@@ -1097,6 +1287,7 @@ if (dbData['offset'] != null) {
 
     try {
       final datosCompletos = {
+        "tipoCotizacion": tipoCotizacionActual,
         "activeSections": activeSections,
         "adquisiciones": {
           "estatus": tiempos['adquisiciones']?.estatus,

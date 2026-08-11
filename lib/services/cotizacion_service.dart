@@ -123,4 +123,26 @@ class CotizacionService {
       rethrow;
     }
   }
+
+  Future<Cotizacion?> obtenerCotizacionPorId(String id) async {
+    try {
+      final sql = '''
+        SELECT c.*, cl.razon_social AS cliente_nombre, u.usuario AS usuario_nombre
+        FROM cotizaciones c
+        LEFT JOIN clientes cl ON c.cliente_id = cl.id
+        LEFT JOIN usuarios u ON c.usuario_id = u.id
+        WHERE c.id = @id
+      ''';
+      
+      final resultado = await db.query(sql, params: {'id': id});
+      
+      if (resultado.isNotEmpty) {
+        return Cotizacion.fromMap(resultado.first);
+      }
+      return null;
+    } catch (e) {
+      print('Error al obtener cotización por ID: $e');
+      return null;
+    }
+  }
 }

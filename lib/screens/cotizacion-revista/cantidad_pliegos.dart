@@ -377,223 +377,410 @@ class CantidadPliegosState extends State<CantidadPliegos> {
   }
 
   Map<String, dynamic> _reconstruirPliegoDesdeJSON(Map<String, dynamic> pliegoGuardado) {
+    final medidasTrabajo = _asMap(pliegoGuardado['medidas_trabajo']);
+    final calculosImpresion = _asMap(pliegoGuardado['calculos_impresion']);
+    final interioresConfig = _asMap(pliegoGuardado['interiores_config']);
     final offsetData = _asMap(pliegoGuardado['offset_data']);
     final papelData = _asMap(offsetData['papel_datos']);
     final maquinaData = _asMap(offsetData['maquina_datos']);
     final pruebasColorData = _asMap(offsetData['pruebas_color']);
+    final barnizUVData = _asMap(pliegoGuardado['barniz_uv_data']);
+    final laminadoData = _asMap(pliegoGuardado['laminado_data']);
+    final grabadoData = _asMap(pliegoGuardado['grabado_data']);
+    final serigrafiaData = _asMap(pliegoGuardado['serigrafia_data']);
+    final acabadosEspecialesData = _asMap(pliegoGuardado['acabados_especiales_data']);
+    final suajeData = _asMap(pliegoGuardado['suaje_data']);
 
     final pliego = {
       'titulo': pliegoGuardado['titulo'] ?? 'Pliego',
+      'isPortada': pliegoGuardado['is_portada'] ?? false,
+      'isInteriores': pliegoGuardado['is_interiores'] ?? false,
+      'multiploImpresion': pliegoGuardado['multiplo_impresion'] ?? 2,
 
       'anchoTrabajoCtrl': TextEditingController(
-        text: offsetData['ancho_trabajo']?.toString() ?? '',
+        text: (medidasTrabajo['ancho_trabajo']?.toString() ?? '0'),
       ),
       'altoTrabajoCtrl': TextEditingController(
-        text: offsetData['alto_trabajo']?.toString() ?? '',
+        text: (medidasTrabajo['alto_trabajo']?.toString() ?? '0'),
       ),
       'medianilCtrl': TextEditingController(
-        text: offsetData['medianil']?.toString() ?? '0.50',
+        text: (medidasTrabajo['medianil']?.toString() ?? '0.50'),
       ),
-
+      'anchoFinalCtrl': TextEditingController(
+        text: (medidasTrabajo['ancho_final']?.toString() ?? '0.00'),
+      ),
+      'altoFinalCtrl': TextEditingController(
+        text: (medidasTrabajo['alto_final']?.toString() ?? '0.00'),
+      ),
       'anchoPliegoCtrl': TextEditingController(
-        text: offsetData['ancho_pliego']?.toString() ?? '',
+        text: (medidasTrabajo['ancho_pliego']?.toString() ?? '0'),
       ),
       'altoPliegoCtrl': TextEditingController(
-        text: offsetData['alto_pliego']?.toString() ?? '',
+        text: (medidasTrabajo['alto_pliego']?.toString() ?? '0'),
       ),
       'orientacionCtrl': TextEditingController(
-        text: offsetData['orientacion_piezas']?.toString() ?? '',
-      ),
-      'piezasController': TextEditingController(
-        text: pliegoGuardado['piezas_por_pliego']?.toString() ?? '',
+        text: (medidasTrabajo['orientacion']?.toString() ?? ''),
       ),
 
       'cantidadOcuparCtrl': TextEditingController(
-        text: offsetData['cantidad_ocupar_de_este_pliego']?.toString() ?? '1',
+        text: (calculosImpresion['cantidad_ocupar_este_pliego']?.toString() ?? '1'),
       ),
       'cantidadTotalPliegoCtrl': TextEditingController(
-        text: offsetData['cantidad_total_del_pliego']?.toString() ?? '0.00',
+        text: (calculosImpresion['cantidad_total_pliego']?.toString() ?? '0.00'),
       ),
       'pliegosExtraCtrl': TextEditingController(
-        text: offsetData['pliegos_extra']?.toString() ?? '150',
+        text: (calculosImpresion['pliegos_extra_merma']?.toString() ?? '150'),
       ),
       'cantidadPliegosCtrl': TextEditingController(
-        text: offsetData['cantidad_pliegos_calculados']?.toString() ?? '0',
+        text: (calculosImpresion['cantidad_pliegos_imprimir']?.toString() ?? '0'),
       ),
       'pliegosSobrantesCtrl': TextEditingController(
-        text: offsetData['pliegos_sobrantes']?.toString() ?? '0',
+        text: (calculosImpresion['piezas_sobrantes']?.toString() ?? '0'),
       ),
       'totalPliegosUtilizarCtrl': TextEditingController(
-        text: offsetData['total_pliegos_utilizar']?.toString() ?? '0',
+        text: (calculosImpresion['total_pliegos_utilizar']?.toString() ?? '0'),
       ),
       'millaresImprimirCtrl': TextEditingController(
-        text: offsetData['millares_imprimir']?.toString() ?? '0.00',
+        text: (calculosImpresion['millares_imprimir']?.toString() ?? '0.00'),
+      ),
+
+      'piezasController': TextEditingController(
+        text: (pliegoGuardado['piezas_por_pliego']?.toString() ?? '0'),
+      ),
+
+      'paginasInternasPiezaCtrl': TextEditingController(
+        text: (interioresConfig['paginas_internas_pieza']?.toString() ?? '0'),
+      ),
+      'paginasInternasTotalesCtrl': TextEditingController(
+        text: (interioresConfig['paginas_internas_totales']?.toString() ?? '0'),
+      ),
+      'pliegosPorPiezaCtrl': TextEditingController(
+        text: (interioresConfig['pliegos_por_pieza']?.toString() ?? '0.00'),
       ),
 
       'nombrePapelCtrl': TextEditingController(
-        text: papelData['nombre']?.toString() ?? '',
+        text: (papelData['nombre']?.toString() ?? ''),
       ),
       'tipoPapelCtrl': TextEditingController(
-        text: papelData['tipo']?.toString() ?? '',
+        text: (papelData['tipo']?.toString() ?? ''),
       ),
       'anchoPapelCtrl': TextEditingController(
-        text: papelData['ancho']?.toString() ?? '',
+        text: (papelData['ancho']?.toString() ?? '0'),
       ),
       'largoPapelCtrl': TextEditingController(
-        text: papelData['largo']?.toString() ?? '',
+        text: (papelData['largo']?.toString() ?? '0'),
       ),
       'pesoPapelCtrl': TextEditingController(
-        text: papelData['peso']?.toString() ?? '',
+        text: (papelData['peso']?.toString() ?? ''),
       ),
       'proveedorPapelCtrl': TextEditingController(
-        text: papelData['proveedor']?.toString() ?? '',
+        text: (papelData['proveedor']?.toString() ?? ''),
       ),
       'costoMillarCtrl': TextEditingController(
-        text: papelData['costo_millar']?.toString() ?? '',
+        text: (papelData['costo_millar']?.toString() ?? '0'),
       ),
       'totalPliegosCtrl': TextEditingController(
-        text: papelData['total_pliegos_assigned']?.toString() ?? '',
+        text: (papelData['total_pliegos_asignados']?.toString() ?? '0'),
       ),
       'descuentoPapelCtrl': TextEditingController(
-        text: papelData['descuento_aplicado']?.toString() ?? '0',
+        text: (papelData['descuento_aplicado']?.toString() ?? '0'),
       ),
       'costoTotalPapelSinIvaCtrl': TextEditingController(
-        text: papelData['costo_total_sin_iva']?.toString() ?? '0.00',
+        text: (papelData['costo_total_sin_iva']?.toString() ?? '0.00'),
       ),
       'costoTotalPapelConIvaCtrl': TextEditingController(
-        text: papelData['costo_total_con_iva']?.toString() ?? '0.00',
+        text: (papelData['costo_total_con_iva']?.toString() ?? '0.00'),
       ),
 
       'nombreMaquinaCtrl': TextEditingController(
-        text: maquinaData['nombre_maquina']?.toString() ?? '',
+        text: (maquinaData['nombre_maquina']?.toString() ?? ''),
       ),
       'tintasFteCtrl': TextEditingController(
-        text: maquinaData['tintas_frente']?.toString() ?? '0',
+        text: (maquinaData['tintas_frente']?.toString() ?? '0'),
       ),
       'tintasRevCtrl': TextEditingController(
-        text: maquinaData['tintas_reverso']?.toString() ?? '0',
+        text: (maquinaData['tintas_reverso']?.toString() ?? '0'),
       ),
       'costoGranTotalTintasCtrl': TextEditingController(
-        text: maquinaData['costo_total_tintas']?.toString() ?? '0.00',
+        text: (maquinaData['costo_total_tintas']?.toString() ?? '0.00'),
       ),
       'costoTotalPlacasCtrl': TextEditingController(
-        text: maquinaData['costo_total_placas']?.toString() ?? '0.00',
+        text: (maquinaData['costo_total_placas']?.toString() ?? '0.00'),
       ),
       'costoTotalPlacas790Ctrl': TextEditingController(
-        text: maquinaData['costo_total_placas_790']?.toString() ?? '0.00',
+        text: (maquinaData['costo_total_placas_790']?.toString() ?? '0.00'),
       ),
       'costoBarnizCtrl': TextEditingController(
-        text: maquinaData['costo_barniz']?.toString() ?? '0.00',
+        text: (maquinaData['costo_barniz']?.toString() ?? '0.00'),
       ),
+      'costoPlacaCtrl': TextEditingController(
+        text: (maquinaData['costo_placa']?.toString() ?? '0.00'),
+      ),
+      'costoPlaca790Ctrl': TextEditingController(
+        text: (maquinaData['costo_placa_790']?.toString() ?? '0.00'),
+      ),
+      'cantidadPlacasCtrl': TextEditingController(
+        text: (maquinaData['cantidad_placas']?.toString() ?? '0'),
+      ),
+      'cantidadPlacas790Ctrl': TextEditingController(
+        text: (maquinaData['cantidad_placas_790']?.toString() ?? '0'),
+      ),
+      'costoUnitFteCtrl': TextEditingController(
+        text: (maquinaData['costo_unit_frente']?.toString() ?? '0.00'),
+      ),
+      'costoTotalFteCtrl': TextEditingController(
+        text: (maquinaData['costo_total_frente']?.toString() ?? '0.00'),
+      ),
+      'costoUnitRevCtrl': TextEditingController(
+        text: (maquinaData['costo_unit_reverso']?.toString() ?? '0.00'),
+      ),
+      'costoTotalRevCtrl': TextEditingController(
+        text: (maquinaData['costo_total_reverso']?.toString() ?? '0.00'),
+      ),
+      'barnizFteCtrl': TextEditingController(
+        text: (maquinaData['barniz_frente'] == true ? '1' : ''),
+      ),
+      'barnizRevCtrl': TextEditingController(
+        text: (maquinaData['barniz_reverso'] == true ? '1' : ''),
+      ),
+      'costoUnitBarnizFteCtrl': TextEditingController(
+        text: (maquinaData['costo_unit_barniz_frente']?.toString() ?? '0.00'),
+      ),
+      'costoUnitBarnizRevCtrl': TextEditingController(
+        text: (maquinaData['costo_unit_barniz_reverso']?.toString() ?? '0.00'),
+      ),
+      'millaresCtrl': TextEditingController(
+        text: (maquinaData['millares']?.toString() ?? '1'),
+      ),
+      'barnizFte': maquinaData['barniz_frente'] ?? false,
+      'barnizRev': maquinaData['barniz_reverso'] ?? false,
 
       'configuracionFrente': maquinaData['configuracion_frente'],
       'configuracionVuelta': maquinaData['configuracion_vuelta'],
-
       'opcionesFrente': <String>[],
       'opcionesVuelta': <String>[],
 
-      'costoPlacaCtrl': TextEditingController(text: '0.00'),
-      'costoUnitFteCtrl': TextEditingController(text: '0.00'),
-      'costoTotalFteCtrl': TextEditingController(text: '0.00'),
-      'costoUnitRevCtrl': TextEditingController(text: '0.00'),
-      'costoTotalRevCtrl': TextEditingController(text: '0.00'),
-      'cantidadPlacasCtrl': TextEditingController(text: '0'),
-      'cantidadPlacas790Ctrl': TextEditingController(text: '0'),
-      'costoPlaca790Ctrl': TextEditingController(text: '0.00'),
-      'barnizFteCtrl': TextEditingController(text: ''),
-      'barnizRevCtrl': TextEditingController(text: ''),
-      'costoUnitBarnizFteCtrl': TextEditingController(text: '0.00'),
-      'costoUnitBarnizRevCtrl': TextEditingController(text: '0.00'),
-      'millaresCtrl': TextEditingController(text: '1'),
+      'procesos': _mapaProcesosSeguro(pliegoGuardado['procesos']),
+      'pruebasColor': _mapaPruebasColorSeguro(pruebasColorData),
 
-      'barnizMaquina': false,
+      'acabadosData': () {
+        final seleccion = barnizUVData['seleccion'] as Map?;
+        return {
+          'Barniz UV a Registro': {
+            'frente': (seleccion?['Barniz UV a Registro'] as Map?)?['frente'] == true,
+            'vuelta': (seleccion?['Barniz UV a Registro'] as Map?)?['vuelta'] == true,
+          },
+          'Barniz UV Brillante a Plasta': {
+            'frente': (seleccion?['Barniz UV Brillante a Plasta'] as Map?)?['frente'] == true,
+            'vuelta': (seleccion?['Barniz UV Brillante a Plasta'] as Map?)?['vuelta'] == true,
+          },
+          'Barniz UV Mate Plasta': {
+            'frente': (seleccion?['Barniz UV Mate Plasta'] as Map?)?['frente'] == true,
+            'vuelta': (seleccion?['Barniz UV Mate Plasta'] as Map?)?['vuelta'] == true,
+          },
+        };
+      }(),
+      'acabadosCostoCm2Ctrl': () {
+        final costos = barnizUVData['costos_cm2'] as Map? ?? {};
+        return {
+          'Barniz UV a Registro': TextEditingController(
+            text: (costos['Barniz UV a Registro']?.toString() ?? '0'),
+          ),
+          'Barniz UV Brillante a Plasta': TextEditingController(
+            text: (costos['Barniz UV Brillante a Plasta']?.toString() ?? '0'),
+          ),
+          'Barniz UV Mate Plasta': TextEditingController(
+            text: (costos['Barniz UV Mate Plasta']?.toString() ?? '0'),
+          ),
+        };
+      }(),
+      'acabadosCostoTotalCtrl': () {
+        final costos = barnizUVData['costos_totales'] as Map? ?? {};
+        return {
+          'Barniz UV a Registro': TextEditingController(
+            text: (costos['Barniz UV a Registro']?.toString() ?? '0.00'),
+          ),
+          'Barniz UV Brillante a Plasta': TextEditingController(
+            text: (costos['Barniz UV Brillante a Plasta']?.toString() ?? '0.00'),
+          ),
+          'Barniz UV Mate Plasta': TextEditingController(
+            text: (costos['Barniz UV Mate Plasta']?.toString() ?? '0.00'),
+          ),
+        };
+      }(),
+
+      'laminadosData': () {
+        final seleccion = laminadoData['seleccion'] as Map?;
+        return {
+          'Plastificado Brillante': {
+            'frente': (seleccion?['Plastificado Brillante'] as Map?)?['frente'] == true,
+            'vuelta': (seleccion?['Plastificado Brillante'] as Map?)?['vuelta'] == true,
+          },
+          'Plastificado Mate': {
+            'frente': (seleccion?['Plastificado Mate'] as Map?)?['frente'] == true,
+            'vuelta': (seleccion?['Plastificado Mate'] as Map?)?['vuelta'] == true,
+          },
+        };
+      }(),
+      'laminadosCostoCm2Ctrl': () {
+        final costos = laminadoData['costos_cm2'] as Map? ?? {};
+        return {
+          'Plastificado Brillante': TextEditingController(
+            text: (costos['Plastificado Brillante']?.toString() ?? '0'),
+          ),
+          'Plastificado Mate': TextEditingController(
+            text: (costos['Plastificado Mate']?.toString() ?? '0'),
+          ),
+        };
+      }(),
+      'laminadosCostoTotalCtrl': () {
+        final costos = laminadoData['costos_totales'] as Map? ?? {};
+        return {
+          'Plastificado Brillante': TextEditingController(
+            text: (costos['Plastificado Brillante']?.toString() ?? '0.00'),
+          ),
+          'Plastificado Mate': TextEditingController(
+            text: (costos['Plastificado Mate']?.toString() ?? '0.00'),
+          ),
+        };
+      }(),
+
+      'grabadoCtrl': {
+        'cantidadPlacas': TextEditingController(
+          text: (grabadoData['cantidad_placas']?.toString() ?? '0'),
+        ),
+        'costoPlaca': TextEditingController(
+          text: (grabadoData['costo_placa']?.toString() ?? '0.00'),
+        ),
+        'costoTotalPlacas': TextEditingController(
+          text: (grabadoData['costo_total_placas']?.toString() ?? '0.00'),
+        ),
+        'costoEntrada': TextEditingController(
+          text: (grabadoData['costo_entrada']?.toString() ?? '0.00'),
+        ),
+        'costoTotalEntrada': TextEditingController(
+          text: (grabadoData['costo_total_entrada']?.toString() ?? '0.00'),
+        ),
+        'costoTotalGrabado': TextEditingController(
+          text: (grabadoData['costo_total_grabado']?.toString() ?? '0.00'),
+        ),
+      },
+
+      'serigrafiaCtrl': {
+        'cantidadMarcos': TextEditingController(
+          text: (serigrafiaData['cantidad_marcos']?.toString() ?? '0'),
+        ),
+        'totalMarcos': TextEditingController(
+          text: (serigrafiaData['total_marcos']?.toString() ?? '0.00'),
+        ),
+        'cantidadNegativos': TextEditingController(
+          text: (serigrafiaData['cantidad_negativos']?.toString() ?? '0'),
+        ),
+        'precioNegativo': TextEditingController(
+          text: (serigrafiaData['precio_negativo']?.toString() ?? '0.00'),
+        ),
+        'totalNegativos': TextEditingController(
+          text: (serigrafiaData['total_negativos']?.toString() ?? '0.00'),
+        ),
+        'cantidadTintas': TextEditingController(
+          text: (serigrafiaData['cantidad_tintas']?.toString() ?? '0'),
+        ),
+        'costoTintas': TextEditingController(
+          text: (serigrafiaData['costo_tintas']?.toString() ?? '0.00'),
+        ),
+        'totalTintas': TextEditingController(
+          text: (serigrafiaData['total_tintas']?.toString() ?? '0.00'),
+        ),
+        'numeroEntradas': TextEditingController(
+          text: (serigrafiaData['numero_entradas']?.toString() ?? '0'),
+        ),
+        'costoMillar': TextEditingController(
+          text: (serigrafiaData['costo_millar']?.toString() ?? '0.00'),
+        ),
+        'totalEntrada': TextEditingController(
+          text: (serigrafiaData['total_entrada']?.toString() ?? '0.00'),
+        ),
+        'anchoMarcos': (serigrafiaData['ancho_marcos'] as List?)
+                ?.map((v) => TextEditingController(text: v.toString()))
+                .toList() ??
+            <TextEditingController>[],
+        'altoMarcos': (serigrafiaData['alto_marcos'] as List?)
+                ?.map((v) => TextEditingController(text: v.toString()))
+                .toList() ??
+            <TextEditingController>[],
+        'precioMarcos': (serigrafiaData['precio_marcos'] as List?)
+                ?.map((v) => TextEditingController(text: v.toString()))
+                .toList() ??
+            <TextEditingController>[],
+      },
+
+      'acabadosEspecialesCtrl': () {
+        final items = (acabadosEspecialesData['items'] as List?) ?? [];
+        final activos = List.generate(5, (i) => i < items.length && (items[i]['activo'] == true));
+        final descripcion = List.generate(
+          5,
+          (i) => TextEditingController(
+            text: i < items.length ? (items[i]['descripcion']?.toString() ?? '') : '',
+          ),
+        );
+        final costoMillar = List.generate(
+          5,
+          (i) => TextEditingController(
+            text: i < items.length ? (items[i]['costo_millar']?.toString() ?? '0') : '0',
+          ),
+        );
+        final costoTotal = List.generate(
+          5,
+          (i) => TextEditingController(
+            text: i < items.length ? (items[i]['costo_total']?.toString() ?? '0.00') : '0.00',
+          ),
+        );
+        return {
+          'activos': activos,
+          'descripcion': descripcion,
+          'costoMillar': costoMillar,
+          'costoTotal': costoTotal,
+        };
+      }(),
+
+      // Suaje
+      'suajeCtrl': {
+        'tamanoSuaje': TextEditingController(
+          text: (suajeData['tamano_suaje']?.toString() ?? '0.00'),
+        ),
+        'costoSuajeCm': TextEditingController(
+          text: (suajeData['costo_suaje_cm']?.toString() ?? '0.00'),
+        ),
+        'costoTotalSuaje': TextEditingController(
+          text: (suajeData['costo_total_suaje']?.toString() ?? '0.00'),
+        ),
+        'costoArreglo': TextEditingController(
+          text: (suajeData['costo_arreglo']?.toString() ?? '0.00'),
+        ),
+        'costoTotalSuajado': TextEditingController(
+          text: (suajeData['costo_total_suajado']?.toString() ?? '0.00'),
+        ),
+        'ancho': TextEditingController(
+          text: (suajeData['ancho']?.toString() ?? '0.00'),
+        ),
+        'largo': TextEditingController(
+          text: (suajeData['largo']?.toString() ?? '0.00'),
+        ),
+        'seCuentaConSuaje': suajeData['se_cuenta_con_suaje'] ?? false,
+        'pliegos': TextEditingController(
+          text: (suajeData['pliegos']?.toString() ?? '0'),
+        ),
+        'costoMillar': TextEditingController(
+          text: (suajeData['costo_millar']?.toString() ?? '0.00'),
+        ),
+      },
+
       'cambiarPrecioPlaca': false,
       'cambiarPrecioTinta': false,
       'cambiarPrecioBarniz': false,
-      'barnizFte': false,
-      'barnizRev': false,
-
-      'procesos': _mapaProcesosSeguro(pliegoGuardado['procesos']),
-      'pruebasColor': _mapaPruebasColorSeguro(offsetData['pruebas_color']),
-      
-      'anchoFinalCtrl': TextEditingController(text: '0.00'),
-      'altoFinalCtrl': TextEditingController(text: '0.00'),
-      'acabadosData': {
-        'Barniz UV a Registro': {'frente': false, 'vuelta': false},
-        'Barniz UV Brillante a Plasta': {'frente': false, 'vuelta': false},
-        'Barniz UV Mate Plasta': {'frente': false, 'vuelta': false},
-      },
-      'acabadosCostoCm2Ctrl': {
-        'Barniz UV a Registro': TextEditingController(),
-        'Barniz UV Brillante a Plasta': TextEditingController(),
-        'Barniz UV Mate Plasta': TextEditingController(),
-      },
-      'acabadosCostoTotalCtrl': {
-        'Barniz UV a Registro': TextEditingController(text: '0.00'),
-        'Barniz UV Brillante a Plasta': TextEditingController(text: '0.00'),
-        'Barniz UV Mate Plasta': TextEditingController(text: '0.00'),
-      },
-      
-      'laminadosData': {
-        'Plastificado Brillante': {'frente': false, 'vuelta': false},
-        'Plastificado Mate': {'frente': false, 'vuelta': false},
-      },
-      'laminadosCostoCm2Ctrl': {
-        'Plastificado Brillante': TextEditingController(),
-        'Plastificado Mate': TextEditingController(),
-      },
-      'laminadosCostoTotalCtrl': {
-        'Plastificado Brillante': TextEditingController(text: '0.00'),
-        'Plastificado Mate': TextEditingController(text: '0.00'),
-      },
-      
-      'grabadoCtrl': {
-        'cantidadPlacas': TextEditingController(text: '0'),
-        'costoPlaca': TextEditingController(text: '0.00'),
-        'costoTotalPlacas': TextEditingController(text: '0.00'),
-        'costoEntrada': TextEditingController(text: '0.00'),
-        'costoTotalEntrada': TextEditingController(text: '0.00'),
-        'costoTotalGrabado': TextEditingController(text: '0.00'),
-      },
-      
-      'serigrafiaCtrl': {
-        'cantidadMarcos': TextEditingController(text: '0'),
-        'totalMarcos': TextEditingController(text: '0.00'),
-        'anchoMarcos': <TextEditingController>[],
-        'altoMarcos': <TextEditingController>[],
-        'precioMarcos': <TextEditingController>[],
-        'cantidadNegativos': TextEditingController(text: '0'),
-        'precioNegativo': TextEditingController(text: '0.00'),
-        'totalNegativos': TextEditingController(text: '0.00'),
-        'cantidadTintas': TextEditingController(text: '0'),
-        'costoTintas': TextEditingController(text: '0.00'),
-        'totalTintas': TextEditingController(text: '0.00'),
-        'numeroEntradas': TextEditingController(text: '0'),
-        'costoMillar': TextEditingController(text: '0.00'),
-        'totalEntrada': TextEditingController(text: '0.00'),
-      },
-      
-      'acabadosEspecialesCtrl': {
-        'activos': List.generate(5, (_) => false),
-        'descripcion': List.generate(5, (_) => TextEditingController()),
-        'costoMillar': List.generate(5, (_) => TextEditingController()),
-        'costoTotal': List.generate(5, (_) => TextEditingController(text: '0.00')),
-      },
-      
-      'suajeCtrl': {
-        'tamanoSuaje': TextEditingController(text: '0.00'),
-        'costoSuajeCm': TextEditingController(text: '0.00'),
-        'costoTotalSuaje': TextEditingController(text: '0.00'),
-        'costoArreglo': TextEditingController(text: '0.00'),
-        'costoTotalSuajado': TextEditingController(text: '0.00'),
-        'ancho': TextEditingController(text: '0.00'),
-        'largo': TextEditingController(text: '0.00'),
-        'seCuentaConSuaje': false,
-        'pliegos': TextEditingController(text: '0'),
-        'costoMillar': TextEditingController(text: '0.00'),
-      },
+      'barnizMaquina': false,
     };
-    
+
     return pliego;
   }
 
@@ -815,61 +1002,165 @@ void _recalcularCostoTotal() {
 
   List<Map<String, dynamic>> prepararDatosParaBackend() {
     return datosPliegos.map((pliego) {
-      final bool tieneOffset = pliego['procesos']['Offset'] ?? false;
+      final Map<String, bool> procesos = Map<String, bool>.from(pliego['procesos'] ?? {});
+      
       return {
         'titulo': pliego['titulo'],
-        'piezas_por_pliego': int.tryParse(pliego['piezasController'].text) ?? 0,
-        'procesos': pliego['procesos'], 
-        'offset_data': tieneOffset ? {
-          'ancho_trabajo': pliego['anchoTrabajoCtrl'].text,
-          'alto_trabajo': pliego['altoTrabajoCtrl'].text,
-          'medianil': pliego['medianilCtrl'].text,
-          'ancho_pliego': pliego['anchoPliegoCtrl'].text,
-          'alto_pliego': pliego['altoPliegoCtrl'].text,
-          'orientacion_piezas': pliego['orientacionCtrl'].text,
-          'pliegos_extra': pliego['pliegosExtraCtrl'].text,
-          'cantidad_ocupar_de_este_pliego': pliego['cantidadOcuparCtrl'].text,
-          'cantidad_total_del_pliego': pliego['cantidadTotalPliegoCtrl'].text,
-          'cantidad_pliegos_calculados': pliego['cantidadPliegosCtrl'].text,
-          'pliegos_sobrantes': pliego['pliegosSobrantesCtrl'].text,
-          'total_pliegos_utilizar': pliego['totalPliegosUtilizarCtrl'].text,
-          'millares_imprimir': pliego['millaresImprimirCtrl'].text,
-          
-          'papel_datos': {
-            'nombre': pliego['nombrePapelCtrl'].text,
-            'tipo': pliego['tipoPapelCtrl'].text,
-            'ancho': pliego['anchoPapelCtrl'].text,
-            'largo': pliego['largoPapelCtrl'].text,
-            'peso': pliego['pesoPapelCtrl'].text,
-            'proveedor': pliego['proveedorPapelCtrl'].text,
-            'costo_millar': pliego['costoMillarCtrl'].text,
-            'total_pliegos_assigned': pliego['totalPliegosCtrl'].text,
-            'descuento_aplicado': pliego['descuentoPapelCtrl'].text,
-            'costo_total_sin_iva': pliego['costoTotalPapelSinIvaCtrl'].text,
-            'costo_total_con_iva': pliego['costoTotalPapelConIvaCtrl'].text,
-          },
+        'is_portada': pliego['isPortada'] ?? false,
+        'is_interiores': pliego['isInteriores'] ?? false,
+        'multiplo_impresion': pliego['multiploImpresion'] ?? 2,
+        'piezas_por_pliego': int.tryParse(pliego['piezasController']?.text ?? '0') ?? 0,
+        'procesos': procesos,
 
+        'interiores_config': (pliego['isInteriores'] == true) ? {
+          'paginas_internas_pieza': int.tryParse(pliego['paginasInternasPiezaCtrl']?.text ?? '0') ?? 0,
+          'paginas_internas_totales': int.tryParse(pliego['paginasInternasTotalesCtrl']?.text ?? '0') ?? 0,
+          'pliegos_por_pieza': double.tryParse(pliego['pliegosPorPiezaCtrl']?.text ?? '0') ?? 0.0,
+        } : null,
+
+        'medidas_trabajo': {
+          'ancho_trabajo': double.tryParse(pliego['anchoTrabajoCtrl']?.text ?? '0') ?? 0.0,
+          'alto_trabajo': double.tryParse(pliego['altoTrabajoCtrl']?.text ?? '0') ?? 0.0,
+          'medianil': double.tryParse(pliego['medianilCtrl']?.text ?? '0') ?? 0.0,
+          'ancho_final': double.tryParse(pliego['anchoFinalCtrl']?.text ?? '0') ?? 0.0,
+          'alto_final': double.tryParse(pliego['altoFinalCtrl']?.text ?? '0') ?? 0.0,
+          'ancho_pliego': double.tryParse(pliego['anchoPliegoCtrl']?.text ?? '0') ?? 0.0,
+          'alto_pliego': double.tryParse(pliego['altoPliegoCtrl']?.text ?? '0') ?? 0.0,
+          'orientacion': pliego['orientacionCtrl']?.text ?? '',
+        },
+        'calculos_impresion': {
+          'cantidad_ocupar_este_pliego': int.tryParse(pliego['cantidadOcuparCtrl']?.text ?? '0') ?? 0,
+          'cantidad_total_pliego': double.tryParse(pliego['cantidadTotalPliegoCtrl']?.text ?? '0') ?? 0.0,
+          'pliegos_extra_merma': int.tryParse(pliego['pliegosExtraCtrl']?.text ?? '0') ?? 0,
+          'cantidad_pliegos_imprimir': int.tryParse(pliego['cantidadPliegosCtrl']?.text ?? '0') ?? 0,
+          'piezas_sobrantes': int.tryParse(pliego['pliegosSobrantesCtrl']?.text ?? '0') ?? 0,
+          'total_pliegos_utilizar': int.tryParse(pliego['totalPliegosUtilizarCtrl']?.text ?? '0') ?? 0,
+          'millares_imprimir': double.tryParse(pliego['millaresImprimirCtrl']?.text ?? '0') ?? 0.0,
+        },
+
+        'offset_data': (procesos['Offset'] == true) ? {
+          'papel_datos': {
+            'nombre': pliego['nombrePapelCtrl']?.text ?? '',
+            'tipo': pliego['tipoPapelCtrl']?.text ?? '',
+            'ancho': double.tryParse(pliego['anchoPapelCtrl']?.text ?? '0') ?? 0.0,
+            'largo': double.tryParse(pliego['largoPapelCtrl']?.text ?? '0') ?? 0.0,
+            'peso': pliego['pesoPapelCtrl']?.text ?? '',
+            'proveedor': pliego['proveedorPapelCtrl']?.text ?? '',
+            'costo_millar': double.tryParse(pliego['costoMillarCtrl']?.text ?? '0') ?? 0.0,
+            'total_pliegos_asignados': int.tryParse(pliego['totalPliegosCtrl']?.text ?? '0') ?? 0,
+            'descuento_aplicado': double.tryParse(pliego['descuentoPapelCtrl']?.text ?? '0') ?? 0.0,
+            'costo_total_sin_iva': double.tryParse(pliego['costoTotalPapelSinIvaCtrl']?.text ?? '0') ?? 0.0,
+            'costo_total_con_iva': double.tryParse(pliego['costoTotalPapelConIvaCtrl']?.text ?? '0') ?? 0.0,
+          },
           'maquina_datos': {
-            'nombre_maquina': pliego['nombreMaquinaCtrl'].text,
-            'tintas_frente': pliego['tintasFteCtrl'].text,
-            'tintas_reverso': pliego['tintasRevCtrl'].text,
-            'costo_total_tintas': pliego['costoGranTotalTintasCtrl'].text,
-            'costo_total_placas': pliego['costoTotalPlacasCtrl'].text,
-            'costo_total_placas_790': pliego['costoTotalPlacas790Ctrl'].text,
-            'costo_barniz': pliego['costoBarnizCtrl'].text,
+            'nombre_maquina': pliego['nombreMaquinaCtrl']?.text ?? '',
+            'tintas_frente': int.tryParse(pliego['tintasFteCtrl']?.text ?? '0') ?? 0,
+            'tintas_reverso': int.tryParse(pliego['tintasRevCtrl']?.text ?? '0') ?? 0,
+            'costo_total_tintas': double.tryParse(pliego['costoGranTotalTintasCtrl']?.text ?? '0') ?? 0.0,
+            'costo_total_placas': double.tryParse(pliego['costoTotalPlacasCtrl']?.text ?? '0') ?? 0.0,
+            'costo_total_placas_790': double.tryParse(pliego['costoTotalPlacas790Ctrl']?.text ?? '0') ?? 0.0,
+            'costo_barniz': double.tryParse(pliego['costoBarnizCtrl']?.text ?? '0') ?? 0.0,
             'configuracion_frente': pliego['configuracionFrente'],
             'configuracion_vuelta': pliego['configuracionVuelta'],
+            
+            'costo_unit_frente': double.tryParse(pliego['costoUnitFteCtrl']?.text ?? '0') ?? 0.0,
+            'costo_total_frente': double.tryParse(pliego['costoTotalFteCtrl']?.text ?? '0') ?? 0.0,
+            'costo_unit_reverso': double.tryParse(pliego['costoUnitRevCtrl']?.text ?? '0') ?? 0.0,
+            'costo_total_reverso': double.tryParse(pliego['costoTotalRevCtrl']?.text ?? '0') ?? 0.0,
+            'cantidad_placas': int.tryParse(pliego['cantidadPlacasCtrl']?.text ?? '0') ?? 0,
+            'cantidad_placas_790': int.tryParse(pliego['cantidadPlacas790Ctrl']?.text ?? '0') ?? 0,
+            'costo_placa': double.tryParse(pliego['costoPlacaCtrl']?.text ?? '0') ?? 0.0,
+            'costo_placa_790': double.tryParse(pliego['costoPlaca790Ctrl']?.text ?? '0') ?? 0.0,
+            'barniz_frente': pliego['barnizFte'] ?? false,
+            'barniz_reverso': pliego['barnizRev'] ?? false,
+            'costo_unit_barniz_frente': double.tryParse(pliego['costoUnitBarnizFteCtrl']?.text ?? '0') ?? 0.0,
+            'costo_unit_barniz_reverso': double.tryParse(pliego['costoUnitBarnizRevCtrl']?.text ?? '0') ?? 0.0,
+            'millares': double.tryParse(pliego['millaresCtrl']?.text ?? '0') ?? 0.0,
           },
-
-          'pruebas_color': (pliego['pruebasColor'] as Map<String, dynamic>).map((key, value) {
+          'pruebas_color': (pliego['pruebasColor'] as Map<String, dynamic>?)?.map((key, value) {
             return MapEntry(key, {
-              'activo': value['activo'],
-              'cantidad': int.tryParse(value['cantidadController'].text) ?? 0,
-              'precio': double.tryParse(value['precioController'].text) ?? 0.0,
-              'total': double.tryParse(value['totalController'].text) ?? 0.0,
+              'activo': value['activo'] ?? false,
+              'cantidad': int.tryParse(value['cantidadController']?.text ?? '0') ?? 0,
+              'precio': double.tryParse(value['precioController']?.text ?? '0') ?? 0.0,
+              'total': double.tryParse(value['totalController']?.text ?? '0') ?? 0.0,
             });
+          }) ?? {},
+        } : null,
+
+        'barniz_uv_data': (procesos['Barniz UV'] == true) ? {
+          'seleccion': pliego['acabadosData'],
+          'costos_cm2': (pliego['acabadosCostoCm2Ctrl'] as Map<String, TextEditingController>?)?.map(
+            (k, v) => MapEntry(k, double.tryParse(v.text) ?? 0.0),
+          ) ?? {},
+          'costos_totales': (pliego['acabadosCostoTotalCtrl'] as Map<String, TextEditingController>?)?.map(
+            (k, v) => MapEntry(k, double.tryParse(v.text) ?? 0.0),
+          ) ?? {},
+        } : null,
+
+        'laminado_data': (procesos['Plastificado/Laminado'] == true) ? {
+          'seleccion': pliego['laminadosData'],
+          'costos_cm2': (pliego['laminadosCostoCm2Ctrl'] as Map<String, TextEditingController>?)?.map(
+            (k, v) => MapEntry(k, double.tryParse(v.text) ?? 0.0),
+          ) ?? {},
+          'costos_totales': (pliego['laminadosCostoTotalCtrl'] as Map<String, TextEditingController>?)?.map(
+            (k, v) => MapEntry(k, double.tryParse(v.text) ?? 0.0),
+          ) ?? {},
+        } : null,
+
+        'grabado_data': (procesos['Grabado'] == true) ? {
+          'cantidad_placas': int.tryParse(pliego['grabadoCtrl']['cantidadPlacas']?.text ?? '0') ?? 0,
+          'costo_placa': double.tryParse(pliego['grabadoCtrl']['costoPlaca']?.text ?? '0') ?? 0.0,
+          'costo_total_placas': double.tryParse(pliego['grabadoCtrl']['costoTotalPlacas']?.text ?? '0') ?? 0.0,
+          'costo_entrada': double.tryParse(pliego['grabadoCtrl']['costoEntrada']?.text ?? '0') ?? 0.0,
+          'costo_total_entrada': double.tryParse(pliego['grabadoCtrl']['costoTotalEntrada']?.text ?? '0') ?? 0.0,
+          'costo_total_grabado': double.tryParse(pliego['grabadoCtrl']['costoTotalGrabado']?.text ?? '0') ?? 0.0,
+        } : null,
+
+        'serigrafia_data': (procesos['Serigrafia'] == true) ? {
+          'cantidad_marcos': int.tryParse(pliego['serigrafiaCtrl']['cantidadMarcos']?.text ?? '0') ?? 0,
+          'total_marcos': double.tryParse(pliego['serigrafiaCtrl']['totalMarcos']?.text ?? '0') ?? 0.0,
+          'cantidad_negativos': int.tryParse(pliego['serigrafiaCtrl']['cantidadNegativos']?.text ?? '0') ?? 0,
+          'precio_negativo': double.tryParse(pliego['serigrafiaCtrl']['precioNegativo']?.text ?? '0') ?? 0.0,
+          'total_negativos': double.tryParse(pliego['serigrafiaCtrl']['totalNegativos']?.text ?? '0') ?? 0.0,
+          'cantidad_tintas': int.tryParse(pliego['serigrafiaCtrl']['cantidadTintas']?.text ?? '0') ?? 0,
+          'costo_tintas': double.tryParse(pliego['serigrafiaCtrl']['costoTintas']?.text ?? '0') ?? 0.0,
+          'total_tintas': double.tryParse(pliego['serigrafiaCtrl']['totalTintas']?.text ?? '0') ?? 0.0,
+          'numero_entradas': int.tryParse(pliego['serigrafiaCtrl']['numeroEntradas']?.text ?? '0') ?? 0,
+          'costo_millar': double.tryParse(pliego['serigrafiaCtrl']['costoMillar']?.text ?? '0') ?? 0.0,
+          'total_entrada': double.tryParse(pliego['serigrafiaCtrl']['totalEntrada']?.text ?? '0') ?? 0.0,
+          
+          'ancho_marcos': (pliego['serigrafiaCtrl']['anchoMarcos'] as List<TextEditingController>?)
+              ?.map((c) => double.tryParse(c.text) ?? 0.0).toList() ?? [],
+          'alto_marcos': (pliego['serigrafiaCtrl']['altoMarcos'] as List<TextEditingController>?)
+              ?.map((c) => double.tryParse(c.text) ?? 0.0).toList() ?? [],
+          'precio_marcos': (pliego['serigrafiaCtrl']['precioMarcos'] as List<TextEditingController>?)
+              ?.map((c) => double.tryParse(c.text) ?? 0.0).toList() ?? [],
+        } : null,
+
+        'acabados_especiales_data': (procesos['Acabados Especiales'] == true) ? {
+          'items': List.generate(5, (i) {
+            final ae = pliego['acabadosEspecialesCtrl'] as Map<String, dynamic>;
+            return {
+              'activo': (ae['activos'] as List<bool>? ?? [])[i],
+              'descripcion': ((ae['descripcion'] as List<TextEditingController>?)?[i].text) ?? '',
+              'costo_millar': double.tryParse((ae['costoMillar'] as List<TextEditingController>?)?[i].text ?? '0') ?? 0.0,
+              'costo_total': double.tryParse((ae['costoTotal'] as List<TextEditingController>?)?[i].text ?? '0') ?? 0.0,
+            };
           }),
-        } : null
+        } : null,
+
+        'suaje_data': (procesos['Suaje'] == true) ? {
+          'tamano_suaje': double.tryParse(pliego['suajeCtrl']['tamanoSuaje']?.text ?? '0') ?? 0.0,
+          'costo_suaje_cm': double.tryParse(pliego['suajeCtrl']['costoSuajeCm']?.text ?? '0') ?? 0.0,
+          'costo_total_suaje': double.tryParse(pliego['suajeCtrl']['costoTotalSuaje']?.text ?? '0') ?? 0.0,
+          'costo_arreglo': double.tryParse(pliego['suajeCtrl']['costoArreglo']?.text ?? '0') ?? 0.0,
+          'costo_total_suajado': double.tryParse(pliego['suajeCtrl']['costoTotalSuajado']?.text ?? '0') ?? 0.0,
+          'ancho': double.tryParse(pliego['suajeCtrl']['ancho']?.text ?? '0') ?? 0.0,
+          'largo': double.tryParse(pliego['suajeCtrl']['largo']?.text ?? '0') ?? 0.0,
+          'se_cuenta_con_suaje': pliego['suajeCtrl']['seCuentaConSuaje'] ?? false,
+          'pliegos': int.tryParse(pliego['suajeCtrl']['pliegos']?.text ?? '0') ?? 0,
+          'costo_millar': double.tryParse(pliego['suajeCtrl']['costoMillar']?.text ?? '0') ?? 0.0,
+        } : null,
       };
     }).toList();
   }
@@ -905,7 +1196,6 @@ void _recalcularCostoTotal() {
     bool esLaminadoActivo = pliego['procesos']['Plastificado/Laminado'] == true;
     bool esGrabadoActivo = pliego['procesos']['Grabado'] == true;
 
-    bool isPortada = pliego['isPortada'] == true;
     bool isInteriores = pliego['isInteriores'] == true;
 
     double anchoTrabajo = double.tryParse(pliego['anchoTrabajoCtrl'].text) ?? 0.0;

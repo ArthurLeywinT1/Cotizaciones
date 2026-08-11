@@ -44,8 +44,9 @@ class _RevistaPageState extends ConsumerState<RevistaPage> {
   void initState() {
     super.initState();
 
-    final cotizacion = widget.cotizacionAEditar;
-    if (cotizacion != null) {
+    if (widget.cotizacionAEditar != null) {
+      final cotizacion = widget.cotizacionAEditar!;
+
       clienteIdInicial = cotizacion.clienteId;
       clienteNombreInicial = cotizacion.clienteNombre;
       descripcionInicial = cotizacion.descripcion;
@@ -127,7 +128,7 @@ class _RevistaPageState extends ConsumerState<RevistaPage> {
       },
 
       configPliegos: {
-        'cantidad_pliegos': totalPliegosCapturados,
+        'cantidad_pliegos': (datosProduccion['pliegos'] as List?)?.length ?? 0,
         'detalle_pliegos': datosProduccion['pliegos'],
       },
 
@@ -142,6 +143,18 @@ class _RevistaPageState extends ConsumerState<RevistaPage> {
         'iva': datosProduccion['iva'],
         'precio_con_iva': datosProduccion['precio_con_iva'],
       },
+
+      configAcabados: null,
+      configAcabadosEspeciales: null,
+      configCorte: null,
+      configCostoPapel: null,
+      configDatosPapel: null,
+      configGrabado: null,
+      configLaminado: null,
+      configMaquina: null,
+      configSerigrafia: null,
+      configSuaje: null,
+      configEmbalaje: null,
     );
 
     final bool exito = widget.cotizacionAEditar != null
