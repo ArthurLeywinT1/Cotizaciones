@@ -44,8 +44,6 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
     List<Calendario> todasLasActividades,
     String rolUsuario,
   ) {
-    // 💡 GUÍA PARA DB: Al migrar a DB, realiza la consulta SQL filtrando
-    // por fechas e ID de usuario/rol desde el servidor (PostgreSQL) en lugar de filtrar en memoria.
     return todasLasActividades.where((act) {
       final enRango = _isDayInRange(day, act.fechaInicio, act.fechaFin);
       if (rolUsuario == 'Admin') return enRango;
@@ -54,8 +52,6 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
   }
 
   void _eliminarActividad(String id) async {
-    //  Aquí debes ejecutar: await supabase.from('actividades').delete().eq('id', id);
-    // Y luego llamar a ref.invalidate(tuProviderDeActividades) para refrescar la UI.
     final success = await ref
         .read(calendarioProvider.notifier)
         .eliminarCalendario(id);
@@ -200,8 +196,6 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
                 label: const Text('Asignar Orden Multi-día'),
                 onPressed: () async {
                   if (titulo.isNotEmpty) {
-                    //  Ejecuta aquí: await supabase.from('actividades').insert({...});
-                    // Y luego: ref.invalidate(tuProvider);
                     final nuevaActividad = Calendario(
                       titulo: titulo,
                       descripcion: descripcion,
@@ -240,9 +234,6 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
     final String? idUsuario = authState.usuario?.id;
     final bool esAdmin = (rolUsuario == 'Admin');
 
-    //  Si usas un FutureProvider/StreamProvider de Riverpod,
-    // usa 'final listaActividades = ref.watch(providerDeActividades);'
-    // y maneja los estados con '.when(...)'.
     final estadoActividades = ref.watch(calendarioProvider);
     final listaActividadesDia = _getActividadesPorDia(
       _selectedDay ?? _focusedDay,
@@ -251,6 +242,24 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
     );
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Calendario de Producción'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: 'Actualizar calendario',
+            onPressed: () {
+              ref.invalidate(calendarioProvider);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Actualizando calendario...'),
+                  duration: Duration(seconds: 1),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
       floatingActionButton: esAdmin
           ? FloatingActionButton.extended(
               backgroundColor: colors.primary,
