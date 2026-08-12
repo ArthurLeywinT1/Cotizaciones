@@ -9,6 +9,7 @@ import 'cotizacion-revista/revista.dart';
 import 'modals/pdf.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import '../orden de trabajo/ordenTrabajo.dart';
+import '../utils/formatters.dart';
 
 class CatalogoCotizacionesScreen extends ConsumerWidget {
   const CatalogoCotizacionesScreen({super.key});
@@ -147,17 +148,11 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                                   DataCell(Text(c.descripcion)),
                                   DataCell(Text(c.medidas)),
                                   DataCell(Text(c.tintas)),
-                                  DataCell(Text(c.cantidadImpresiones.toString())),
-                                  DataCell(Text(c.totalPliegos.toString())),
-                                  DataCell(
-                                    Text('\$${c.precioSinIva.toStringAsFixed(2)}'),
-                                  ),
-                                  DataCell(
-                                    Text('\$${c.precioUnitario.toStringAsFixed(4)}'),
-                                  ),
-                                  DataCell(
-                                    Text('\$${c.precioConIva.toStringAsFixed(2)}'),
-                                  ),
+                                  DataCell(Text(Formatters.numero(c.cantidadImpresiones))),
+                                  DataCell(Text(Formatters.numero(c.totalPliegos))),
+                                  DataCell(Text(Formatters.moneda(c.precioSinIva))),
+                                  DataCell(Text(Formatters.unitario(c.precioUnitario))),
+                                  DataCell(Text(Formatters.moneda(c.precioConIva))),
                                   DataCell(Text(c.status)),
                                   DataCell(Text(c.usuarioNombre ?? 'Desconocido')),
                                 ],
