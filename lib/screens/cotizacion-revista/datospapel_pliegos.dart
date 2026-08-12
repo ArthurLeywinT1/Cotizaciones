@@ -48,12 +48,13 @@ class _PanelDatosPapelPliegoState extends ConsumerState<PanelDatosPapelPliego> {
         minAncho: widget.minAnchoRequerido,
         minLargo: widget.minAltoRequerido,
         onSeleccionado: (papel) {
-          // Escribimos directamente en los controladores del padre
           widget.nombrePapelController.text = papel.nombre;
           widget.tipoPapelController.text = papel.tipo ?? '';
           widget.anchoPapelController.text = papel.ancho?.toString() ?? '0';
           widget.largoPapelController.text = papel.largo?.toString() ?? '0';
           widget.pesoPapelController.text = papel.peso?.toString() ?? '0';
+          
+          // Asignamos el valor del costo por millar
           widget.costoMillarController.text = papel.costoMillar.toString();
 
           if (papel.proveedorId != null) {

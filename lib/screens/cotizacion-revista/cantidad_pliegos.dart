@@ -989,15 +989,17 @@ void _recalcularCostoTotal() {
     double iva = precioConDescuento * 0.16;
     double granTotalFinal = precioConDescuento + iva;
 
-    double precioUnitario = widget.piezasTotales > 0 ? (precioConDescuento / widget.piezasTotales) : 0.0;
+    double precioUnitario = widget.piezasTotales > 0 
+          ? (granTotalFinal / widget.piezasTotales) 
+          : 0.0;
 
-    setState(() {
-      _precioUtilidadCtrl.text = precioConUtilidad.toStringAsFixed(2);
-      _precioDescuentoCtrl.text = precioConDescuento.toStringAsFixed(2);
-      _precioUnitarioCtrl.text = precioUnitario.toStringAsFixed(2);
-      _ivaGlobalCtrl.text = iva.toStringAsFixed(2);
-      _precioConIvaCtrl.text = granTotalFinal.toStringAsFixed(2);
-    });
+      setState(() {
+        _precioUtilidadCtrl.text = precioConUtilidad.toStringAsFixed(2);
+        _precioDescuentoCtrl.text = precioConDescuento.toStringAsFixed(2);
+        _precioUnitarioCtrl.text = precioUnitario.toStringAsFixed(2);
+        _ivaGlobalCtrl.text = iva.toStringAsFixed(2);
+        _precioConIvaCtrl.text = granTotalFinal.toStringAsFixed(2);
+      });
   }
 
   List<Map<String, dynamic>> prepararDatosParaBackend() {

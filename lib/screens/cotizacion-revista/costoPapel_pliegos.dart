@@ -25,29 +25,33 @@ class PanelCostoPapelPliego extends ConsumerStatefulWidget {
 
 class _PanelCostoPapelPliegoState extends ConsumerState<PanelCostoPapelPliego> {
   final TextEditingController _costoSinDescuentoCtrl = TextEditingController(text: "0.00");
-  
-  // 1. Cambiado a true para que inicie siempre activado
   bool _usarDescuentoGeneral = true; 
 
   @override
   void initState() {
     super.initState();
-    // Escuchamos los cambios en costo y pliegos para recalcular automáticamente
-    widget.costoMillarController.addListener(_calcular);
-    widget.totalPliegosController.addListener(_calcular);
-    widget.descuentoController.addListener(_calcular);
+    // Escuchamos directamente los controladores
+    widget.costoMillarController.addListener(_onInputChanged);
+    widget.totalPliegosController.addListener(_onInputChanged);
+    widget.descuentoController.addListener(_onInputChanged);
 
     Future.microtask(() async {
       await ref.read(descuentosProvider.notifier).recargar();
-      // 2. Ejecutamos el cálculo inicial con los descuentos ya precargados
       if (mounted) _calcular();
     });
   }
 
   @override
   void dispose() {
+    widget.costoMillarController.removeListener(_onInputChanged);
+    widget.totalPliegosController.removeListener(_onInputChanged);
+    widget.descuentoController.removeListener(_onInputChanged);
     _costoSinDescuentoCtrl.dispose();
     super.dispose();
+  }
+
+  void _onInputChanged() {
+    _calcular();
   }
 
   void _aplicarDescuentoAutomatico() {
@@ -66,33 +70,40 @@ class _PanelCostoPapelPliegoState extends ConsumerState<PanelCostoPapelPliego> {
       descuentoEncontrado = 0.0;
     }
 
-    if (widget.descuentoController.text != descuentoEncontrado.toString()) {
-      widget.descuentoController.text = descuentoEncontrado.toString();
+    // Se asigna siempre para asegurar sincronía sin romper la notificación del listener
+    final String nuevoDescuentoStr = descuentoEncontrado.toString();
+    if (widget.descuentoController.text != nuevoDescuentoStr) {
+      widget.descuentoController.text = nuevoDescuentoStr;
     }
   }
 
   void _calcular() {
+    // Si la casilla está activa, determinamos primero qué % de descuento corresponde
     if (_usarDescuentoGeneral) {
       _aplicarDescuentoAutomatico();
     }
 
     final double costoMillar = double.tryParse(widget.costoMillarController.text) ?? 0.0;
     final int totalPliegos = int.tryParse(widget.totalPliegosController.text) ?? 0;
-    final double descuentoPorcentaje = double.tryParse(widget.descuentoController.text) ?? 0.0;
+    
+    // Tomamos el descuento directamente según si el checkbox está activo o no
+    final double descuentoPorcentaje = _usarDescuentoGeneral
+        ? (double.tryParse(widget.descuentoController.text) ?? 0.0)
+        : 0.0;
 
-    // Cálculo del costo base
+    // 1. Cálculo base
     final double costoUnitarioHoja = costoMillar / 1000;
     final double costoBase = costoUnitarioHoja * totalPliegos;
 
-    // Cálculo del descuento
+    // 2. Descuento
     final double montoDescuento = costoBase * (descuentoPorcentaje / 100);
     final double costoConDescuento = costoBase - montoDescuento;
 
-    // Cálculo del IVA
+    // 3. IVA
     final double iva = costoConDescuento * 0.16;
     final double costoConIva = costoConDescuento + iva;
 
-    // Actualizamos controladores
+    // Actualizaciones de UI / Controllers
     _costoSinDescuentoCtrl.text = costoBase.toStringAsFixed(2);
 
     if (widget.costoTotalPapelController.text != costoConDescuento.toStringAsFixed(2)) {
@@ -107,7 +118,7 @@ class _PanelCostoPapelPliegoState extends ConsumerState<PanelCostoPapelPliego> {
   @override
   Widget build(BuildContext context) {
     ref.listen(descuentosProvider, (previous, next) {
-      if (_usarDescuentoGeneral) _calcular();
+      _calcular();
     });
 
     return Container(
@@ -164,12 +175,10 @@ class _PanelCostoPapelPliegoState extends ConsumerState<PanelCostoPapelPliego> {
                       onChanged: (v) {
                         setState(() {
                           _usarDescuentoGeneral = v ?? false;
-                          if (_usarDescuentoGeneral) {
-                            _calcular();
-                          } else {
+                          if (!_usarDescuentoGeneral) {
                             widget.descuentoController.text = "0";
-                            _calcular(); // Recalcula montos al desactivar
                           }
+                          _calcular();
                         });
                       },
                     ),
