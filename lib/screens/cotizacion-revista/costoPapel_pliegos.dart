@@ -1,7 +1,7 @@
 // costoPapel_pliegos.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../providers/descuento_provider.dart'; // Ajusta esta ruta según tu proyecto
+import '../../providers/descuento_provider.dart';
 
 class PanelCostoPapelPliego extends ConsumerStatefulWidget {
   final TextEditingController costoMillarController;
@@ -25,7 +25,9 @@ class PanelCostoPapelPliego extends ConsumerStatefulWidget {
 
 class _PanelCostoPapelPliegoState extends ConsumerState<PanelCostoPapelPliego> {
   final TextEditingController _costoSinDescuentoCtrl = TextEditingController(text: "0.00");
-  bool _usarDescuentoGeneral = false;
+  
+  // 1. Cambiado a true para que inicie siempre activado
+  bool _usarDescuentoGeneral = true; 
 
   @override
   void initState() {
@@ -35,7 +37,11 @@ class _PanelCostoPapelPliegoState extends ConsumerState<PanelCostoPapelPliego> {
     widget.totalPliegosController.addListener(_calcular);
     widget.descuentoController.addListener(_calcular);
 
-    Future.microtask(() => ref.read(descuentosProvider.notifier).recargar());
+    Future.microtask(() async {
+      await ref.read(descuentosProvider.notifier).recargar();
+      // 2. Ejecutamos el cálculo inicial con los descuentos ya precargados
+      if (mounted) _calcular();
+    });
   }
 
   @override
@@ -108,7 +114,7 @@ class _PanelCostoPapelPliegoState extends ConsumerState<PanelCostoPapelPliego> {
       margin: const EdgeInsets.only(top: 10, bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.green.withOpacity(0.04), // Un color sutil para diferenciar la zona de cobro
+        color: Colors.green.withOpacity(0.04),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.green.shade200),
       ),
@@ -127,7 +133,14 @@ class _PanelCostoPapelPliegoState extends ConsumerState<PanelCostoPapelPliego> {
                 child: TextField(
                   controller: _costoSinDescuentoCtrl,
                   readOnly: true,
-                  decoration: const InputDecoration(labelText: 'Costo Base (Sin Descuento)', prefixText: "\$ ", border: OutlineInputBorder(), isDense: true, filled: true, fillColor: Color(0xFFF4F2F7)),
+                  decoration: const InputDecoration(
+                    labelText: 'Costo Base (Sin Descuento)',
+                    prefixText: "\$ ",
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                    filled: true,
+                    fillColor: Color(0xFFF4F2F7),
+                  ),
                 ),
               ),
             ],
@@ -136,7 +149,10 @@ class _PanelCostoPapelPliegoState extends ConsumerState<PanelCostoPapelPliego> {
 
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(border: Border.all(color: Colors.black26), borderRadius: BorderRadius.circular(6)),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.black26),
+              borderRadius: BorderRadius.circular(6),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -152,6 +168,7 @@ class _PanelCostoPapelPliegoState extends ConsumerState<PanelCostoPapelPliego> {
                             _calcular();
                           } else {
                             widget.descuentoController.text = "0";
+                            _calcular(); // Recalcula montos al desactivar
                           }
                         });
                       },
@@ -170,7 +187,11 @@ class _PanelCostoPapelPliegoState extends ConsumerState<PanelCostoPapelPliego> {
                         controller: widget.descuentoController,
                         readOnly: !_usarDescuentoGeneral,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8)),
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                          contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -188,7 +209,14 @@ class _PanelCostoPapelPliegoState extends ConsumerState<PanelCostoPapelPliego> {
                 child: TextField(
                   controller: widget.costoTotalPapelController,
                   readOnly: true,
-                  decoration: const InputDecoration(labelText: 'Costo Sin IVA (Con Dto)', prefixText: "\$ ", border: OutlineInputBorder(), isDense: true, filled: true, fillColor: Color(0xFFF4F2F7)),
+                  decoration: const InputDecoration(
+                    labelText: 'Costo Sin IVA (Con Dto)',
+                    prefixText: "\$ ",
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                    filled: true,
+                    fillColor: Color(0xFFF4F2F7),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -197,7 +225,14 @@ class _PanelCostoPapelPliegoState extends ConsumerState<PanelCostoPapelPliego> {
                   controller: widget.costoConIvaController,
                   readOnly: true,
                   style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
-                  decoration: const InputDecoration(labelText: 'Costo Total (CON IVA)', prefixText: "\$ ", border: OutlineInputBorder(), isDense: true, filled: true, fillColor: Color(0xFFE8F5E9)),
+                  decoration: const InputDecoration(
+                    labelText: 'Costo Total (CON IVA)',
+                    prefixText: "\$ ",
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                    filled: true,
+                    fillColor: Color(0xFFE8F5E9),
+                  ),
                 ),
               ),
             ],

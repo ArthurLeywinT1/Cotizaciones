@@ -6,6 +6,7 @@ import '../providers/proveedor_provider.dart';
 import '../widgets/boton.dart';
 import '../widgets/tabla.dart';
 import 'modals/modal_papel.dart';
+import '../utils/formatters.dart';
 
 class PapelScreen extends ConsumerWidget {
   const PapelScreen({super.key});
@@ -157,7 +158,7 @@ class PapelScreen extends ConsumerWidget {
                             Text(papel.peso != null ? '${papel.peso} g' : '-'),
                           ),
                           DataCell(
-                            Text('\$${papel.costoMillar.toStringAsFixed(2)}'),
+                            Text(Formatters.moneda(papel.costoMillar)),
                           ),
                           DataCell(
                             Text(
