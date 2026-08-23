@@ -22,7 +22,7 @@ dependencies:
   file_picker: ^10.3.10
   flex_color_picker: ^3.5.0
   flutter_screenutil: ^5.9.3
-  table_calendar: ^3.1.2 # Fixed alignment and removed the duplicate key
+  table_calendar: ^3.1.2 
   mailer: ^7.1.0
 
 dev_dependencies:

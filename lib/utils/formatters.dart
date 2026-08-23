@@ -21,4 +21,4 @@ class Formatters {
     if (valor == null) return '\$0.0000';
     return '\$${_unitario.format(valor)}';
   }
-}
+} 
