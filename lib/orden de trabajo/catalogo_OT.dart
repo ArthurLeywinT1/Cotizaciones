@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+
+import '../orden de trabajo/iniciarOrden.dart';
+import '../orden de trabajo/ordenTrabajo.dart';
 import '../providers/catalogoOT_provider.dart';
+import '../screens/modals/incidente_admin.dart';
 import '../widgets/boton.dart';
 import '../widgets/tabla.dart';
-import '../orden de trabajo/ordenTrabajo.dart';
-import '../screens/modals/incidente_admin.dart';
-import '../orden de trabajo/iniciarOrden.dart';
 
 class CatalogoOTScreen extends ConsumerWidget {
   const CatalogoOTScreen({super.key});
@@ -147,20 +149,24 @@ class CatalogoOTScreen extends ConsumerWidget {
                           otSeleccionada['ot_id'] == orden['ot_id'];
 
                       String formatearFecha(dynamic fecha) {
-                        if (fecha == null || fecha.toString().isEmpty)
+                        if (fecha == null ||
+                            fecha.toString().isEmpty ||
+                            fecha.toString() == 'null') {
                           return '-';
+                        }
                         if (fecha is DateTime) {
-                          return '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${fecha.year}';
+                          return DateFormat('dd/MM/yyyy\nHH:mm')
+                              .format(fecha.toLocal());
                         }
                         try {
-                          final parsed = DateTime.parse(fecha.toString());
-                          return '${parsed.day.toString().padLeft(2, '0')}/${parsed.month.toString().padLeft(2, '0')}/${parsed.year}';
-                        } catch (e) {
-                          return fecha.toString().split(' ')[0];
+                          final parsed =
+                              DateTime.parse(fecha.toString()).toLocal();
+                          return DateFormat('dd/MM/yyyy\nHH:mm').format(parsed);
+                        } catch (_) {
+                          return fecha.toString();
                         }
                       }
 
-                      // --- MEJORA VISUAL: PÍLDORAS DE ESTATUS ---
                       Widget widgetEstatus(String? estatus) {
                         final val = estatus ?? 'Pendiente';
                         Color textColor = Colors.grey.shade700;
@@ -201,7 +207,6 @@ class CatalogoOTScreen extends ConsumerWidget {
                         );
                       }
 
-                      // --- MEJORA VISUAL: PÍLDORAS DE INCIDENTE ---
                       Widget widgetIncidente(String? estatus) {
                         final val = estatus ?? '-';
                         if (val == '-' || val.isEmpty) {

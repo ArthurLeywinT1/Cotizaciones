@@ -31,13 +31,13 @@ class OrdenTrabajo {
           ? Map<String, dynamic>.from(json['datos_completos'])
           : {},
       fechaCreacion: json['fecha_creacion'] != null
-          ? DateTime.tryParse(json['fecha_creacion'].toString())
+          ? DateTime.tryParse(json['fecha_creacion'].toString())?.toLocal()
           : null,
       fechaActualizacion: json['fecha_actualizacion'] != null
-          ? DateTime.tryParse(json['fecha_actualizacion'].toString())
+          ? DateTime.tryParse(json['fecha_actualizacion'].toString())?.toLocal()
           : null,
       fechaEntrega: json['fecha_entrega'] != null
-          ? DateTime.tryParse(json['fecha_entrega'].toString())
+          ? DateTime.tryParse(json['fecha_entrega'].toString())?.toLocal()
           : null,
     );
   }

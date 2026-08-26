@@ -418,6 +418,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       });
     }
 
+    // 1. Clientes y Configuración General
     if (edit.configClientes != null) {
       final cli = edit.configClientes!;
       proyectoController.text = cli["proyecto"] ?? "";
@@ -430,7 +431,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       paginasInternasPorPiezaController.text =
           cli["paginasInternasPorPieza"] ?? "";
 
-
       if (cli["pruebaColorInternasDetalles"] != null) {
         final pcInt = cli["pruebaColorInternasDetalles"];
         if (pcInt["carta"] != null) {
@@ -441,8 +441,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         }
         if (pcInt["tabloide"] != null) {
           pruebaTabloide = pcInt["tabloide"]["activo"] ?? false;
-          cantidadTabloideController.text =
-              pcInt["tabloide"]["cantidad"] ?? "0";
+          cantidadTabloideController.text = pcInt["tabloide"]["cantidad"] ?? "0";
           precioTabloideController.text = pcInt["tabloide"]["precio"] ?? "0.00";
           totalTabloideController.text = pcInt["tabloide"]["total"] ?? "0.00";
         }
@@ -452,8 +451,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
               pcInt["mediaCarta"]["cantidad"] ?? "0";
           precioMediaCartaController.text =
               pcInt["mediaCarta"]["precio"] ?? "0.00";
-          totalMediaCartaController.text =
-              pcInt["mediaCarta"]["total"] ?? "0.00";
+          totalMediaCartaController.text = pcInt["mediaCarta"]["total"] ?? "0.00";
         }
       }
 
@@ -470,6 +468,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       }
     }
 
+    // 2. Pliegos
     if (edit.configPliegos != null) {
       final pInt = edit.configPliegos!["interior"];
       if (pInt != null) {
@@ -483,9 +482,9 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         pliegosSobrantesController.text = pInt["pliegosSobrantes"] ?? "";
         millaresController.text = pInt["millares"] ?? "";
       }
-
     }
 
+    // 3. Datos del Papel
     if (edit.configDatosPapel != null) {
       final dpInt = edit.configDatosPapel!["interior"];
       if (dpInt != null) {
@@ -496,9 +495,9 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         pesoPapelController.text = dpInt["peso"] ?? "";
         proveedorPapelController.text = dpInt["proveedor"] ?? "";
       }
-
     }
 
+    // 4. Costo del Papel
     if (edit.configCostoPapel != null) {
       final cpInt = edit.configCostoPapel!["interior"];
       if (cpInt != null) {
@@ -509,6 +508,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       }
     }
 
+    // 5. Máquina
     if (edit.configMaquina != null) {
       final mqInt = edit.configMaquina!["interior"];
       if (mqInt != null) {
@@ -541,6 +541,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       }
     }
 
+    // 6. Acabados y Laminado
     if (edit.configAcabados != null) {
       restaurarAcabados(
         edit.configAcabados!["interior"]?["detalles"],
@@ -559,6 +560,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       );
     }
 
+    // 7. Suaje
     if (edit.configSuaje != null) {
       final ms = edit.configSuaje!;
       seCuentaConSuaje = ms["seCuentaConSuaje"] ?? false;
@@ -574,6 +576,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       costoMillarSuajeController.text = ms["costoMillarSuaje"] ?? "";
     }
 
+    // 8. Grabado
     if (edit.configGrabado != null) {
       final mg = edit.configGrabado!;
       cantidadPlacasGrabadoController.text = mg["cantidadPlacas"] ?? "";
@@ -584,6 +587,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       costoTotalGrabadoController.text = mg["costoTotalGrabado"] ?? "";
     }
 
+    // 9. Serigrafía
     if (edit.configSerigrafia != null) {
       final ms = edit.configSerigrafia!;
       cantidadMarcosController.text = ms["cantidadMarcos"] ?? "";
@@ -617,33 +621,34 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       }
     }
 
-    if (edit.configEmbalaje != null) {
-      final me = edit.configEmbalaje!;
-      final itemsGuardados = me["items"] as List?;
+    // 10. Embalaje (Con reseteo previo seguro)
+    final itemsGuardados = edit.configEmbalaje?["items"] as List?;
+    for (int i = 0; i < embalajeItems.length; i++) {
+      dynamic itemDb;
       if (itemsGuardados != null) {
-        for (int i = 0; i < embalajeItems.length; i++) {
-          var itemDb;
-          for (var x in itemsGuardados) {
-            if (x["item"] == embalajeItems[i]) {
-              itemDb = x;
-              break;
-            }
-          }
-          if (itemDb != null) {
-            embalajeActivoItems[i] = true;
-            embalajeCostoControllers[i].text =
-                itemDb["costo"]?.toString() ?? "";
-            embalajeCantidadControllers[i].text =
-                itemDb["cantidad"]?.toString() ?? "";
-            embalajeTotalControllers[i].text =
-                itemDb["total"]?.toString() ?? "";
-          } else {
-            embalajeActivoItems[i] = false;
+        for (var x in itemsGuardados) {
+          if (x["item"] == embalajeItems[i]) {
+            itemDb = x;
+            break;
           }
         }
       }
+
+      if (itemDb != null) {
+        embalajeActivoItems[i] = true;
+        embalajeCostoControllers[i].text = itemDb["costo"]?.toString() ?? "";
+        embalajeCantidadControllers[i].text =
+            itemDb["cantidad"]?.toString() ?? "";
+        embalajeTotalControllers[i].text = itemDb["total"]?.toString() ?? "";
+      } else {
+        embalajeActivoItems[i] = false;
+        embalajeCostoControllers[i].clear();
+        embalajeCantidadControllers[i].clear();
+        embalajeTotalControllers[i].clear();
+      }
     }
 
+    // 11. Costo Total
     if (edit.configCostoTotal != null) {
       final mc = edit.configCostoTotal!;
       costoTotalController.text = mc["costoTotal"] ?? "";
@@ -658,19 +663,23 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       gastosEntrega = mc["gastosEntregaActivo"] ?? false;
     }
 
-    if (edit.configAcabadosEspeciales != null) {
-      final mae = edit.configAcabadosEspeciales!;
-      final detallesGuardados = mae["detalles"] as List?;
-      if (detallesGuardados != null) {
-        for (int i = 0; i < detallesGuardados.length && i < 5; i++) {
-          acabadosEspecialesActivos[i] = true;
-          acabadosEspecialesDescControllers[i].text =
-              detallesGuardados[i]["descripcion"] ?? "";
-          acabadosEspecialesCostoMillarControllers[i].text =
-              detallesGuardados[i]["costoMillar"] ?? "";
-          acabadosEspecialesCostoTotalControllers[i].text =
-              detallesGuardados[i]["costoTotal"] ?? "0.00";
-        }
+    // 12. Acabados Especiales (Con reseteo de los 5 slots)
+    final detallesGuardados =
+        edit.configAcabadosEspeciales?["detalles"] as List?;
+    for (int i = 0; i < 5; i++) {
+      if (detallesGuardados != null && i < detallesGuardados.length) {
+        acabadosEspecialesActivos[i] = true;
+        acabadosEspecialesDescControllers[i].text =
+            detallesGuardados[i]["descripcion"]?.toString() ?? "";
+        acabadosEspecialesCostoMillarControllers[i].text =
+            detallesGuardados[i]["costoMillar"]?.toString() ?? "";
+        acabadosEspecialesCostoTotalControllers[i].text =
+            detallesGuardados[i]["costoTotal"]?.toString() ?? "0.00";
+      } else {
+        acabadosEspecialesActivos[i] = false;
+        acabadosEspecialesDescControllers[i].clear();
+        acabadosEspecialesCostoMillarControllers[i].clear();
+        acabadosEspecialesCostoTotalControllers[i].text = "0.00";
       }
     }
 
@@ -844,24 +853,23 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     setState(() {});
   }
 
-Future<void> _guardarCotizacion({String? nuevoStatus}) async {
+  Future<void> _guardarCotizacion({String? nuevoStatus}) async {
     // 1. Le da un respiro a la UI para que no se congele el hilo principal
-    await Future.delayed(Duration.zero); 
+    await Future.delayed(Duration.zero);
 
     calcularMedidasFinales();
     calcularCostoTotalGeneral();
-    
+
     double costoBaseLimpio = _limpiar(costoTotalController.text);
     _calcularUtilidadYFinal(costoBaseLimpio);
 
     if (clienteIdSeleccionado == null) {
-      if (!mounted) return; // Validación de seguridad para el contexto
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Selecciona un Cliente primero')),
       );
       return;
     }
-    // ... el resto de tu código de guardado
 
     final authState = ref.read(authProvider);
     final String? usuarioIdActual = authState.usuario?.id;
@@ -921,6 +929,7 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
         "acabadosEspeciales": acabadosEspeciales,
       },
     };
+
     final mapPliegos = {
       "interior": {
         "pliegoAncho": pliegoAnchoController.text,
@@ -935,6 +944,7 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
         "millares": millaresController.text,
       },
     };
+
     final mapDatosPapel = {
       "interior": {
         "nombre": nombrePapelController.text,
@@ -945,6 +955,7 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
         "proveedor": proveedorPapelController.text,
       },
     };
+
     final mapCostoPapel = {
       "interior": {
         "costoMillar": costoMillarController.text,
@@ -953,6 +964,7 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
         "costoPapelConIva": costoPapelConIvaController.text,
       },
     };
+
     final mapMaquina = {
       "offsetActivo": offsetActivo,
       "interior": {
@@ -985,6 +997,7 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
         "cambiarPrecioBarniz": cambiarPrecioBarniz,
       },
     };
+
     Map<String, dynamic> extraerEstado(
       Map<String, Map<String, bool>> estado,
       Map<String, TextEditingController> costoCm2,
@@ -1012,6 +1025,7 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
             : {},
       },
     };
+
     final mapLaminado = {
       "interior": {
         "laminadosActivo": laminadosActivo,
@@ -1024,6 +1038,7 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
             : {},
       },
     };
+
     final mapSuaje = {
       "suajeActivo": suaje,
       "seCuentaConSuaje": seCuentaConSuaje,
@@ -1038,6 +1053,7 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
       "pliegosSuaje": pliegosSuajeController.text,
       "costoMillarSuaje": costoMillarSuajeController.text,
     };
+
     final mapGrabado = {
       "grabadoActivo": grabado,
       "cantidadPlacas": cantidadPlacasGrabadoController.text,
@@ -1047,6 +1063,7 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
       "costoTotalEntrada": costoTotalEntradaGrabadoController.text,
       "costoTotalGrabado": costoTotalGrabadoController.text,
     };
+
     List<Map<String, String>> listaMarcos = [];
     for (int i = 0; i < anchoMarcos.length; i++) {
       listaMarcos.add({
@@ -1055,6 +1072,7 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
         "precio": precioMarcos[i].text,
       });
     }
+
     final mapSerigrafia = {
       "serigrafiaActivo": serigrafia,
       "cantidadMarcos": cantidadMarcosController.text,
@@ -1070,6 +1088,7 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
       "costoMillarSerigrafia": costoMillarSerigrafiaController.text,
       "totalEntrada": totalEntradaController.text,
     };
+
     List<Map<String, dynamic>> embalajeDetalles = [];
     for (int i = 0; i < embalajeItems.length; i++) {
       if (embalajeActivoItems[i]) {
@@ -1081,7 +1100,9 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
         });
       }
     }
+
     final mapEmbalaje = {"embalajeActivo": embalaje, "items": embalajeDetalles};
+
     final mapCostoTotal = {
       "costoTotal": costoTotalController.text,
       "margen": margenController.text,
@@ -1112,10 +1133,12 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
     };
 
     final mapCorte = {"activo": false};
+
     final String statusFinal =
         nuevoStatus ??
         widget.cotizacionAEditar?.status ??
         'Esperando Aprobacion';
+
     final nuevaCotizacion = Cotizacion(
       id: widget.cotizacionAEditar?.id,
       folio: widget.cotizacionAEditar?.folio,
@@ -1140,6 +1163,7 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
           0.0,
       status: statusFinal,
       tipoCotizacion: 'P',
+      numPliegos: 1,
       configClientes: mapClientes,
       configPliegos: mapPliegos,
       configDatosPapel: mapDatosPapel,
@@ -1155,6 +1179,7 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
       configAcabadosEspeciales: mapAcabadosEspeciales,
       configCorte: mapCorte,
     );
+
     final bool exito;
     if (widget.cotizacionAEditar != null) {
       exito = await ref
@@ -1165,7 +1190,9 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
           .read(cotizacionesProvider.notifier)
           .crearCotizacion(nuevaCotizacion);
     }
+
     if (!mounted) return;
+
     if (exito) {
       final isOT = (nuevoStatus == 'Orden de Trabajo');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1186,12 +1213,12 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
           MaterialPageRoute(builder: (context) => const OrdenTrabajoScreen()),
         );
       } else {
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context);
-        } else{
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        } else {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()), // <--- Cambia por el nombre real de tu Home
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
           );
         }
       }

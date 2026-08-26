@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../providers/operario_provider.dart';
-import '../../widgets/tabla.dart';
-import '../../widgets/boton.dart';
+import 'package:intl/intl.dart';
+
 import '../../orden de trabajo/iniciarOrden.dart';
+import '../../providers/operario_provider.dart';
+import '../../widgets/boton.dart';
+import '../../widgets/tabla.dart';
 
 class TablaOperarioScreen extends ConsumerStatefulWidget {
   final String area;
@@ -94,15 +96,19 @@ class _TablaOperarioScreenState extends ConsumerState<TablaOperarioScreen> {
               seleccionada != null && seleccionada['ot_id'] == orden['ot_id'];
 
           String fFecha(dynamic f) {
-            if (f == null || f.toString().isEmpty) return '-';
+            if (f == null ||
+                f.toString().isEmpty ||
+                f.toString() == 'null') {
+              return '-';
+            }
             if (f is DateTime) {
-              return '${f.day.toString().padLeft(2, '0')}/${f.month.toString().padLeft(2, '0')}/${f.year}';
+              return DateFormat('dd/MM/yyyy\nHH:mm').format(f.toLocal());
             }
             try {
-              final parsed = DateTime.parse(f.toString());
-              return '${parsed.day.toString().padLeft(2, '0')}/${parsed.month.toString().padLeft(2, '0')}/${parsed.year}';
-            } catch (e) {
-              return f.toString().split(' ')[0];
+              final parsed = DateTime.parse(f.toString()).toLocal();
+              return DateFormat('dd/MM/yyyy\nHH:mm').format(parsed);
+            } catch (_) {
+              return f.toString();
             }
           }
 

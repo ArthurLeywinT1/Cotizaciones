@@ -15,6 +15,26 @@ final cotizacionesProvider =
       CotizacionesNotifier.new,
     );
 
+final cotizacionesPlanasProvider = Provider<List<Cotizacion>>((ref) {
+  final cotizaciones = ref.watch(cotizacionesProvider).cotizaciones;
+  return cotizaciones.where((c) => c.tipoCotizacion == 'P').toList();
+});
+
+final cotizacionesRevistasProvider = Provider<List<Cotizacion>>((ref) {
+  final cotizaciones = ref.watch(cotizacionesProvider).cotizaciones;
+  return cotizaciones.where((c) => c.tipoCotizacion == 'R').toList();
+});
+
+final cotizacionPorIdProvider =
+    Provider.family<Cotizacion?, String>((ref, id) {
+      final cotizaciones = ref.watch(cotizacionesProvider).cotizaciones;
+      try {
+        return cotizaciones.firstWhere((c) => c.id == id);
+      } catch (_) {
+        return null;
+      }
+    });
+
 class CotizacionesNotifier extends Notifier<CotizacionesState> {
   late final CotizacionService _service;
 
@@ -30,11 +50,23 @@ class CotizacionesNotifier extends Notifier<CotizacionesState> {
     try {
       final lista = await _service.obtenerCotizaciones();
       state = state.copyWith(isLoading: false, cotizaciones: lista);
+      _sincronizarSeleccionada(lista);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
         error: 'Error al cargar cotizaciones: $e',
       );
+    }
+  }
+
+  void _sincronizarSeleccionada(List<Cotizacion> lista) {
+    final seleccionada = ref.read(cotizacionSeleccionadaProvider);
+    if (seleccionada?.id != null) {
+      final actualizada = lista.cast<Cotizacion?>().firstWhere(
+        (c) => c?.id == seleccionada!.id,
+        orElse: () => null,
+      );
+      ref.read(cotizacionSeleccionadaProvider.notifier).state = actualizada;
     }
   }
 
@@ -67,6 +99,9 @@ class CotizacionesNotifier extends Notifier<CotizacionesState> {
       state = state.copyWith(isLoading: true, error: '');
       final success = await _service.eliminarCotizacion(id);
       if (success) {
+        if (ref.read(cotizacionSeleccionadaProvider)?.id == id) {
+          ref.read(cotizacionSeleccionadaProvider.notifier).state = null;
+        }
         await _cargarCotizaciones();
         return true;
       } else {

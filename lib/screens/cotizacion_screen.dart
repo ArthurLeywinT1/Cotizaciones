@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import '../models/cotizacion_model.dart';
+import '../orden de trabajo/ordenTrabajo.dart';
 import '../providers/cotizacion_provider.dart';
 import '../widgets/boton.dart';
 import '../widgets/tabla.dart';
 import 'cotizacion-plana/cotizacion_plana.dart';
 import 'cotizacion-revista/revista.dart';
 import 'modals/pdf.dart';
-import 'package:intl/date_symbol_data_local.dart';
-import '../orden de trabajo/ordenTrabajo.dart';
-import '../utils/formatters.dart';
 
 class CatalogoCotizacionesScreen extends ConsumerWidget {
   const CatalogoCotizacionesScreen({super.key});
@@ -72,8 +72,6 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                     .eliminarCotizacion(cotizacion.id!);
                 if (success && context.mounted) {
                   Navigator.pop(context);
-                  ref.read(cotizacionSeleccionadaProvider.notifier).state =
-                      null;
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Cotización eliminada')),
                   );
@@ -102,12 +100,15 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                 : cotizacionesState.error.isNotEmpty
                     ? Center(
                         child: Text(
-                          'Error al guardar cotizacion',
+                          cotizacionesState.error,
                           style: const TextStyle(color: Colors.red),
+                          textAlign: TextAlign.center,
                         ),
                       )
                     : cotizacionesState.cotizaciones.isEmpty
-                        ? const Center(child: Text('No hay cotizaciones registradas'))
+                        ? const Center(
+                            child: Text('No hay cotizaciones registradas'),
+                          )
                         : Tabla(
                             columns: const [
                               DataColumn(label: Text('Folio')),
@@ -118,6 +119,7 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                               DataColumn(label: Text('Medida\nTrabajo (cm)')),
                               DataColumn(label: Text('Tintas')),
                               DataColumn(label: Text('Cantidad\nImpresiones')),
+                              DataColumn(label: Text('Número\nde Pliegos')),
                               DataColumn(label: Text('Total\nPliegos')),
                               DataColumn(label: Text('Precio\nsin IVA')),
                               DataColumn(label: Text('Precio\nUnitario')),
@@ -139,7 +141,9 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                                   DataCell(
                                     Text(
                                       c.fechaCreacion != null
-                                          ? '${c.fechaCreacion!.day.toString().padLeft(2, '0')}/${c.fechaCreacion!.month.toString().padLeft(2, '0')}/${c.fechaCreacion!.year}'
+                                          ? DateFormat('dd/MM/yyyy\nHH:mm').format(
+                                              c.fechaCreacion!.toLocal(),
+                                            )
                                           : '-',
                                     ),
                                   ),
@@ -148,11 +152,18 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                                   DataCell(Text(c.descripcion)),
                                   DataCell(Text(c.medidas)),
                                   DataCell(Text(c.tintas)),
-                                  DataCell(Text(Formatters.numero(c.cantidadImpresiones))),
-                                  DataCell(Text(Formatters.numero(c.totalPliegos))),
-                                  DataCell(Text(Formatters.moneda(c.precioSinIva))),
-                                  DataCell(Text(Formatters.unitario(c.precioUnitario))),
-                                  DataCell(Text(Formatters.moneda(c.precioConIva))),
+                                  DataCell(Text(c.cantidadImpresiones.toString())),
+                                  DataCell(Text(c.numPliegos.toString())),
+                                  DataCell(Text(c.totalPliegos.toString())),
+                                  DataCell(
+                                    Text('\$${c.precioSinIva.toStringAsFixed(2)}'),
+                                  ),
+                                  DataCell(
+                                    Text('\$${c.precioUnitario.toStringAsFixed(4)}'),
+                                  ),
+                                  DataCell(
+                                    Text('\$${c.precioConIva.toStringAsFixed(2)}'),
+                                  ),
                                   DataCell(Text(c.status)),
                                   DataCell(Text(c.usuarioNombre ?? 'Desconocido')),
                                 ],
@@ -197,23 +208,7 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                                   cotizacionAEditar: cotizacionFresca,
                                 ),
                         ),
-                      ).then((_) {
-                        final listaActualizada = ref
-                            .read(cotizacionesProvider)
-                            .cotizaciones;
-                        try {
-                          final actualizada = listaActualizada.firstWhere(
-                            (c) => c.id == seleccionado.id,
-                          );
-                          ref
-                              .read(cotizacionSeleccionadaProvider.notifier)
-                              .state = actualizada;
-                        } catch (_) {
-                          ref
-                              .read(cotizacionSeleccionadaProvider.notifier)
-                              .state = null;
-                        }
-                      });
+                      );
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -302,54 +297,28 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                   icon: Icons.assignment,
                   label: "Generar OT",
                   onPressed: () async {
-                    if (seleccionado != null) {
-                      final cotizacionActualizada = Cotizacion(
-                        id: seleccionado.id,
-                        folio: seleccionado.folio,
-                        fechaCreacion: seleccionado.fechaCreacion,
-                        clienteId: seleccionado.clienteId,
-                        usuarioId: seleccionado.usuarioId,
-                        descripcion: seleccionado.descripcion,
-                        anchoMedida: seleccionado.anchoMedida,
-                        altoMedida: seleccionado.altoMedida,
-                        tintaFrontal: seleccionado.tintaFrontal,
-                        tintaReverso: seleccionado.tintaReverso,
-                        cantidadImpresiones: seleccionado.cantidadImpresiones,
-                        totalPliegos: seleccionado.totalPliegos,
-                        precioSinIva: seleccionado.precioSinIva,
-                        precioUnitario: seleccionado.precioUnitario,
-                        precioConIva: seleccionado.precioConIva,
-                        status: 'Orden de Trabajo',
-
-                        tipoCotizacion: seleccionado.tipoCotizacion,
-
-                        configClientes: seleccionado.configClientes,
-                        configPliegos: seleccionado.configPliegos,
-                        configDatosPapel: seleccionado.configDatosPapel,
-                        configCostoPapel: seleccionado.configCostoPapel,
-                        configMaquina: seleccionado.configMaquina,
-                        configAcabados: seleccionado.configAcabados,
-                        configLaminado: seleccionado.configLaminado,
-                        configSuaje: seleccionado.configSuaje,
-                        configGrabado: seleccionado.configGrabado,
-                        configSerigrafia: seleccionado.configSerigrafia,
-                        configEmbalaje: seleccionado.configEmbalaje,
-                        configCostoTotal: seleccionado.configCostoTotal,
-                        configAcabadosEspeciales:
-                            seleccionado.configAcabadosEspeciales,
-                        configCorte: seleccionado.configCorte,
-                      );
-
-                      await ref
+                    if (seleccionado != null && seleccionado.id != null) {
+                      final ok = await ref
                           .read(cotizacionesProvider.notifier)
-                          .actualizarCotizacion(cotizacionActualizada);
+                          .cambiarStatus(
+                            seleccionado.id!,
+                            'Orden de Trabajo',
+                          );
 
-                      if (context.mounted) {
+                      if (ok && context.mounted) {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => OrdenTrabajoScreen(
                               cotizacionId: seleccionado.id!,
+                            ),
+                          ),
+                        );
+                      } else if (!ok && context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Error al cambiar el estatus a Orden de Trabajo',
                             ),
                           ),
                         );
