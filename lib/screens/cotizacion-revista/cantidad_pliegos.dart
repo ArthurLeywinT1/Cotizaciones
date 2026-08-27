@@ -71,7 +71,8 @@ class CantidadPliegosState extends State<CantidadPliegos> {
   @override
   void initState() {
     super.initState();
-    _inicializarDatos(); 
+    _inicializarDatos();
+    _actualizarCostoTotalAutomatico();
   }
 
   @override
@@ -80,7 +81,20 @@ class CantidadPliegosState extends State<CantidadPliegos> {
     if (oldWidget.numeroDePliegos != widget.numeroDePliegos || oldWidget.piezasTotales != widget.piezasTotales) {
       _limpiarControladores(); 
       _inicializarDatos();    
+      _actualizarCostoTotalAutomatico();
     }
+  }
+
+  // Precio total automático: cuando cambian piezas/pliegos (edición,
+  // recotización, o en vivo), se recalcula solo, sin esperar a que se
+  // presione "Calcular" o "Guardar". El Future.delayed(Duration.zero) le
+  // da tiempo a que cada pliego (papel, offset, laminado, suaje, etc.)
+  // termine de recalcular SUS propios totales primero.
+  void _actualizarCostoTotalAutomatico() {
+    Future.delayed(Duration.zero, () {
+      if (!mounted) return;
+      _recalcularCostoTotal();
+    });
   }
 
   void _limpiarControladores() {

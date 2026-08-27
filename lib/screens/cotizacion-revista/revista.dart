@@ -11,10 +11,14 @@ import '../../providers/auth_provider.dart';
 
 class RevistaPage extends ConsumerStatefulWidget {
   final Cotizacion? cotizacionAEditar;
+  final int? piezasOverride;
+  final bool esRecotizacion;
 
   const RevistaPage({
     super.key,
     this.cotizacionAEditar,
+    this.piezasOverride,
+    this.esRecotizacion = false,
   });
 
   @override
@@ -52,7 +56,16 @@ class _RevistaPageState extends ConsumerState<RevistaPage> {
       anchoMedidaInicial = cotizacion.anchoMedida;
       altoMedidaInicial = cotizacion.altoMedida;
       cantidadPliegosInicial = cotizacion.totalPliegos;
-      piezasTotalesInicial = cotizacion.cantidadImpresiones;
+      // Recotización: si viene un piezasOverride, manda sobre el valor guardado.
+      piezasTotalesInicial = widget.piezasOverride ?? cotizacion.cantidadImpresiones;
+
+      // FIX: CantidadPliegos calcula todo con estas dos variables del padre,
+      // no con lo que se ve en pantalla en RevistaCliente. Y RevistaCliente
+      // solo las reporta hacia arriba vía onChanged, que NO se dispara al
+      // asignar .text por código dentro de su propio initState (eso solo
+      // actualiza lo que se ve, no el estado de esta pantalla).
+      cantidadDePliegos = cantidadPliegosInicial ?? 0;
+      piezasTotales = piezasTotalesInicial ?? 0;
 
       final configPliegos = cotizacion.configPliegos;
       if (configPliegos != null) {
@@ -101,10 +114,14 @@ class _RevistaPageState extends ConsumerState<RevistaPage> {
     final double precioConIva = datosProduccion['precio_con_iva'] ?? 0.0;
     final String? clienteIdReal = datosCliente['cliente_id'] as String?;
 
+    // Recotización: aunque cargamos datos desde cotizacionAEditar, se guarda
+    // como una cotización NUEVA (no se pisa la original).
+    final bool esNuevo = widget.cotizacionAEditar == null || widget.esRecotizacion;
+
     final nuevaCotizacion = Cotizacion(
-      id: widget.cotizacionAEditar?.id,
-      folio: widget.cotizacionAEditar?.folio,
-      fechaCreacion: widget.cotizacionAEditar?.fechaCreacion,
+      id: esNuevo ? null : widget.cotizacionAEditar?.id,
+      folio: esNuevo ? null : widget.cotizacionAEditar?.folio,
+      fechaCreacion: esNuevo ? null : widget.cotizacionAEditar?.fechaCreacion,
       clienteId: clienteIdReal!,
       usuarioId: usuarioIdActual,
       descripcion: datosCliente['descripcion'] ?? '',
@@ -117,7 +134,9 @@ class _RevistaPageState extends ConsumerState<RevistaPage> {
       precioSinIva: precioSinIva,
       precioUnitario: precioUnitario,
       precioConIva: precioConIva,
-      status: widget.cotizacionAEditar?.status ?? 'Esperando Aprobacion',
+      status: esNuevo
+          ? 'Esperando Aprobacion'
+          : (widget.cotizacionAEditar?.status ?? 'Esperando Aprobacion'),
       tipoCotizacion: 'R',
 
       configClientes: {
@@ -144,9 +163,9 @@ class _RevistaPageState extends ConsumerState<RevistaPage> {
       },
     );
 
-    final bool exito = widget.cotizacionAEditar != null
-        ? await ref.read(cotizacionesProvider.notifier).actualizarCotizacion(nuevaCotizacion)
-        : await ref.read(cotizacionesProvider.notifier).crearCotizacion(nuevaCotizacion);
+    final bool exito = esNuevo
+        ? await ref.read(cotizacionesProvider.notifier).crearCotizacion(nuevaCotizacion)
+        : await ref.read(cotizacionesProvider.notifier).actualizarCotizacion(nuevaCotizacion);
 
     if (!mounted) return;
 
@@ -154,7 +173,7 @@ class _RevistaPageState extends ConsumerState<RevistaPage> {
       SnackBar(
         content: Text(
           exito
-              ? widget.cotizacionAEditar != null
+              ? !esNuevo
                   ? 'Cotización revista actualizada'
                   : 'Cotización revista guardada'
               : 'No se pudo guardar la cotización revista',

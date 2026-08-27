@@ -1,7 +1,7 @@
 // maquina_pliegos.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../models/maquina_model.dart'; // Ajusta tus rutas según tu proyecto
+import '../../models/maquina_model.dart';
 import '../../providers/maquina_provider.dart';
 import '../modals/modal_maquina.dart';
 import '../cotizacion-plana/buscador_maquina.dart';
@@ -179,8 +179,11 @@ class _PanelMaquinaPliegoState extends ConsumerState<PanelMaquinaPliego> {
     final double totalHojas = double.tryParse(widget.totalHojasController.text) ?? 0;
     final double millaresDouble = totalHojas / 1000;
     
-    // Usamos ceil() para redondear hacia arriba (ej. 1200 hojas = 2 millares a cobrar en máquina)
-    int millares = millaresDouble.ceil(); 
+    // Si los decimales son <= 0.5 se redondea hacia abajo, si supera .5 sube al siguiente entero
+    int millares = (millaresDouble - millaresDouble.floor() <= 0.5)
+        ? millaresDouble.floor()
+        : millaresDouble.ceil();
+
     if (millares <= 0 && totalHojas > 0) millares = 1;
 
     final int totalPlacasCalculadas = cantFteInt + cantRevInt;
@@ -210,18 +213,18 @@ class _PanelMaquinaPliegoState extends ConsumerState<PanelMaquinaPliego> {
       precioRev = cantRevInt > 0 ? costoFijoTinta : 0.0;
     }
 
-    // 1. Asignamos los costos UNITARIOS por millar a los controladores correspondientes
+    // 1. Costos UNITARIOS por millar
     widget.costoUnitFteController.text = precioFte.toStringAsFixed(2);
     widget.costoUnitRevController.text = precioRev.toStringAsFixed(2);
 
-    // 2. Calculamos los costos TOTALES multiplicando el costo unitario por los millares a cobrar
+    // 2. Costos TOTALES multiplicados por los millares redondeados según tu regla (<= 4.5 -> 4)
     double costoTotalFte = precioFte * millares;
     double costoTotalRev = precioRev * millares;
 
     widget.costoTotalFteController.text = costoTotalFte.toStringAsFixed(2);
     widget.costoTotalRevController.text = costoTotalRev.toStringAsFixed(2);
 
-    // 3. El gran total de tintas ahora sí sumará los subtotales multiplicados correspondientes
+    // 3. El gran total de tintas
     widget.costoGranTotalTintasController.text = (costoTotalFte + costoTotalRev).toStringAsFixed(2);
 
     double precioBarnizFte = 0;
@@ -449,7 +452,7 @@ class _PanelMaquinaPliegoState extends ConsumerState<PanelMaquinaPliego> {
     return Card(
       elevation: 2,
       margin: const EdgeInsets.symmetric(vertical: 10),
-      color: Colors.orange.shade50, // Colorcito tenue para diferenciar la máquina
+      color: Colors.orange.shade50,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -555,8 +558,6 @@ class _PanelMaquinaPliegoState extends ConsumerState<PanelMaquinaPliego> {
               ],
             ),
             const SizedBox(height: 20),
-            
-            // --- AQUÍ SE INTEGRÓ TU NUEVA SECCIÓN ---
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -570,7 +571,7 @@ class _PanelMaquinaPliegoState extends ConsumerState<PanelMaquinaPliego> {
                       const SizedBox(height: 8),
                       const Text("Subtotal Frente:"),
                       const SizedBox(height: 4),
-                      _MonedaInput(controller: widget.costoTotalFteController, readOnly: true), // Campo de solo lectura para el total multiplicado
+                      _MonedaInput(controller: widget.costoTotalFteController, readOnly: true),
                     ],
                   ),
                 ),
@@ -585,14 +586,12 @@ class _PanelMaquinaPliegoState extends ConsumerState<PanelMaquinaPliego> {
                       const SizedBox(height: 8),
                       const Text("Subtotal Reverso:"),
                       const SizedBox(height: 4),
-                      _MonedaInput(controller: widget.costoTotalRevController, readOnly: true), // Campo de solo lectura para el total multiplicado
+                      _MonedaInput(controller: widget.costoTotalRevController, readOnly: true),
                     ],
                   ),
                 ),
               ],
             ),
-            // --- FIN DE TU NUEVA SECCIÓN ---
-            
             const SizedBox(height: 12),
             const Text("Costo Total Tintas:", style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),

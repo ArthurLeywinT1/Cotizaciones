@@ -102,13 +102,14 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
   void initState() {
     super.initState();
 
-    // 🔥 ASIGNAR VALORES DE LA BASE DE DATOS AL ESTADO LOCAL
     _opcionFrente = widget.valorInicialFrente;
     _opcionVuelta = widget.valorInicialVuelta;
 
     widget.tintasFteController.addListener(_calcularCostosTintas);
     widget.tintasRevController.addListener(_calcularCostosTintas);
     widget.millaresController.addListener(_calcularCostosTintas);
+    widget.costoUnitFteController.addListener(_calcularCostosTintas);
+    widget.costoUnitRevController.addListener(_calcularCostosTintas);
 
     widget.cantidadPlacasController.addListener(_calcularTotalPlacas);
     widget.costoPlacaController.addListener(_calcularTotalPlacas);
@@ -116,31 +117,31 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
     widget.costoPlaca790Controller.addListener(_calcularTotalPlacas790);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _actualizarListasOpciones(); // Generar las listas antes de calcular
+      _actualizarListasOpciones();
       _calcularCostosTintas();
       _cargarCostoPlacaDefault();
     });
   }
 
-void _actualizarListasOpciones() {
-  final int cantFteInt = int.tryParse(widget.tintasFteController.text) ?? 0;
-  final int cantRevInt = int.tryParse(widget.tintasRevController.text) ?? 0;
+  void _actualizarListasOpciones() {
+    final int cantFteInt = int.tryParse(widget.tintasFteController.text) ?? 0;
+    final int cantRevInt = int.tryParse(widget.tintasRevController.text) ?? 0;
 
-  setState(() {
-    widget.opcionesFrente.clear();
-    widget.opcionesFrente.addAll(_generarOpciones(cantFteInt));
+    setState(() {
+      widget.opcionesFrente.clear();
+      widget.opcionesFrente.addAll(_generarOpciones(cantFteInt));
 
-    widget.opcionesVuelta.clear();
-    widget.opcionesVuelta.addAll(_generarOpciones(cantRevInt));
+      widget.opcionesVuelta.clear();
+      widget.opcionesVuelta.addAll(_generarOpciones(cantRevInt));
 
-    if (!widget.opcionesFrente.contains(_opcionFrente)) {
-      _opcionFrente = null; 
-    }
-    if (!widget.opcionesVuelta.contains(_opcionVuelta)) {
-      _opcionVuelta = null;
-    }
-  });
-}
+      if (!widget.opcionesFrente.contains(_opcionFrente)) {
+        _opcionFrente = null; 
+      }
+      if (!widget.opcionesVuelta.contains(_opcionVuelta)) {
+        _opcionVuelta = null;
+      }
+    });
+  }
 
   List<String> _generarOpciones(int cantidad) {
     if (cantidad <= 0) return [];
@@ -183,12 +184,13 @@ void _actualizarListasOpciones() {
 
     final int cantFteInt = int.tryParse(widget.tintasFteController.text) ?? 0;
     final int cantRevInt = int.tryParse(widget.tintasRevController.text) ?? 0;
-    final double millaresDouble = double.tryParse(widget.millaresController.text) ?? 0;
-    int millares = millaresDouble.floor();
-    if (millares <= 0 && millaresDouble > 0) millares = 1;
+    final double millaresDouble = double.tryParse(widget.millaresController.text) ?? 0.0;
+    
+    // Si hay millares parciales (ej. 0.5), se toma como mínimo 1 millar para la escala de precios
+    int millaresEscala = millaresDouble.floor();
+    if (millaresEscala <= 0 && millaresDouble > 0) millaresEscala = 1;
 
-    // 🔥 NUEVA LÓGICA: Si es 4x4, asignar automáticamente 8 placas
-// 🔥 NUEVA LÓGICA DINÁMICA: Sumar tintas automáticamente para las placas
+    // Placas dinámicas por número total de tintas
     final int totalPlacasCalculadas = cantFteInt + cantRevInt;
     final String stringTotalPlacas = totalPlacasCalculadas > 0 ? totalPlacasCalculadas.toString() : "0";
 
@@ -199,44 +201,59 @@ void _actualizarListasOpciones() {
       widget.cantidadPlacas790Controller.text = stringTotalPlacas;
     }
 
-    // 🌪️ Sincronizar listas en cada cálculo
     _actualizarListasOpciones();
 
-    double precioFte = 0.0;
-    double precioRev = 0.0;
+    double precioUnitFte = 0.0;
+    double precioUnitRev = 0.0;
 
-    // FRENTE
-    if (cantFteInt > 0 && _opcionFrente != null && millares > 0) {
-      precioFte = _calcularPrecioPorOpcion(_opcionFrente!, millares);
+    // Determinar precio unitario
+    if (widget.cambiarPrecioTinta) {
+      precioUnitFte = double.tryParse(widget.costoUnitFteController.text) ?? 0.0;
+      precioUnitRev = double.tryParse(widget.costoUnitRevController.text) ?? 0.0;
     } else {
-      precioFte = cantFteInt > 0 ? costoFijoTinta : 0.0;
+      // FRENTE
+      if (cantFteInt > 0 && _opcionFrente != null && millaresEscala > 0) {
+        precioUnitFte = _calcularPrecioPorOpcion(_opcionFrente!, millaresEscala);
+      } else {
+        precioUnitFte = cantFteInt > 0 ? costoFijoTinta : 0.0;
+      }
+
+      // REVERSO
+      if (cantRevInt > 0 && _opcionVuelta != null && millaresEscala > 0) {
+        precioUnitRev = _calcularPrecioPorOpcion(_opcionVuelta!, millaresEscala);
+      } else {
+        precioUnitRev = cantRevInt > 0 ? costoFijoTinta : 0.0;
+      }
+
+      widget.costoUnitFteController.text = precioUnitFte.toStringAsFixed(2);
+      widget.costoUnitRevController.text = precioUnitRev.toStringAsFixed(2);
     }
 
-    // REVERSO
-    if (cantRevInt > 0 && _opcionVuelta != null && millares > 0) {
-      precioRev = _calcularPrecioPorOpcion(_opcionVuelta!, millares);
-    } else {
-      precioRev = cantRevInt > 0 ? costoFijoTinta : 0.0;
-    }
 
-    widget.costoUnitFteController.text = precioFte.toStringAsFixed(2);
-    widget.costoUnitRevController.text = precioRev.toStringAsFixed(2);
-    widget.costoTotalFteController.text = precioFte.toStringAsFixed(2);
-    widget.costoTotalRevController.text = precioRev.toStringAsFixed(2);
-    widget.costoGranTotalTintasController.text = (precioFte + precioRev).toStringAsFixed(2);
+    final double millaresRedondeado = (millaresDouble - millaresDouble.floor() <= 0.5)
+        ? millaresDouble.floorToDouble()
+        : millaresDouble.ceilToDouble();
+
+    final double totalFte = precioUnitFte * millaresRedondeado;
+    final double totalRev = precioUnitRev * millaresRedondeado;
+    final double granTotalTintas = totalFte + totalRev;
+
+    widget.costoTotalFteController.text = totalFte.toStringAsFixed(2);
+    widget.costoTotalRevController.text = totalRev.toStringAsFixed(2);
+    widget.costoGranTotalTintasController.text = granTotalTintas.toStringAsFixed(2);
 
     // BARNIZ
     double precioBarnizFte = 0;
     double precioBarnizRev = 0;
 
-    if (widget.barnizFte && millares > 0 && _opcionFrente != null) {
+    if (widget.barnizFte && millaresEscala > 0 && _opcionFrente != null) {
       bool es20Pts = _opcionFrente!.toUpperCase().contains("20");
-      precioBarnizFte = _calcularPrecioBarniz(es20Pts, millares);
+      precioBarnizFte = _calcularPrecioBarniz(es20Pts, millaresEscala);
     }
 
-    if (widget.barnizRev && millares > 0 && _opcionVuelta != null) {
+    if (widget.barnizRev && millaresEscala > 0 && _opcionVuelta != null) {
       bool es20Pts = _opcionVuelta!.toUpperCase().contains("20");
-      precioBarnizRev = _calcularPrecioBarniz(es20Pts, millares);
+      precioBarnizRev = _calcularPrecioBarniz(es20Pts, millaresEscala);
     }
 
     double totalBarniz = (widget.barnizFte || widget.barnizRev) ? (precioBarnizFte + precioBarnizRev) : 0;
@@ -248,8 +265,6 @@ void _actualizarListasOpciones() {
       widget.onConfiguracionVueltaChanged(_opcionVuelta);
     });
   }
-
-  // --- MÉTODOS DE CÁLCULO DE TABLAS (Sin cambios en lógica, solo estructura) ---
 
   double _calcularPrecioPorOpcion(String opcion, int millares) {
     switch (opcion) {
