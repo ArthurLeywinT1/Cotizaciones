@@ -15,6 +15,8 @@ class PanelSuaje extends ConsumerStatefulWidget {
   final ValueChanged<bool?> onSeCuentaConSuajeChanged;
   final TextEditingController pliegosSuajeController;
   final TextEditingController costoMillarSuajeController;
+  final bool duplicarCostoSuaje;
+  final ValueChanged<bool?> onDuplicarCostoSuajeChanged;
 
   const PanelSuaje({
     super.key,
@@ -30,6 +32,8 @@ class PanelSuaje extends ConsumerStatefulWidget {
     required this.onSeCuentaConSuajeChanged,
     required this.pliegosSuajeController,
     required this.costoMillarSuajeController,
+    required this.duplicarCostoSuaje,
+    required this.onDuplicarCostoSuajeChanged,
   });
 
   @override
@@ -342,6 +346,13 @@ class _PanelSuajeState extends ConsumerState<PanelSuaje> {
                       ),
                     ),
                     const SizedBox(height: 12),
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      dense: true,
+                      title: const Text("Duplicar Pliegos"),
+                      value: widget.duplicarCostoSuaje,
+                      onChanged: widget.onDuplicarCostoSuajeChanged,
+                    ),
                     const Text("# de Pliegos:"),
                     const SizedBox(height: 4),
                     TextField(

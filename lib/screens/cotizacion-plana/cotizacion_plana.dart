@@ -24,11 +24,15 @@ import '../../orden de trabajo/ordenTrabajo.dart';
 class CotizacionPlanaScreen extends ConsumerStatefulWidget {
   final VoidCallback? onNavigateToCatalog;
   final Cotizacion? cotizacionAEditar;
+  final int? piezasOverride;
+  final bool esRecotizacion;
 
   const CotizacionPlanaScreen({
     super.key,
     this.onNavigateToCatalog,
     this.cotizacionAEditar,
+    this.piezasOverride,
+    this.esRecotizacion = false,
   });
 
   @override
@@ -351,6 +355,14 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     totalPliegosController.addListener(calcularPliegosSuaje);
     cantidadImpresionController.addListener(calcularPliegosSuaje);
 
+    // Precio total automático: cuando cambian los pliegos (edición,
+    // recotización, o segmentación), se vuelve a sumar todo y a recalcular
+    // utilidad/IVA sin esperar a que se presione "Calcular" o "Guardar".
+    // El Future.delayed(Duration.zero) le da tiempo a Acabados, Laminados,
+    // Suaje, etc. de terminar de recalcular SUS propios totales primero
+    // (mismo truco que ya usa _guardarCotizacion() más abajo).
+    totalPliegosController.addListener(_actualizarPrecioTotalAutomatico);
+
     for (var key in acabados.keys) {
       acabadosCostoCm2Controllers[key] = TextEditingController(text: "0.00");
       acabadosCostoTotalControllers[key] = TextEditingController(text: "0.00");
@@ -398,7 +410,9 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     altoController.text = edit.altoMedida.toString();
     tintasFteController.text = edit.tintaFrontal.toString();
     tintasRevController.text = edit.tintaReverso.toString();
-    cantidadImpresionController.text = edit.cantidadImpresiones.toString();
+    // Recotización: si viene un piezasOverride, manda sobre el valor guardado.
+    cantidadImpresionController.text =
+        (widget.piezasOverride ?? edit.cantidadImpresiones).toString();
     totalPliegosController.text = edit.totalPliegos.toString();
 
     void restaurarAcabados(
@@ -732,46 +746,24 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   void calcularPliegosSuaje() {
     if (!suaje) return;
 
+    int pliegosBase;
+
     if (offsetActivo) {
-      final anchoPliego = double.tryParse(pliegoAnchoController.text) ?? 0;
-
-      final altoPliego = double.tryParse(pliegoAltoController.text) ?? 0;
-
-      final anchoSuaje = double.tryParse(anchoSuajeController.text) ?? 0;
-
-      final altoSuaje = double.tryParse(largoSuajeController.text) ?? 0;
-
-      final totalPliegos = int.tryParse(totalPliegosController.text) ?? 0;
-
-      if (anchoPliego > 0 &&
-          altoPliego > 0 &&
-          anchoSuaje > 0 &&
-          altoSuaje > 0) {
-          // Reemplaza el cálculo de área por este acomodo lógico:
-
-          // 1. Orientación normal
-          final piezasAnchoNormal = (anchoPliego / anchoSuaje).floor();
-          final piezasAltoNormal = (altoPliego / altoSuaje).floor();
-          final totalNormal = piezasAnchoNormal * piezasAltoNormal;
-
-          // 2. Orientación girada (90 grados)
-          final piezasAnchoGirado = (anchoPliego / altoSuaje).floor();
-          final piezasAltoGirado = (altoPliego / anchoSuaje).floor();
-          final totalGirado = piezasAnchoGirado * piezasAltoGirado;
-
-          // 3. Elegimos el que aproveche mejor el papel
-          final piezasPorPliego = totalNormal > totalGirado ? totalNormal : totalGirado;
-
-          // Ahora sí, el resultado real
-          final resultado = piezasPorPliego * totalPliegos;
-
-        pliegosSuajeController.text = resultado.toString();
-      }
+      // Espejo directo: el # de Pliegos del suaje siempre es
+      // el total de pliegos a utilizar (sin fórmula aparte).
+      pliegosBase = int.tryParse(totalPliegosController.text) ?? 0;
     } else {
-      final piezasTotales = int.tryParse(cantidadImpresionController.text) ?? 0;
-
-      pliegosSuajeController.text = piezasTotales.toString();
+      // CORRECCIÓN AQUÍ:
+      // Asigna el total de pliegos calculados, en vez de la cantidad de impresiones/piezas.
+      pliegosBase = int.tryParse(totalPliegosController.text) ??
+          int.tryParse(cantidadImpresionController.text) ??
+          0;
     }
+
+    final int pliegosFinal =
+        duplicarCostoSuaje ? pliegosBase * 2 : pliegosBase;
+
+    pliegosSuajeController.text = pliegosFinal.toString();
   }
 
   double _limpiar(String texto) {
@@ -853,7 +845,15 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     setState(() {});
   }
 
-  Future<void> _guardarCotizacion({String? nuevoStatus}) async {
+  void _actualizarPrecioTotalAutomatico() {
+    Future.delayed(Duration.zero, () {
+      if (!mounted) return;
+      calcularCostoTotalGeneral();
+      _calcularUtilidadYFinal(_limpiar(costoTotalController.text));
+    });
+  }
+
+Future<void> _guardarCotizacion({String? nuevoStatus}) async {
     // 1. Le da un respiro a la UI para que no se congele el hilo principal
     await Future.delayed(Duration.zero);
 
@@ -1133,16 +1133,16 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     };
 
     final mapCorte = {"activo": false};
-
-    final String statusFinal =
-        nuevoStatus ??
-        widget.cotizacionAEditar?.status ??
-        'Esperando Aprobacion';
-
+    // Recotización: aunque se cargó desde cotizacionAEditar, se guarda como
+    // una cotización NUEVA (no se pisa la original).
+    final bool esNuevo = widget.cotizacionAEditar == null || widget.esRecotizacion;
+    final String statusFinal = esNuevo
+        ? (nuevoStatus ?? 'Esperando Aprobacion')
+        : (nuevoStatus ?? widget.cotizacionAEditar?.status ?? 'Esperando Aprobacion');
     final nuevaCotizacion = Cotizacion(
-      id: widget.cotizacionAEditar?.id,
-      folio: widget.cotizacionAEditar?.folio,
-      fechaCreacion: widget.cotizacionAEditar?.fechaCreacion,
+      id: esNuevo ? null : widget.cotizacionAEditar?.id,
+      folio: esNuevo ? null : widget.cotizacionAEditar?.folio,
+      fechaCreacion: esNuevo ? null : widget.cotizacionAEditar?.fechaCreacion,
       clienteId: clienteIdSeleccionado!,
       usuarioId: usuarioIdActual,
       descripcion: descripcionController.text.trim(),
@@ -1181,14 +1181,14 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     );
 
     final bool exito;
-    if (widget.cotizacionAEditar != null) {
-      exito = await ref
-          .read(cotizacionesProvider.notifier)
-          .actualizarCotizacion(nuevaCotizacion);
-    } else {
+    if (esNuevo) {
       exito = await ref
           .read(cotizacionesProvider.notifier)
           .crearCotizacion(nuevaCotizacion);
+    } else {
+      exito = await ref
+          .read(cotizacionesProvider.notifier)
+          .actualizarCotizacion(nuevaCotizacion);
     }
 
     if (!mounted) return;
@@ -1200,7 +1200,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
           content: Text(
             isOT
                 ? 'Orden de Trabajo generada exitosamente'
-                : widget.cotizacionAEditar != null
+                : !esNuevo
                 ? 'Cotización modificada exitosamente'
                 : 'Cotización guardada exitosamente',
           ),
@@ -1593,6 +1593,13 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
                     seCuentaConSuaje = value ?? false;
                   });
                 },
+                duplicarCostoSuaje: duplicarCostoSuaje,
+                onDuplicarCostoSuajeChanged: (value) {
+                  setState(() {
+                    duplicarCostoSuaje = value ?? false;
+                  });
+                  calcularPliegosSuaje();
+                },
               ),
             if (grabado)
               PanelGrabado(
@@ -1689,7 +1696,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 botonAccion(
-                  widget.cotizacionAEditar != null
+                  (widget.cotizacionAEditar != null && !widget.esRecotizacion)
                       ? "Actualizar Cotización"
                       : "Guardar Cotización",
                   onPressed: () => _guardarCotizacion(),

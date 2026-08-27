@@ -51,20 +51,31 @@ class _PanelPliegosState extends State<PanelPliegos> {
     if (widget.pliegosExtraController.text.isEmpty){
       widget.pliegosExtraController.text = "150";
     }
+
+    // Recalcula si cambian las piezas totales (edición, recotización, o
+    // tipeo en vivo) — antes solo se recalculaba al usar el buscador de
+    // segmentación o al editar "Pliegos Extra".
+    widget.cantidadImpresionesController.addListener(_calcularPliegos);
+
+    // Y una vez al montar, por si ya viene con datos guardados (edición o
+    // recotización) que no coinciden con lo que había antes de abrir la
+    // pantalla.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _calcularPliegos());
+  }
+
+  @override
+  void dispose() {
+    widget.cantidadImpresionesController.removeListener(_calcularPliegos);
+    super.dispose();
   }
 
   /// ===============================
   /// CÁLCULO DE PLIEGOS
   /// ===============================
   void _calcularPliegos() {
-    final int impresiones =
-        int.tryParse(widget.cantidadImpresionesController.text) ?? 0;
-
-    final int piezasPorPliego =
-        int.tryParse(widget.piezasPorPliegoController.text) ?? 0;
-
-    final int pliegosExtra =
-        int.tryParse(widget.pliegosExtraController.text) ?? 0;
+    final int impresiones = int.tryParse(widget.cantidadImpresionesController.text) ?? 0;
+    final int piezasPorPliego = int.tryParse(widget.piezasPorPliegoController.text) ?? 0;
+    final int pliegosExtra = int.tryParse(widget.pliegosExtraController.text) ?? 0;
 
     if (impresiones <= 0 || piezasPorPliego <= 0) {
       widget.cantidadPliegosController.text = "0";
@@ -72,18 +83,19 @@ class _PanelPliegosState extends State<PanelPliegos> {
       widget.totalPliegosController.text = "0";
       widget.millaresController.text = "0.00";
       return;
-    }
+  }
 
-    final int pliegosEnteros = impresiones ~/ piezasPorPliego;
-    final bool haySobrante = impresiones % piezasPorPliego > 0;
-    final int sobrante = haySobrante ? 1 : 0;
+  final int pliegosEnteros = impresiones ~/ piezasPorPliego;
+  final bool haySobrante = impresiones % piezasPorPliego > 0;
+  final int sobrante = haySobrante ? 1 : 0;
+  final int totalPliegos = pliegosEnteros + sobrante + pliegosExtra;
 
-    final int totalPliegos = pliegosEnteros + sobrante + pliegosExtra;
+  widget.cantidadPliegosController.text = pliegosEnteros.toString();
+  widget.pliegosSobrantesController.text = sobrante.toString();
 
-    widget.cantidadPliegosController.text = pliegosEnteros.toString();
-    widget.pliegosSobrantesController.text = sobrante.toString();
-    widget.totalPliegosController.text = totalPliegos.toString();
-    widget.millaresController.text = (totalPliegos / 1000).toStringAsFixed(2);
+  // Al asignar este texto, notifyListeners / listeners activarán calcularPliegosSuaje() en el padre
+  widget.totalPliegosController.text = totalPliegos.toString();
+  widget.millaresController.text = (totalPliegos / 1000).toStringAsFixed(2);
   }
 
   @override

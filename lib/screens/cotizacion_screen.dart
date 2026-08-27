@@ -85,6 +85,81 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
     );
   }
 
+  void _recotizar(BuildContext context, WidgetRef ref, Cotizacion cotizacion) {
+    final piezasController = TextEditingController(
+      text: cotizacion.cantidadImpresiones.toString(),
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Recotización'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Se abrirá la cotización con folio "${cotizacion.folio ?? 'S/F'}" '
+              'con los mismos datos, para guardarla como una cotización nueva '
+              'con otra cantidad de piezas.',
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: piezasController,
+              autofocus: true,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Piezas totales solicitadas',
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              final nuevasPiezas = int.tryParse(piezasController.text);
+              if (nuevasPiezas == null || nuevasPiezas <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Ingresa una cantidad de piezas válida'),
+                  ),
+                );
+                return;
+              }
+
+              Navigator.pop(context);
+
+              final esRevista = cotizacion.tipoCotizacion == 'R';
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => esRevista
+                      ? RevistaPage(
+                          cotizacionAEditar: cotizacion,
+                          piezasOverride: nuevasPiezas,
+                          esRecotizacion: true,
+                        )
+                      : CotizacionPlanaScreen(
+                          cotizacionAEditar: cotizacion,
+                          piezasOverride: nuevasPiezas,
+                          esRecotizacion: true,
+                        ),
+                ),
+              );
+            },
+            child: const Text('Continuar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cotizacionesState = ref.watch(cotizacionesProvider);
@@ -214,6 +289,30 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                         const SnackBar(
                           content: Text(
                             'Selecciona una cotización para modificar',
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                ),
+                Boton(
+                  icon: Icons.content_copy,
+                  label: "Recotización",
+                  onPressed: () {
+                    if (seleccionado != null) {
+                      final cotizacionesActuales = ref
+                          .read(cotizacionesProvider)
+                          .cotizaciones;
+                      final cotizacionFresca = cotizacionesActuales.firstWhere(
+                        (c) => c.id == seleccionado.id,
+                        orElse: () => seleccionado,
+                      );
+                      _recotizar(context, ref, cotizacionFresca);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Selecciona una cotización para recotizar',
                           ),
                         ),
                       );
