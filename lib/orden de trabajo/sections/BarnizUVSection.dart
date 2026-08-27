@@ -228,6 +228,48 @@ class BarnizUVSection extends ConsumerWidget {
               ),
             ),
 
+            const SizedBox(height: 16),
+            _buildLabel(
+              "NOTAS DEL TALLER",
+              TextFormField(
+                key: ValueKey("barniz_notas_taller_${controller.sessionKey}"),
+                initialValue: controller.barnizNotasTaller,
+                maxLines: 2,
+                readOnly: !modoProduccion, // <--- EDITABLE SOLO EN PRODUCCIÓN
+                onChanged: !modoProduccion
+                    ? null
+                    : (v) => ref
+                          .read(ordenTrabajoProvider)
+                          .updateBarnizGeneral('notasTaller', v),
+                decoration:
+                    _inputStyle(
+                      !modoProduccion
+                          ? 'Sin notas del taller'
+                          : 'Escribe aquí cualquier observación o nota para esta orden...',
+                      readOnly: !modoProduccion,
+                    ).copyWith(
+                      filled: true,
+                      fillColor: !modoProduccion
+                          ? Colors.grey[100]
+                          : Colors.blue[50],
+                      enabledBorder: !modoProduccion
+                          ? OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color: Colors.grey[300]!,
+                                width: 0.5,
+                              ),
+                            )
+                          : null,
+                    ),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontStyle: FontStyle.italic,
+                  color: !modoProduccion ? Colors.black54 : Colors.black,
+                ),
+              ),
+            ),
+
             if (modoProduccion) ...[
               const Divider(height: 32, thickness: 1),
               SectionButtons(

@@ -173,7 +173,7 @@ class GrabadoSection extends ConsumerWidget {
               readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
               onChanged: modoProduccion
                   ? null
-                  : (v) => ref.read(ordenTrabajoProvider).updateGrabado('notes', v),
+                  : (v) => ref.read(ordenTrabajoProvider).updateGrabado('notas', v),
               decoration: InputDecoration(
                 hintText: modoProduccion
                     ? "Sin notas o especificaciones adicionales de grabado"
@@ -200,6 +200,53 @@ class GrabadoSection extends ConsumerWidget {
                 fontSize: 13, 
                 fontStyle: FontStyle.italic,
                 color: modoProduccion ? Colors.black54 : Colors.black,
+              ),
+            ),
+
+            const SizedBox(height: 16),
+            const Text(
+              "NOTAS DEL TALLER",
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: Colors.blueGrey,
+              ),
+            ),
+            const SizedBox(height: 4),
+            TextFormField(
+              key: ValueKey("grabado_notas_taller_${controller.sessionKey}"),
+              initialValue: controller.grabadoNotasTaller,
+              maxLines: 3,
+              readOnly: !modoProduccion, // <--- EDITABLE SOLO EN PRODUCCIÓN
+              onChanged: !modoProduccion
+                  ? null
+                  : (v) => ref.read(ordenTrabajoProvider).updateGrabado('notasTaller', v),
+              decoration: InputDecoration(
+                hintText: !modoProduccion
+                    ? "Sin notas del taller"
+                    : "Escribe aquí cualquier observación o nota para esta orden...",
+                isDense: true,
+                filled: true,
+                fillColor: !modoProduccion ? Colors.grey[100] : Colors.blue[50],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(
+                    color: !modoProduccion ? Colors.grey[300]! : Colors.blue[200]!,
+                    width: 0.5,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(
+                    color: !modoProduccion ? Colors.grey[300]! : Colors.blue[200]!,
+                    width: 0.5,
+                  ),
+                ),
+              ),
+              style: TextStyle(
+                fontSize: 13,
+                fontStyle: FontStyle.italic,
+                color: !modoProduccion ? Colors.black54 : Colors.black,
               ),
             ),
 

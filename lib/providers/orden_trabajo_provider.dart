@@ -278,6 +278,7 @@ class OrdenTrabajoController extends ChangeNotifier {
 
     if (dbData['adquisiciones'] != null) {
       adquisicionesNotas = dbData['adquisiciones']['notas'] ?? '';
+      adquisicionesNotasTaller = dbData['adquisiciones']['notasTaller'] ?? '';
       materials.clear();
       for (var m in (dbData['adquisiciones']['materiales'] as List? ?? [])) {
         materials.add(
@@ -294,6 +295,7 @@ class OrdenTrabajoController extends ChangeNotifier {
     }
     if (dbData['diseno'] != null) {
       disenoNotas = dbData['diseno']['notas'] ?? '';
+      disenoNotasTaller = dbData['diseno']['notasTaller'] ?? '';
       designTasks.clear();
       for (var t in (dbData['diseno']['tareas'] as List? ?? [])) {
         designTasks.add(
@@ -313,6 +315,7 @@ class OrdenTrabajoController extends ChangeNotifier {
       offsetPapelNecesario = dbData['offset']['papelNecesario'] ?? '';
       offsetPapelLlegara = dbData['offset']['papelLlegara'] ?? '';
       offsetNotas = dbData['offset']['notas'] ?? '';
+      offsetNotasTaller = dbData['offset']['notasTaller'] ?? '';
       if (dbData['offset']['tintas'] != null) {
         final tintasDb = dbData['offset']['tintas'] as Map<String, dynamic>;
         offsetData = {
@@ -341,6 +344,7 @@ class OrdenTrabajoController extends ChangeNotifier {
 
     if (dbData['corte'] != null) {
       corteNotas = dbData['corte']['notas'] ?? '';
+      corteNotasTaller = dbData['corte']['notasTaller'] ?? '';
       cuts.clear();
       for (var c in (dbData['corte']['procesos'] as List? ?? [])) {
         cuts.add(
@@ -364,6 +368,7 @@ class OrdenTrabajoController extends ChangeNotifier {
       laminadoMaquinaChica = dbData['laminados']['maquinaChica'] ?? false;
       laminadoMaquinaGrande = dbData['laminados']['maquinaGrande'] ?? false;
       laminadoNotas = dbData['laminados']['notas'] ?? '';
+      laminadoNotasTaller = dbData['laminados']['notasTaller'] ?? '';
       if (dbData['laminados']['aplicacion'] != null) {
         laminadoAplicacion = Map<String, bool>.from(
           dbData['laminados']['aplicacion'],
@@ -379,6 +384,7 @@ class OrdenTrabajoController extends ChangeNotifier {
       suajeMarcoExistente = dbData['suaje']['marcoExistente'] ?? false;
       suajeMarcoNuevo = dbData['suaje']['marcoNuevo'] ?? false;
       suajeNotas = dbData['suaje']['notas'] ?? '';
+      suajeNotasTaller = dbData['suaje']['notasTaller'] ?? '';
     }
     if (dbData['serigrafia'] != null) {
       serigrafiaProyecto = dbData['serigrafia']['proyecto'] ?? '';
@@ -396,6 +402,7 @@ class OrdenTrabajoController extends ChangeNotifier {
         serigrafiaColorDirecto = Color(dbData['serigrafia']['colorDirecto']);
       }
       serigrafiaNotas = dbData['serigrafia']['notas'] ?? '';
+      serigrafiaNotasTaller = dbData['serigrafia']['notasTaller'] ?? '';
     }
     if (dbData['grabado'] != null) {
       grabadoProyecto = dbData['grabado']['proyecto'] ?? '';
@@ -405,6 +412,7 @@ class OrdenTrabajoController extends ChangeNotifier {
       grabadoEsMaquilador = dbData['grabado']['esMaquilador'] ?? false;
       grabadoNombreMaquila = dbData['grabado']['nombreMaquila'] ?? '';
       grabadoNotas = dbData['grabado']['notas'] ?? '';
+      grabadoNotasTaller = dbData['grabado']['notasTaller'] ?? '';
     }
     if (dbData['barniz'] != null) {
       barnizProyecto = dbData['barniz']['proyecto'] ?? '';
@@ -414,6 +422,7 @@ class OrdenTrabajoController extends ChangeNotifier {
       barnizEsMaquilador = dbData['barniz']['esMaquilador'] ?? false;
       barnizNombreMaquila = dbData['barniz']['nombreMaquila'] ?? '';
       barnizNotas = dbData['barniz']['notas'] ?? '';
+      barnizNotasTaller = dbData['barniz']['notasTaller'] ?? '';
       if (dbData['barniz']['aplicacion'] != null) {
         barnizAplicacion = Map<String, bool>.from(
           dbData['barniz']['aplicacion'],
@@ -425,6 +434,7 @@ class OrdenTrabajoController extends ChangeNotifier {
       acabadoDescripcion = dbData['acabado']['descripcionBD'] ?? '';
       acabadoCantidad = dbData['acabado']['cantidadBD'] ?? 0;
       acabadoNotas = dbData['acabado']['notas'] ?? '';
+      acabadoNotasTaller = dbData['acabado']['notasTaller'] ?? '';
       acabadosManuales.clear();
       for (var a in (dbData['acabado']['manuales'] as List? ?? [])) {
         acabadosManuales.add(
@@ -442,6 +452,7 @@ class OrdenTrabajoController extends ChangeNotifier {
       embalajeTipo = dbData['embalaje']['tipo'] ?? '';
       embalajeCantidadCajas = dbData['embalaje']['cantidadCajas'] ?? 0;
       embalajeNotas = dbData['embalaje']['notas'] ?? '';
+      embalajeNotasTaller = dbData['embalaje']['notasTaller'] ?? '';
     }
     if (dbData['logistica'] != null) {
       logisticaFechaEntrega = dbData['logistica']['fechaEntrega'] ?? '';
@@ -449,6 +460,7 @@ class OrdenTrabajoController extends ChangeNotifier {
       logisticaTransporte = dbData['logistica']['transporte'] ?? '';
       logisticaTotalEntregar = dbData['logistica']['totalEntregar'] ?? 0;
       logisticaNotas = dbData['logistica']['notas'] ?? '';
+      logisticaNotasTaller = dbData['logistica']['notasTaller'] ?? '';
     }
   }
 
@@ -482,17 +494,29 @@ class OrdenTrabajoController extends ChangeNotifier {
     try {
       final esRevista = cotizacion.tipoCotizacion == 'R';
       adquisicionesNotas = '';
+      adquisicionesNotasTaller = '';
       disenoNotas = '';
+      disenoNotasTaller = '';
       offsetNotas = '';
+      offsetNotasTaller = '';
       corteNotas = '';
+      corteNotasTaller = '';
       laminadoNotas = '';
+      laminadoNotasTaller = '';
       suajeNotas = '';
+      suajeNotasTaller = '';
       serigrafiaNotas = '';
+      serigrafiaNotasTaller = '';
       grabadoNotas = '';
+      grabadoNotasTaller = '';
       acabadoNotas = '';
+      acabadoNotasTaller = '';
       barnizNotas = '';
+      barnizNotasTaller = '';
       embalajeNotas = '';
+      embalajeNotasTaller = '';
       logisticaNotas = '';
+      logisticaNotasTaller = '';
 
       if (esRevista) {
         final detallePliegos =
@@ -943,6 +967,7 @@ class OrdenTrabajoController extends ChangeNotifier {
       logisticaTransporte = '';
       logisticaTotalEntregar = cotizacion.cantidadImpresiones;
       logisticaNotas = '';
+      logisticaNotasTaller = '';
     } catch (e, stack) {
       print("⚠️ Error al parsear los datos de la cotización: $e\n$stack");
     }
@@ -955,6 +980,7 @@ class OrdenTrabajoController extends ChangeNotifier {
   // --- 1. ADQUISICIONES ---
   List<MaterialItem> materials = [];
   String adquisicionesNotas = '';
+  String adquisicionesNotasTaller = '';
 
   void addMaterial() {
     materials.add(
@@ -970,11 +996,14 @@ class OrdenTrabajoController extends ChangeNotifier {
 
   void updateAdquisiciones(String campo, String valor) {
     if (campo == 'notas') adquisicionesNotas = valor;
+    if (campo == 'notasTaller') adquisicionesNotasTaller = valor;
+    notifyListeners();
   }
 
   // --- 2. DISEÑO ---
   List<DesignTask> designTasks = [];
   String disenoNotas = '';
+  String disenoNotasTaller = '';
 
   void addDesignTask() {
     designTasks.add(
@@ -990,6 +1019,8 @@ class OrdenTrabajoController extends ChangeNotifier {
 
   void updateDiseno(String campo, String valor) {
     if (campo == 'notas') disenoNotas = valor;
+    if (campo == 'notasTaller') disenoNotasTaller = valor;
+    notifyListeners();
   }
 
   // --- 3. OFFSET ---
@@ -1000,6 +1031,7 @@ class OrdenTrabajoController extends ChangeNotifier {
   String offsetPapelNecesario = '';
   String offsetPapelLlegara = '';
   String offsetNotas = '';
+  String offsetNotasTaller = '';
   Map<String, dynamic> offsetData = {
     'frente': {
       'C': false,
@@ -1032,11 +1064,14 @@ class OrdenTrabajoController extends ChangeNotifier {
     if (campo == 'necesario') offsetPapelNecesario = valor;
     if (campo == 'llegara') offsetPapelLlegara = valor;
     if (campo == 'notas') offsetNotas = valor;
+    if (campo == 'notasTaller') offsetNotasTaller = valor;
+    notifyListeners();
   }
 
   // --- 4. CORTE ---
   List<CutProcess> cuts = [];
   String corteNotas = '';
+  String corteNotasTaller = '';
 
   void addCut() {
     cuts.add(CutProcess(id: DateTime.now().millisecondsSinceEpoch.toString()));
@@ -1050,6 +1085,8 @@ class OrdenTrabajoController extends ChangeNotifier {
 
   void updateCorte(String campo, String valor) {
     if (campo == 'notas') corteNotas = valor;
+    if (campo == 'notasTaller') corteNotasTaller = valor;
+    notifyListeners();
   }
 
   // --- 5. LAMINADOS ---
@@ -1060,6 +1097,7 @@ class OrdenTrabajoController extends ChangeNotifier {
   bool laminadoMaquinaChica = false;
   bool laminadoMaquinaGrande = false;
   String laminadoNotas = '';
+  String laminadoNotasTaller = '';
 
   void updateLaminadoAplicacion(String cara, bool value) {
     laminadoAplicacion[cara] = value;
@@ -1078,6 +1116,7 @@ class OrdenTrabajoController extends ChangeNotifier {
     if (campo == 'pliegos')
       laminadoPliegos = int.tryParse(valor.toString()) ?? 0;
     if (campo == 'notas') laminadoNotas = valor;
+    if (campo == 'notasTaller') laminadoNotasTaller = valor;
     notifyListeners();
   }
 
@@ -1090,12 +1129,14 @@ class OrdenTrabajoController extends ChangeNotifier {
   bool suajeMarcoExistente = false;
   bool suajeMarcoNuevo = false;
   String suajeNotas = '';
+  String suajeNotasTaller = '';
 
   void updateSuaje(String campo, dynamic valor) {
     if (campo == 'proyecto') suajeProyecto = valor;
     if (campo == 'pliegos') suajePliegos = int.tryParse(valor.toString()) ?? 0;
     if (campo == 'nombreMaquila') suajeNombreMaquila = valor;
     if (campo == 'notas') suajeNotas = valor;
+    if (campo == 'notasTaller') suajeNotasTaller = valor;
     if (campo == 'romosso') {
       suajeEsRomosso = valor;
       if (valor) suajeEsMaquilador = false;
@@ -1128,6 +1169,7 @@ class OrdenTrabajoController extends ChangeNotifier {
   String serigrafiaPantoneCode = '';
   Color serigrafiaColorDirecto = Colors.blue;
   String serigrafiaNotas = '';
+  String serigrafiaNotasTaller = '';
 
   void updateSerigrafiaGeneral(String campo, dynamic valor) {
     if (campo == 'proyecto') serigrafiaProyecto = valor;
@@ -1136,6 +1178,7 @@ class OrdenTrabajoController extends ChangeNotifier {
     if (campo == 'marcos') serigrafiaMarcos = valor;
     if (campo == 'nombreMaquila') serigrafiaNombreMaquila = valor;
     if (campo == 'notas') serigrafiaNotas = valor;
+    if (campo == 'notasTaller') serigrafiaNotasTaller = valor;
     if (campo == 'marcoExistente') {
       serigrafiaMarcoExistente = valor;
       if (valor) serigrafiaMarcoNuevo = false;
@@ -1178,6 +1221,7 @@ class OrdenTrabajoController extends ChangeNotifier {
   bool grabadoEsMaquilador = false;
   String grabadoNombreMaquila = '';
   String grabadoNotas = '';
+  String grabadoNotasTaller = '';
 
   void updateGrabado(String campo, dynamic valor) {
     if (campo == 'proyecto') grabadoProyecto = valor;
@@ -1185,6 +1229,7 @@ class OrdenTrabajoController extends ChangeNotifier {
     if (campo == 'piezas') grabadoPiezas = int.tryParse(valor.toString()) ?? 0;
     if (campo == 'nombreMaquila') grabadoNombreMaquila = valor;
     if (campo == 'notas') grabadoNotas = valor;
+    if (campo == 'notasTaller') grabadoNotasTaller = valor;
     if (campo == 'romosso') {
       grabadoEsRomosso = valor;
       if (valor) grabadoEsMaquilador = false;
@@ -1201,6 +1246,7 @@ class OrdenTrabajoController extends ChangeNotifier {
   String acabadoDescripcion = '';
   int acabadoCantidad = 0;
   String acabadoNotas = '';
+  String acabadoNotasTaller = '';
   List<AcabadoManualItem> acabadosManuales = [];
 
   void updateAcabado(String campo, String valor) {
@@ -1208,6 +1254,8 @@ class OrdenTrabajoController extends ChangeNotifier {
     if (campo == 'descripcion') acabadoDescripcion = valor;
     if (campo == 'cantidad') acabadoCantidad = int.tryParse(valor) ?? 0;
     if (campo == 'notas') acabadoNotas = valor;
+    if (campo == 'notasTaller') acabadoNotasTaller = valor;
+    notifyListeners();
   }
 
   void addAcabadoManual() {
@@ -1230,12 +1278,14 @@ class OrdenTrabajoController extends ChangeNotifier {
   bool barnizEsMaquilador = false;
   String barnizNombreMaquila = '';
   String barnizNotas = '';
+  String barnizNotasTaller = '';
 
   void updateBarnizGeneral(String campo, dynamic valor) {
     if (campo == 'proyecto') barnizProyecto = valor;
     if (campo == 'pliegos') barnizPliegos = int.tryParse(valor.toString()) ?? 0;
     if (campo == 'nombreMaquila') barnizNombreMaquila = valor;
     if (campo == 'notas') barnizNotas = valor;
+    if (campo == 'notasTaller') barnizNotasTaller = valor;
     if (campo == 'romosso') {
       barnizEsRomosso = valor;
       if (valor) barnizEsMaquilador = false;
@@ -1256,11 +1306,14 @@ class OrdenTrabajoController extends ChangeNotifier {
   String embalajeTipo = '';
   int embalajeCantidadCajas = 0;
   String embalajeNotas = '';
+  String embalajeNotasTaller = '';
 
   void updateEmbalaje(String campo, String valor) {
     if (campo == 'tipo') embalajeTipo = valor;
     if (campo == 'cantidad') embalajeCantidadCajas = int.tryParse(valor) ?? 0;
     if (campo == 'notas') embalajeNotas = valor;
+    if (campo == 'notasTaller') embalajeNotasTaller = valor;
+    notifyListeners();
   }
 
   // --- 11. LOGÍSTICA ---
@@ -1269,6 +1322,7 @@ class OrdenTrabajoController extends ChangeNotifier {
   String logisticaTransporte = '';
   int logisticaTotalEntregar = 0;
   String logisticaNotas = '';
+  String logisticaNotasTaller = '';
 
   void updateLogistica(String campo, String valor) {
     if (campo == 'fecha') logisticaFechaEntrega = valor;
@@ -1276,6 +1330,7 @@ class OrdenTrabajoController extends ChangeNotifier {
     if (campo == 'transporte') logisticaTransporte = valor;
     if (campo == 'total') logisticaTotalEntregar = int.tryParse(valor) ?? 0;
     if (campo == 'notas') logisticaNotas = valor;
+    if (campo == 'notasTaller') logisticaNotasTaller = valor;
     notifyListeners();
   }
 
@@ -1294,6 +1349,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "inicio": tiempos['adquisiciones']?.inicio,
           "fin": tiempos['adquisiciones']?.fin,
           "notas": adquisicionesNotas,
+          "notasTaller": adquisicionesNotasTaller,
           "materiales": materials
               .map(
                 (m) => {
@@ -1309,6 +1365,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "inicio": tiempos['diseno']?.inicio,
           "fin": tiempos['diseno']?.fin,
           "notas": disenoNotas,
+          "notasTaller": disenoNotasTaller,
           "tareas": designTasks.map((t) => {"desc": t.desc}).toList(),
         },
           "offset": {
@@ -1321,6 +1378,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "papelLlegara": offsetPapelLlegara,
           "tintas": offsetData,
           "notas": offsetNotas,
+          "notasTaller": offsetNotasTaller,
           // >>> MAPEAR LOS SETS ADICIONALES CON SUS TINTAS PARA GUARDAR EN POSTGRES <<<
           "papelesExtra": papelesExtra.map((p) => {
             "id": p.id,
@@ -1336,6 +1394,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "inicio": tiempos['corte']?.inicio,
           "fin": tiempos['corte']?.fin,
           "notas": corteNotas,
+          "notasTaller": corteNotasTaller,
           "procesos": cuts
               .map(
                 (c) => {
@@ -1358,6 +1417,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "maquinaChica": laminadoMaquinaChica,
           "maquinaGrande": laminadoMaquinaGrande,
           "notas": laminadoNotas,
+          "notasTaller": laminadoNotasTaller,
         },
         "suaje": {
           "estatus": tiempos['suaje']?.estatus,
@@ -1371,6 +1431,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "marcoExistente": suajeMarcoExistente,
           "marcoNuevo": suajeMarcoNuevo,
           "notas": suajeNotas,
+          "notasTaller": suajeNotasTaller,
         },
         "serigrafia": {
           "estatus": tiempos['serigrafia']?.estatus,
@@ -1388,6 +1449,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "pantoneCode": serigrafiaPantoneCode,
           "colorDirecto": serigrafiaColorDirecto.value,
           "notas": serigrafiaNotas,
+          "notasTaller": serigrafiaNotasTaller,
         },
         "grabado": {
           "estatus": tiempos['grabado']?.estatus,
@@ -1400,6 +1462,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "esMaquilador": grabadoEsMaquilador,
           "nombreMaquila": grabadoNombreMaquila,
           "notas": grabadoNotas,
+          "notasTaller": grabadoNotasTaller,
         },
         "acabado": {
           "estatus": tiempos['acabado']?.estatus,
@@ -1409,6 +1472,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "descripcionBD": acabadoDescripcion,
           "cantidadBD": acabadoCantidad,
           "notas": acabadoNotas,
+          "notasTaller": acabadoNotasTaller,
           "manuales": acabadosManuales
               .map((a) => {"desc": a.desc, "piezas": a.piezas})
               .toList(),
@@ -1424,6 +1488,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "esMaquilador": barnizEsMaquilador,
           "nombreMaquila": barnizNombreMaquila,
           "notas": barnizNotas,
+          "notasTaller": barnizNotasTaller,
         },
         "embalaje": {
           "estatus": tiempos['embalaje']?.estatus,
@@ -1432,6 +1497,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "tipo": embalajeTipo,
           "cantidadCajas": embalajeCantidadCajas,
           "notas": embalajeNotas,
+          "notasTaller": embalajeNotasTaller,
         },
         "logistica": {
           "estatus": tiempos['logistica']?.estatus,
@@ -1442,6 +1508,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "transporte": logisticaTransporte,
           "totalEntregar": logisticaTotalEntregar,
           "notas": logisticaNotas,
+          "notasTaller": logisticaNotasTaller,
         },
       };
 

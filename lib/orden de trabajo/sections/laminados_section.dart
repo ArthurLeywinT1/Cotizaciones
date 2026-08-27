@@ -336,6 +336,55 @@ class LaminadosSection extends ConsumerWidget {
               ),
             ),
 
+            const SizedBox(height: 16),
+            const Text(
+              "NOTAS DEL TALLER",
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: Colors.blueGrey,
+              ),
+            ),
+            const SizedBox(height: 4),
+            TextFormField(
+              key: ValueKey("laminado_notas_taller_${controller.sessionKey}"),
+              initialValue: controller.laminadoNotasTaller,
+              maxLines: 3,
+              readOnly: !modoProduccion, // <--- EDITABLE SOLO EN PRODUCCIÓN
+              onChanged: !modoProduccion
+                  ? null
+                  : (v) => ref
+                      .read(ordenTrabajoProvider)
+                      .updateLaminadoGeneral('notasTaller', v),
+              decoration: InputDecoration(
+                hintText: !modoProduccion
+                    ? "Sin notas del taller"
+                    : "Escribe aquí cualquier observación o nota para esta orden...",
+                isDense: true,
+                filled: true,
+                fillColor: !modoProduccion ? Colors.grey[100] : Colors.blue[50],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(
+                    color: !modoProduccion ? Colors.grey[300]! : Colors.blue[200]!,
+                    width: 0.5,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(
+                    color: !modoProduccion ? Colors.grey[300]! : Colors.blue[200]!,
+                    width: 0.5,
+                  ),
+                ),
+              ),
+              style: TextStyle(
+                fontSize: 13,
+                fontStyle: FontStyle.italic,
+                color: !modoProduccion ? Colors.black54 : Colors.black,
+              ),
+            ),
+
             if (modoProduccion) ...[
               const Divider(height: 32, thickness: 1),
               SectionButtons(

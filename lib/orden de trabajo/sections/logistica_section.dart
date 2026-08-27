@@ -19,6 +19,7 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
   late TextEditingController _direccionController;
   late TextEditingController _totalController;
   late TextEditingController _notasController;
+  late TextEditingController _notasTallerController;
 
   @override
   void initState() {
@@ -40,6 +41,9 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
           : '',
     );
     _notasController = TextEditingController(text: controller.logisticaNotas);
+    _notasTallerController = TextEditingController(
+      text: controller.logisticaNotasTaller,
+    );
   }
 
   @override
@@ -49,6 +53,7 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
     _direccionController.dispose();
     _totalController.dispose();
     _notasController.dispose();
+    _notasTallerController.dispose();
     super.dispose();
   }
 
@@ -363,10 +368,7 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
                   ? null
                   : (v) => ref
                         .read(ordenTrabajoProvider)
-                        .updateLogistica(
-                          'notes',
-                          v,
-                        ), // Mantiene tu mapeo original
+                        .updateLogistica('notas', v),
               decoration: InputDecoration(
                 hintText: widget.modoProduccion
                     ? "Sin notas o especificaciones logísticas adicionales"
@@ -399,6 +401,60 @@ class _LogisticaSectionState extends ConsumerState<LogisticaSection> {
                 fontSize: 13,
                 fontStyle: FontStyle.italic,
                 color: widget.modoProduccion ? Colors.black54 : Colors.black,
+              ),
+            ),
+
+            const SizedBox(height: 16),
+            const Text(
+              "NOTAS DEL TALLER",
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: Colors.blueGrey,
+              ),
+            ),
+            const SizedBox(height: 4),
+            TextField(
+              controller: _notasTallerController,
+              maxLines: 3,
+              readOnly: !widget.modoProduccion,
+              onChanged: !widget.modoProduccion
+                  ? null
+                  : (v) => ref
+                        .read(ordenTrabajoProvider)
+                        .updateLogistica('notasTaller', v),
+              decoration: InputDecoration(
+                hintText: !widget.modoProduccion
+                    ? "Sin notas del taller"
+                    : "Escribe aquí cualquier observación o nota para esta orden...",
+                isDense: true,
+                filled: true,
+                fillColor: !widget.modoProduccion
+                    ? Colors.grey[100]
+                    : Colors.blue[50],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(
+                    color: !widget.modoProduccion
+                        ? Colors.grey[300]!
+                        : Colors.blue[200]!,
+                    width: 0.5,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(
+                    color: !widget.modoProduccion
+                        ? Colors.grey[300]!
+                        : Colors.blue[200]!,
+                    width: 0.5,
+                  ),
+                ),
+              ),
+              style: TextStyle(
+                fontSize: 13,
+                fontStyle: FontStyle.italic,
+                color: !widget.modoProduccion ? Colors.black54 : Colors.black,
               ),
             ),
 

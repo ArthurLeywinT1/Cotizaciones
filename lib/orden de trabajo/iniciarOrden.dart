@@ -130,6 +130,58 @@ class _ProduccionScreenState extends ConsumerState<ProduccionScreen> {
 
                   ..._obtenerTarjetasPorRol(),
 
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onPrimary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      icon: const Icon(Icons.save),
+                      label: const Text(
+                        "Guardar",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      onPressed: () async {
+                        FocusScope.of(context).unfocus();
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Guardando...')),
+                        );
+
+                        final exito = await ref
+                            .read(ordenTrabajoProvider.notifier)
+                            .guardarOrdenTrabajo();
+
+                        if (!context.mounted) return;
+
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              exito
+                                  ? 'Guardado con éxito'
+                                  : 'Error al guardar. Revisa tu conexión.',
+                            ),
+                            backgroundColor: exito
+                                ? Colors.green
+                                : Colors.red,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
                   const SizedBox(height: 40),
                 ],
               ),
