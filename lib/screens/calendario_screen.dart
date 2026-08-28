@@ -30,7 +30,6 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay = DateTime.now();
-  final Set<String> _areasFiltro = {};
 
   bool _isDayInRange(DateTime day, DateTime start, DateTime end) {
     final diaSeleccionado = DateTime(day.year, day.month, day.day);
@@ -47,10 +46,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
   ) {
     return todasLasActividades.where((act) {
       final enRango = _isDayInRange(day, act.fechaInicio, act.fechaFin);
-      if (rolUsuario == 'Admin') {
-        if (_areasFiltro.isEmpty) return enRango;
-        return enRango && _areasFiltro.contains(act.area);
-      }
+      if (rolUsuario == 'Admin') return enRango;
       return enRango && act.area.toLowerCase() == rolUsuario.toLowerCase();
     }).toList();
   }
@@ -74,7 +70,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
   ) {
     String titulo = '';
     String descripcion = '';
-    String areaAsignada = 'Offset';
+    String areaAsignada = 'Admin';
     DateTime inicioRango = _selectedDay ?? DateTime.now();
     DateTime finRango = _selectedDay ?? DateTime.now();
 
@@ -183,12 +179,12 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
                   labelText: 'Área',
                   border: OutlineInputBorder(),
                 ),
-                items: rolesImprenta
-                    .where((rol) => rol != 'Admin')
-                    .map(
-                      (rol) => DropdownMenuItem(value: rol, child: Text(rol)),
-                    )
-                    .toList(),
+                items: rolesImprenta.map((rol) {
+                  return DropdownMenuItem(
+                    value: rol,
+                    child: Text(rol == 'Admin' ? 'Administrador' : rol),
+                  );
+                }).toList(),
                 onChanged: (val) => setModalState(() => areaAsignada = val!),
               ),
               const SizedBox(height: 24),
@@ -277,122 +273,52 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (esAdmin) _buildFiltroAreas(colors),
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    if (constraints.maxWidth > 800) {
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            flex: 4,
-                            child: SingleChildScrollView(
-                              child: _buildCalendarioCard(
-                                colors,
-                                estadoActividades,
-                                rolUsuario,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 24),
-                          Expanded(
-                            flex: 6,
-                            child: _buildListaActividades(
-                              listaActividadesDia,
-                              colors,
-                              esAdmin,
-                              estadoActividades.isLoading,
-                            ),
-                          ),
-                        ],
-                      );
-                    } else {
-                      return Column(
-                        children: [
-                          _buildCalendarioCard(
-                            colors,
-                            estadoActividades,
-                            rolUsuario,
-                          ),
-                          const SizedBox(height: 16),
-                          Expanded(
-                            child: _buildListaActividades(
-                              listaActividadesDia,
-                              colors,
-                              esAdmin,
-                              estadoActividades.isLoading,
-                            ),
-                          ),
-                        ],
-                      );
-                    }
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFiltroAreas(ColorScheme colors) {
-    final areas = rolesImprenta.where((r) => r != 'Admin').toList();
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.filter_alt_rounded, size: 18, color: colors.primary),
-                const SizedBox(width: 8),
-                Text(
-                  'Filtrar por área / usuario',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: colors.primary,
-                  ),
-                ),
-                const Spacer(),
-                if (_areasFiltro.isNotEmpty)
-                  TextButton(
-                    onPressed: () => setState(() => _areasFiltro.clear()),
-                    child: const Text('Ver todas'),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: areas.map((area) {
-                final selected = _areasFiltro.contains(area);
-                return FilterChip(
-                  label: Text(area),
-                  selected: selected,
-                  onSelected: (val) {
-                    setState(() {
-                      if (val) {
-                        _areasFiltro.add(area);
-                      } else {
-                        _areasFiltro.remove(area);
-                      }
-                    });
-                  },
-                  selectedColor: colors.primaryContainer,
-                  checkmarkColor: colors.onPrimaryContainer,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth > 800) {
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 4,
+                      child: SingleChildScrollView(
+                        child: _buildCalendarioCard(
+                          colors,
+                          estadoActividades,
+                          rolUsuario,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    Expanded(
+                      flex: 6,
+                      child: _buildListaActividades(
+                        listaActividadesDia,
+                        colors,
+                        esAdmin,
+                        estadoActividades.isLoading,
+                      ),
+                    ),
+                  ],
                 );
-              }).toList(),
-            ),
-          ],
+              } else {
+                return Column(
+                  children: [
+                    _buildCalendarioCard(colors, estadoActividades, rolUsuario),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: _buildListaActividades(
+                        listaActividadesDia,
+                        colors,
+                        esAdmin,
+                        estadoActividades.isLoading,
+                      ),
+                    ),
+                  ],
+                );
+              }
+            },
+          ),
         ),
       ),
     );

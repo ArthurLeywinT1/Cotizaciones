@@ -1,13 +1,13 @@
 // revista.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'revista_cliente.dart';
-import 'cantidad_pliegos.dart';
+
+
 import '../../models/cotizacion_model.dart';
-import '../../providers/cotizacion_provider.dart';
 import '../../providers/auth_provider.dart';
-
-
+import '../../providers/cotizacion_provider.dart';
+import 'cantidad_pliegos.dart';
+import 'revista_cliente.dart';
 
 class RevistaPage extends ConsumerStatefulWidget {
   final Cotizacion? cotizacionAEditar;
@@ -25,11 +25,11 @@ class RevistaPage extends ConsumerStatefulWidget {
   ConsumerState<RevistaPage> createState() => _RevistaPageState();
 }
 
-
 class _RevistaPageState extends ConsumerState<RevistaPage> {
-  final GlobalKey<RevistaClienteState> _clienteKey = GlobalKey<RevistaClienteState>();
-  final GlobalKey<CantidadPliegosState> _pliegosKey = GlobalKey<CantidadPliegosState>();
-
+  final GlobalKey<RevistaClienteState> _clienteKey =
+      GlobalKey<RevistaClienteState>();
+  final GlobalKey<CantidadPliegosState> _pliegosKey =
+      GlobalKey<CantidadPliegosState>();
   int cantidadDePliegos = 0;
   int piezasTotales = 0; // 🔥 Nueva variable para los cálculos matemáticos
 
@@ -55,23 +55,25 @@ class _RevistaPageState extends ConsumerState<RevistaPage> {
       descripcionInicial = cotizacion.descripcion;
       anchoMedidaInicial = cotizacion.anchoMedida;
       altoMedidaInicial = cotizacion.altoMedida;
-      cantidadPliegosInicial = cotizacion.totalPliegos;
-      // Recotización: si viene un piezasOverride, manda sobre el valor guardado.
-      piezasTotalesInicial = widget.piezasOverride ?? cotizacion.cantidadImpresiones;
-
-      // FIX: CantidadPliegos calcula todo con estas dos variables del padre,
-      // no con lo que se ve en pantalla en RevistaCliente. Y RevistaCliente
-      // solo las reporta hacia arriba vía onChanged, que NO se dispara al
-      // asignar .text por código dentro de su propio initState (eso solo
-      // actualiza lo que se ve, no el estado de esta pantalla).
+      cantidadPliegosInicial = cotizacion.numPliegos > 0
+          ? cotizacion.numPliegos
+          : cotizacion.totalPliegos;
+      piezasTotalesInicial =
+          widget.piezasOverride ?? cotizacion.cantidadImpresiones;
       cantidadDePliegos = cantidadPliegosInicial ?? 0;
       piezasTotales = piezasTotalesInicial ?? 0;
+      final configClientes = cotizacion.configClientes;
+      if (configClientes != null) {
+        proyectoInicial = configClientes['proyecto']?.toString();
+      }
 
       final configPliegos = cotizacion.configPliegos;
       if (configPliegos != null) {
         final pliegosGuardados = configPliegos['detalle_pliegos'];
         if (pliegosGuardados is List) {
-          _pliegosDatosIniciales = pliegosGuardados.map((e) => e as Map<String, dynamic>).toList();
+          _pliegosDatosIniciales = pliegosGuardados
+              .map((e) => Map<String, dynamic>.from(e as Map))
+              .toList();
         } else {
           _pliegosDatosIniciales = [];
         }
@@ -97,7 +99,9 @@ class _RevistaPageState extends ConsumerState<RevistaPage> {
     if (clienteState == null || pliegosState == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se pudieron leer los datos de la pantalla')),
+        const SnackBar(
+          content: Text('No se pudieron leer los datos de la pantalla'),
+        ),
       );
       return;
     }
@@ -105,24 +109,47 @@ class _RevistaPageState extends ConsumerState<RevistaPage> {
     final datosCliente = clienteState.obtenerDatos();
     final datosProduccion = pliegosState.obtenerResumenParaGuardar();
 
+    final String? clienteIdReal = datosCliente['cliente_id'] as String?;
+    if (clienteIdReal == null || clienteIdReal.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selecciona un Cliente primero')),
+      );
+      return;
+    }
+
     final int piezas = datosCliente['piezas_totales'] ?? 0;
-    final int totalPliegosCapturados = datosCliente['cantidad_pliegos'] ?? 0;
+    final int pliegosCapturados = datosCliente['cantidad_pliegos'] ?? 0;
     final double ancho = datosCliente['ancho_medida'] ?? 0.0;
     final double alto = datosCliente['alto_medida'] ?? 0.0;
     final double precioSinIva = datosProduccion['precio_descuento'] ?? 0.0;
     final double precioUnitario = datosProduccion['precio_unitario'] ?? 0.0;
     final double precioConIva = datosProduccion['precio_con_iva'] ?? 0.0;
-    final String? clienteIdReal = datosCliente['cliente_id'] as String?;
 
-    // Recotización: aunque cargamos datos desde cotizacionAEditar, se guarda
-    // como una cotización NUEVA (no se pisa la original).
-    final bool esNuevo = widget.cotizacionAEditar == null || widget.esRecotizacion;
+    final pliegosList = datosProduccion['pliegos'] as List?;
+
+    int sumaTotalPliegosPapel = 0;
+    if (pliegosList != null) {
+      for (var p in pliegosList) {
+        if (p is Map) {
+          final calculos = p['calculos_impresion'] as Map?;
+          final totalP = int.tryParse(
+            calculos?['total_pliegos_utilizar']?.toString() ?? '',
+          ) ?? 0;
+          sumaTotalPliegosPapel += totalP;
+        }
+      }
+    }
+
+    final int numeroFinalPliegos = pliegosList?.length ?? pliegosCapturados;
+    final bool esNuevo =
+        widget.cotizacionAEditar == null || widget.esRecotizacion;
 
     final nuevaCotizacion = Cotizacion(
       id: esNuevo ? null : widget.cotizacionAEditar?.id,
       folio: esNuevo ? null : widget.cotizacionAEditar?.folio,
       fechaCreacion: esNuevo ? null : widget.cotizacionAEditar?.fechaCreacion,
-      clienteId: clienteIdReal!,
+      clienteId: clienteIdReal,
       usuarioId: usuarioIdActual,
       descripcion: datosCliente['descripcion'] ?? '',
       anchoMedida: ancho,
@@ -130,7 +157,10 @@ class _RevistaPageState extends ConsumerState<RevistaPage> {
       tintaFrontal: 0,
       tintaReverso: 0,
       cantidadImpresiones: piezas,
-      totalPliegos: totalPliegosCapturados,
+      numPliegos: numeroFinalPliegos,
+      totalPliegos: sumaTotalPliegosPapel > 0
+          ? sumaTotalPliegosPapel
+          : pliegosCapturados,
       precioSinIva: precioSinIva,
       precioUnitario: precioUnitario,
       precioConIva: precioConIva,
@@ -140,13 +170,14 @@ class _RevistaPageState extends ConsumerState<RevistaPage> {
       tipoCotizacion: 'R',
 
       configClientes: {
+        'cliente_id': clienteIdReal,
         'cliente_nombre': datosCliente['cliente_nombre'],
         'proyecto': datosCliente['proyecto'],
         'descripcion': datosCliente['descripcion'],
       },
 
       configPliegos: {
-        'cantidad_pliegos': totalPliegosCapturados,
+        'cantidad_pliegos': numeroFinalPliegos,
         'detalle_pliegos': datosProduccion['pliegos'],
       },
 
@@ -161,12 +192,27 @@ class _RevistaPageState extends ConsumerState<RevistaPage> {
         'iva': datosProduccion['iva'],
         'precio_con_iva': datosProduccion['precio_con_iva'],
       },
+
+      configAcabados: null,
+      configAcabadosEspeciales: null,
+      configCorte: null,
+      configCostoPapel: null,
+      configDatosPapel: null,
+      configGrabado: null,
+      configLaminado: null,
+      configMaquina: null,
+      configSerigrafia: null,
+      configSuaje: null,
+      configEmbalaje: null,
     );
 
     final bool exito = esNuevo
-        ? await ref.read(cotizacionesProvider.notifier).crearCotizacion(nuevaCotizacion)
-        : await ref.read(cotizacionesProvider.notifier).actualizarCotizacion(nuevaCotizacion);
-
+        ? await ref
+            .read(cotizacionesProvider.notifier)
+            .crearCotizacion(nuevaCotizacion)
+        : await ref
+            .read(cotizacionesProvider.notifier)
+            .actualizarCotizacion(nuevaCotizacion);
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -194,8 +240,8 @@ class _RevistaPageState extends ConsumerState<RevistaPage> {
         padding: const EdgeInsets.all(16.0),
         children: [
           const SizedBox(height: 20),
-          
-          // HOJA 1: Datos Cliente (Escucha cambios de pliegos y piezas)
+
+          // HOJA 1: Datos Cliente
           RevistaCliente(
             key: _clienteKey,
             onPliegosChanged: (value) {
@@ -208,7 +254,6 @@ class _RevistaPageState extends ConsumerState<RevistaPage> {
                 piezasTotales = int.tryParse(value) ?? 0;
               });
             },
-
             clienteIdInicial: clienteIdInicial,
             clienteNombreInicial: clienteNombreInicial,
             proyectoInicial: proyectoInicial,
@@ -228,10 +273,12 @@ class _RevistaPageState extends ConsumerState<RevistaPage> {
             piezasTotales: piezasTotales,
             datosIniciales: _pliegosDatosIniciales,
           ),
-          
+
           const SizedBox(height: 30),
           ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16)),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.all(16),
+            ),
             onPressed: _guardarCotizacion,
             icon: const Icon(Icons.save),
             label: const Text('Guardar Cotización Completa'),

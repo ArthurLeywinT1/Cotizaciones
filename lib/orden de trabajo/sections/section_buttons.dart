@@ -17,8 +17,10 @@ class SectionButtons extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.only(top: 24.0, bottom: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      child: Wrap(
+        alignment: WrapAlignment.spaceEvenly,
+        spacing: 12,
+        runSpacing: 12,
         children: [
           _buildButton(
             label: "Inicio",
@@ -35,6 +37,24 @@ class SectionButtons extends ConsumerWidget {
               await ref
                   .read(ordenTrabajoProvider.notifier)
                   .iniciarProceso(area);
+            },
+          ),
+
+          _buildButton(
+            label: "Pausa",
+            icon: Icons.pause,
+            color: Colors.amber,
+            onPressed: () async {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Pausando proceso en ${area.toUpperCase()}...',
+                  ),
+                ),
+              );
+              await ref
+                  .read(ordenTrabajoProvider.notifier)
+                  .pausarProceso(area);
             },
           ),
 
@@ -108,7 +128,7 @@ class SectionButtons extends ConsumerWidget {
         foregroundColor: color.shade700,
         backgroundColor: color.shade50,
         elevation: 0,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         side: BorderSide(color: color.shade200, width: 1),
       ),

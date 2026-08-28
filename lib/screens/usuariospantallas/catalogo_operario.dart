@@ -122,6 +122,10 @@ class _TablaOperarioScreenState extends ConsumerState<TablaOperarioScreen> {
               textColor = Colors.blue.shade700;
               bgColor = Colors.blue.shade50;
               borderColor = Colors.blue.shade200;
+            } else if (val == 'Pausa') {
+              textColor = Colors.amber.shade900;
+              bgColor = Colors.amber.shade50;
+              borderColor = Colors.amber.shade300;
             } else if (val == 'Fin') {
               textColor = Colors.green.shade700;
               bgColor = Colors.green.shade50;

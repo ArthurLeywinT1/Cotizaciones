@@ -86,61 +86,73 @@ class CatalogoOTScreen extends ConsumerWidget {
                       DataColumn(label: Text('Estatus Adq.')),
                       DataColumn(label: Text('Incidente Adq.')),
                       DataColumn(label: Text('Inicio Adq.')),
+                      DataColumn(label: Text('Pausa Adq.')),
                       DataColumn(label: Text('Fin Adq.')),
 
                       DataColumn(label: Text('Estatus Diseño')),
                       DataColumn(label: Text('Incidente Diseño')),
                       DataColumn(label: Text('Inicio Diseño')),
+                      DataColumn(label: Text('Pausa Diseño')),
                       DataColumn(label: Text('Fin Diseño')),
 
                       DataColumn(label: Text('Estatus Offset')),
                       DataColumn(label: Text('Incidente Offset')),
                       DataColumn(label: Text('Inicio Offset')),
+                      DataColumn(label: Text('Pausa Offset')),
                       DataColumn(label: Text('Fin Offset')),
 
                       DataColumn(label: Text('Estatus Corte')),
                       DataColumn(label: Text('Incidente Corte')),
                       DataColumn(label: Text('Inicio Corte')),
+                      DataColumn(label: Text('Pausa Corte')),
                       DataColumn(label: Text('Fin Corte')),
 
                       DataColumn(label: Text('Estatus Laminado')),
                       DataColumn(label: Text('Incidente Laminado')),
                       DataColumn(label: Text('Inicio Laminado')),
+                      DataColumn(label: Text('Pausa Laminado')),
                       DataColumn(label: Text('Fin Laminado')),
 
                       DataColumn(label: Text('Estatus Suaje')),
                       DataColumn(label: Text('Incidente Suaje')),
                       DataColumn(label: Text('Inicio Suaje')),
+                      DataColumn(label: Text('Pausa Suaje')),
                       DataColumn(label: Text('Fin Suaje')),
 
                       DataColumn(label: Text('Estatus Serigrafía')),
                       DataColumn(label: Text('Incidente Serigrafía')),
                       DataColumn(label: Text('Inicio Serigrafía')),
+                      DataColumn(label: Text('Pausa Serigrafía')),
                       DataColumn(label: Text('Fin Serigrafía')),
 
                       DataColumn(label: Text('Estatus Grabado')),
                       DataColumn(label: Text('Incidente Grabado')),
                       DataColumn(label: Text('Inicio Grabado')),
+                      DataColumn(label: Text('Pausa Grabado')),
                       DataColumn(label: Text('Fin Grabado')),
 
                       DataColumn(label: Text('Estatus Acabado')),
                       DataColumn(label: Text('Incidente Acabado')),
                       DataColumn(label: Text('Inicio Acabado')),
+                      DataColumn(label: Text('Pausa Acabado')),
                       DataColumn(label: Text('Fin Acabado')),
 
                       DataColumn(label: Text('Estatus Barniz')),
                       DataColumn(label: Text('Incidente Barniz')),
                       DataColumn(label: Text('Inicio Barniz')),
+                      DataColumn(label: Text('Pausa Barniz')),
                       DataColumn(label: Text('Fin Barniz')),
 
                       DataColumn(label: Text('Estatus Embalaje')),
                       DataColumn(label: Text('Incidente Embalaje')),
                       DataColumn(label: Text('Inicio Embalaje')),
+                      DataColumn(label: Text('Pausa Embalaje')),
                       DataColumn(label: Text('Fin Embalaje')),
 
                       DataColumn(label: Text('Estatus Logística')),
                       DataColumn(label: Text('Incidente Logística')),
                       DataColumn(label: Text('Inicio Logística')),
+                      DataColumn(label: Text('Pausa Logística')),
                       DataColumn(label: Text('Fin Logística')),
                     ],
                     rows: otState.ordenes.map((orden) {
@@ -177,6 +189,10 @@ class CatalogoOTScreen extends ConsumerWidget {
                           textColor = Colors.blue.shade700;
                           bgColor = Colors.blue.shade50;
                           borderColor = Colors.blue.shade200;
+                        } else if (val == 'Pausa') {
+                          textColor = Colors.amber.shade900;
+                          bgColor = Colors.amber.shade50;
+                          borderColor = Colors.amber.shade300;
                         } else if (val == 'Fin') {
                           textColor = Colors.green.shade700;
                           bgColor = Colors.green.shade50;
@@ -284,6 +300,9 @@ class CatalogoOTScreen extends ConsumerWidget {
                             Text(formatearFecha(orden['inicio_adquisiciones'])),
                           ),
                           DataCell(
+                            Text(formatearFecha(orden['pausa_adquisiciones'])),
+                          ),
+                          DataCell(
                             Text(formatearFecha(orden['fin_adquisiciones'])),
                           ),
 
@@ -292,6 +311,9 @@ class CatalogoOTScreen extends ConsumerWidget {
                           DataCell(
                             Text(formatearFecha(orden['inicio_diseno'])),
                           ),
+                          DataCell(
+                            Text(formatearFecha(orden['pausa_diseno'])),
+                          ),
                           DataCell(Text(formatearFecha(orden['fin_diseno']))),
 
                           DataCell(widgetEstatus(orden['estatus_offset'])),
@@ -299,11 +321,15 @@ class CatalogoOTScreen extends ConsumerWidget {
                           DataCell(
                             Text(formatearFecha(orden['inicio_offset'])),
                           ),
+                          DataCell(
+                            Text(formatearFecha(orden['pausa_offset'])),
+                          ),
                           DataCell(Text(formatearFecha(orden['fin_offset']))),
 
                           DataCell(widgetEstatus(orden['estatus_corte'])),
                           DataCell(widgetIncidente(orden['incidente_corte'])),
                           DataCell(Text(formatearFecha(orden['inicio_corte']))),
+                          DataCell(Text(formatearFecha(orden['pausa_corte']))),
                           DataCell(Text(formatearFecha(orden['fin_corte']))),
 
                           DataCell(widgetEstatus(orden['estatus_laminado'])),
@@ -313,11 +339,15 @@ class CatalogoOTScreen extends ConsumerWidget {
                           DataCell(
                             Text(formatearFecha(orden['inicio_laminado'])),
                           ),
+                          DataCell(
+                            Text(formatearFecha(orden['pausa_laminado'])),
+                          ),
                           DataCell(Text(formatearFecha(orden['fin_laminado']))),
 
                           DataCell(widgetEstatus(orden['estatus_suaje'])),
                           DataCell(widgetIncidente(orden['incidente_suaje'])),
                           DataCell(Text(formatearFecha(orden['inicio_suaje']))),
+                          DataCell(Text(formatearFecha(orden['pausa_suaje']))),
                           DataCell(Text(formatearFecha(orden['fin_suaje']))),
 
                           DataCell(widgetEstatus(orden['estatus_serigrafia'])),
@@ -328,6 +358,9 @@ class CatalogoOTScreen extends ConsumerWidget {
                             Text(formatearFecha(orden['inicio_serigrafia'])),
                           ),
                           DataCell(
+                            Text(formatearFecha(orden['pausa_serigrafia'])),
+                          ),
+                          DataCell(
                             Text(formatearFecha(orden['fin_serigrafia'])),
                           ),
 
@@ -336,6 +369,9 @@ class CatalogoOTScreen extends ConsumerWidget {
                           DataCell(
                             Text(formatearFecha(orden['inicio_grabado'])),
                           ),
+                          DataCell(
+                            Text(formatearFecha(orden['pausa_grabado'])),
+                          ),
                           DataCell(Text(formatearFecha(orden['fin_grabado']))),
 
                           DataCell(widgetEstatus(orden['estatus_acabado'])),
@@ -343,12 +379,18 @@ class CatalogoOTScreen extends ConsumerWidget {
                           DataCell(
                             Text(formatearFecha(orden['inicio_acabado'])),
                           ),
+                          DataCell(
+                            Text(formatearFecha(orden['pausa_acabado'])),
+                          ),
                           DataCell(Text(formatearFecha(orden['fin_acabado']))),
 
                           DataCell(widgetEstatus(orden['estatus_barniz'])),
                           DataCell(widgetIncidente(orden['incidente_barniz'])),
                           DataCell(
                             Text(formatearFecha(orden['inicio_barniz'])),
+                          ),
+                          DataCell(
+                            Text(formatearFecha(orden['pausa_barniz'])),
                           ),
                           DataCell(Text(formatearFecha(orden['fin_barniz']))),
 
@@ -359,6 +401,9 @@ class CatalogoOTScreen extends ConsumerWidget {
                           DataCell(
                             Text(formatearFecha(orden['inicio_embalaje'])),
                           ),
+                          DataCell(
+                            Text(formatearFecha(orden['pausa_embalaje'])),
+                          ),
                           DataCell(Text(formatearFecha(orden['fin_embalaje']))),
 
                           DataCell(widgetEstatus(orden['estatus_logistica'])),
@@ -367,6 +412,9 @@ class CatalogoOTScreen extends ConsumerWidget {
                           ),
                           DataCell(
                             Text(formatearFecha(orden['inicio_logistica'])),
+                          ),
+                          DataCell(
+                            Text(formatearFecha(orden['pausa_logistica'])),
                           ),
                           DataCell(
                             Text(formatearFecha(orden['fin_logistica'])),

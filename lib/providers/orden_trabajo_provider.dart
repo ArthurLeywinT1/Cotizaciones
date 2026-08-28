@@ -46,6 +46,7 @@ class DesignTask {
 
   DesignTask({required this.id, this.desc = ''});
 }
+
 class PapelExtraItem {
   String id = DateTime.now().millisecondsSinceEpoch.toString();
   String nombrePapel = "";
@@ -53,8 +54,24 @@ class PapelExtraItem {
   String papelNecesario = "";
   String papelLlegara = "";
   Map<String, dynamic> tintas = {
-    'frente': {'C': false, 'M': false, 'Y': false, 'K': false, 'especial': false, 'pantone': false, 'tinta_esp': ''},
-    'vuelta': {'C': false, 'M': false, 'Y': false, 'K': false, 'especial': false, 'pantone': false, 'tinta_esp': ''}
+    'frente': {
+      'C': false,
+      'M': false,
+      'Y': false,
+      'K': false,
+      'especial': false,
+      'pantone': false,
+      'tinta_esp': ''
+    },
+    'vuelta': {
+      'C': false,
+      'M': false,
+      'Y': false,
+      'K': false,
+      'especial': false,
+      'pantone': false,
+      'tinta_esp': ''
+    }
   };
 }
 
@@ -69,22 +86,39 @@ class AcabadoManualItem {
 class TiempoProceso {
   String estatus;
   String? inicio;
+  String? pausa;
   String? fin;
+  List<Map<String, dynamic>> historial;
 
-  TiempoProceso({this.estatus = 'Pendiente', this.inicio, this.fin});
+  TiempoProceso({
+    this.estatus = 'Pendiente',
+    this.inicio,
+    this.pausa,
+    this.fin,
+    List<Map<String, dynamic>>? historial,
+  }) : historial = historial ?? [];
 
   Map<String, dynamic> toJson() => {
-    'estatus': estatus,
-    'inicio': inicio,
-    'fin': fin,
-  };
+        'estatus': estatus,
+        'inicio': inicio,
+        'pausa': pausa,
+        'fin': fin,
+        'historial': historial,
+      };
 
   factory TiempoProceso.fromJson(Map<String, dynamic>? json) {
     if (json == null) return TiempoProceso();
     return TiempoProceso(
       estatus: json['estatus'] ?? 'Pendiente',
       inicio: json['inicio'],
+      pausa: json['pausa'],
       fin: json['fin'],
+      historial: json['historial'] is List
+          ? List<Map<String, dynamic>>.from(
+              (json['historial'] as List)
+                  .map((e) => Map<String, dynamic>.from(e as Map)),
+            )
+          : [],
     );
   }
 }
@@ -177,8 +211,32 @@ class OrdenTrabajoController extends ChangeNotifier {
   Future<void> iniciarProceso(String seccion) async {
     final key = _normalizarKey(seccion);
     if (tiempos.containsKey(key)) {
+      final timestamp = DateTime.now().toIso8601String();
       tiempos[key]!.estatus = 'Inicio';
-      tiempos[key]!.inicio ??= DateTime.now().toIso8601String();
+      tiempos[key]!.inicio ??= timestamp;
+
+      tiempos[key]!.historial.add({
+        'evento': 'inicio',
+        'fecha': timestamp,
+      });
+
+      notifyListeners();
+      await guardarOrdenTrabajo();
+    }
+  }
+
+  Future<void> pausarProceso(String seccion) async {
+    final key = _normalizarKey(seccion);
+    if (tiempos.containsKey(key)) {
+      final timestamp = DateTime.now().toIso8601String();
+      tiempos[key]!.estatus = 'Pausa';
+      tiempos[key]!.pausa = timestamp;
+
+      tiempos[key]!.historial.add({
+        'evento': 'pausa',
+        'fecha': timestamp,
+      });
+
       notifyListeners();
       await guardarOrdenTrabajo();
     }
@@ -187,8 +245,15 @@ class OrdenTrabajoController extends ChangeNotifier {
   Future<void> terminarProceso(String seccion) async {
     final key = _normalizarKey(seccion);
     if (tiempos.containsKey(key)) {
+      final timestamp = DateTime.now().toIso8601String();
       tiempos[key]!.estatus = 'Fin';
-      tiempos[key]!.fin = DateTime.now().toIso8601String();
+      tiempos[key]!.fin = timestamp;
+
+      tiempos[key]!.historial.add({
+        'evento': 'fin',
+        'fecha': timestamp,
+      });
+
       notifyListeners();
       await guardarOrdenTrabajo();
     }
@@ -209,7 +274,7 @@ class OrdenTrabajoController extends ChangeNotifier {
     notifyListeners();
 
     currentCotizacionId = id;
-    
+
     try {
       final cotizacion = ref
           .read(cotizacionesProvider)
@@ -283,8 +348,7 @@ class OrdenTrabajoController extends ChangeNotifier {
       for (var m in (dbData['adquisiciones']['materiales'] as List? ?? [])) {
         materials.add(
           MaterialItem(
-            id:
-                DateTime.now().millisecondsSinceEpoch.toString() +
+            id: DateTime.now().millisecondsSinceEpoch.toString() +
                 m.hashCode.toString(),
             nombre: m['nombre'] ?? '',
             proveedor: m['proveedor'] ?? '',
@@ -300,8 +364,7 @@ class OrdenTrabajoController extends ChangeNotifier {
       for (var t in (dbData['diseno']['tareas'] as List? ?? [])) {
         designTasks.add(
           DesignTask(
-            id:
-                DateTime.now().millisecondsSinceEpoch.toString() +
+            id: DateTime.now().millisecondsSinceEpoch.toString() +
                 t.hashCode.toString(),
             desc: t['desc'] ?? '',
           ),
@@ -309,7 +372,7 @@ class OrdenTrabajoController extends ChangeNotifier {
       }
     }
 
-  if (dbData['offset'] != null) {
+    if (dbData['offset'] != null) {
       offsetTipoTrabajo = dbData['offset']['tipoTrabajo'] ?? '';
       offsetPiezasPedidas = dbData['offset']['piezasPedidas'] ?? 0;
       offsetPapelNecesario = dbData['offset']['papelNecesario'] ?? '';
@@ -323,7 +386,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           'vuelta': Map<String, dynamic>.from(tintasDb['vuelta'] ?? {}),
         };
       }
-      
+
       // >>> CARGAR PAPELES EXTRA DE LA BD EN MEMORIA <<<
       papelesExtra.clear();
       if (dbData['offset']['papelesExtra'] != null) {
@@ -349,8 +412,7 @@ class OrdenTrabajoController extends ChangeNotifier {
       for (var c in (dbData['corte']['procesos'] as List? ?? [])) {
         cuts.add(
           CutProcess(
-            id:
-                DateTime.now().millisecondsSinceEpoch.toString() +
+            id: DateTime.now().millisecondsSinceEpoch.toString() +
                 c.hashCode.toString(),
             tipo: c['tipo'] ?? '',
             desc: c['desc'] ?? '',
@@ -439,8 +501,7 @@ class OrdenTrabajoController extends ChangeNotifier {
       for (var a in (dbData['acabado']['manuales'] as List? ?? [])) {
         acabadosManuales.add(
           AcabadoManualItem(
-            id:
-                DateTime.now().millisecondsSinceEpoch.toString() +
+            id: DateTime.now().millisecondsSinceEpoch.toString() +
                 a.hashCode.toString(),
             desc: a['desc'] ?? '',
             piezas: a['piezas']?.toString() ?? '',
@@ -1024,7 +1085,7 @@ class OrdenTrabajoController extends ChangeNotifier {
   }
 
   // --- 3. OFFSET ---
-  
+
   String offsetTipoTrabajo = '';
   String offsetNombrePapel = ''; // <--- Añade esto para que el getter exista
   int offsetPiezasPedidas = 0;
@@ -1347,7 +1408,9 @@ class OrdenTrabajoController extends ChangeNotifier {
         "adquisiciones": {
           "estatus": tiempos['adquisiciones']?.estatus,
           "inicio": tiempos['adquisiciones']?.inicio,
+          "pausa": tiempos['adquisiciones']?.pausa,
           "fin": tiempos['adquisiciones']?.fin,
+          "historial": tiempos['adquisiciones']?.historial,
           "notas": adquisicionesNotas,
           "notasTaller": adquisicionesNotasTaller,
           "materiales": materials
@@ -1363,15 +1426,19 @@ class OrdenTrabajoController extends ChangeNotifier {
         "diseno": {
           "estatus": tiempos['diseno']?.estatus,
           "inicio": tiempos['diseno']?.inicio,
+          "pausa": tiempos['diseno']?.pausa,
           "fin": tiempos['diseno']?.fin,
+          "historial": tiempos['diseno']?.historial,
           "notas": disenoNotas,
           "notasTaller": disenoNotasTaller,
           "tareas": designTasks.map((t) => {"desc": t.desc}).toList(),
         },
-          "offset": {
+        "offset": {
           "estatus": tiempos['offset']?.estatus,
           "inicio": tiempos['offset']?.inicio,
+          "pausa": tiempos['offset']?.pausa,
           "fin": tiempos['offset']?.fin,
+          "historial": tiempos['offset']?.historial,
           "tipoTrabajo": offsetTipoTrabajo,
           "piezasPedidas": offsetPiezasPedidas,
           "papelNecesario": offsetPapelNecesario,
@@ -1387,12 +1454,14 @@ class OrdenTrabajoController extends ChangeNotifier {
             "papelNecesario": p.papelNecesario,
             "papelLlegara": p.papelLlegara,
             "tintas": p.tintas,
-            }).toList(),
+          }).toList(),
         },
         "corte": {
           "estatus": tiempos['corte']?.estatus,
           "inicio": tiempos['corte']?.inicio,
+          "pausa": tiempos['corte']?.pausa,
           "fin": tiempos['corte']?.fin,
+          "historial": tiempos['corte']?.historial,
           "notas": corteNotas,
           "notasTaller": corteNotasTaller,
           "procesos": cuts
@@ -1409,7 +1478,9 @@ class OrdenTrabajoController extends ChangeNotifier {
         "laminados": {
           "estatus": tiempos['laminados']?.estatus,
           "inicio": tiempos['laminados']?.inicio,
+          "pausa": tiempos['laminados']?.pausa,
           "fin": tiempos['laminados']?.fin,
+          "historial": tiempos['laminados']?.historial,
           "proyecto": laminadoProyecto,
           "acabado": laminadoAcabado,
           "pliegos": laminadoPliegos,
@@ -1422,7 +1493,9 @@ class OrdenTrabajoController extends ChangeNotifier {
         "suaje": {
           "estatus": tiempos['suaje']?.estatus,
           "inicio": tiempos['suaje']?.inicio,
+          "pausa": tiempos['suaje']?.pausa,
           "fin": tiempos['suaje']?.fin,
+          "historial": tiempos['suaje']?.historial,
           "proyecto": suajeProyecto,
           "pliegos": suajePliegos,
           "esRomosso": suajeEsRomosso,
@@ -1436,7 +1509,9 @@ class OrdenTrabajoController extends ChangeNotifier {
         "serigrafia": {
           "estatus": tiempos['serigrafia']?.estatus,
           "inicio": tiempos['serigrafia']?.inicio,
+          "pausa": tiempos['serigrafia']?.pausa,
           "fin": tiempos['serigrafia']?.fin,
+          "historial": tiempos['serigrafia']?.historial,
           "proyecto": serigrafiaProyecto,
           "piezas": serigrafiaPiezas,
           "marcos": serigrafiaMarcos,
@@ -1454,7 +1529,9 @@ class OrdenTrabajoController extends ChangeNotifier {
         "grabado": {
           "estatus": tiempos['grabado']?.estatus,
           "inicio": tiempos['grabado']?.inicio,
+          "pausa": tiempos['grabado']?.pausa,
           "fin": tiempos['grabado']?.fin,
+          "historial": tiempos['grabado']?.historial,
           "proyecto": grabadoProyecto,
           "placas": grabadoPlacas,
           "piezas": grabadoPiezas,
@@ -1467,7 +1544,9 @@ class OrdenTrabajoController extends ChangeNotifier {
         "acabado": {
           "estatus": tiempos['acabado']?.estatus,
           "inicio": tiempos['acabado']?.inicio,
+          "pausa": tiempos['acabado']?.pausa,
           "fin": tiempos['acabado']?.fin,
+          "historial": tiempos['acabado']?.historial,
           "proyecto": acabadoProyecto,
           "descripcionBD": acabadoDescripcion,
           "cantidadBD": acabadoCantidad,
@@ -1480,7 +1559,9 @@ class OrdenTrabajoController extends ChangeNotifier {
         "barniz": {
           "estatus": tiempos['barniz']?.estatus,
           "inicio": tiempos['barniz']?.inicio,
+          "pausa": tiempos['barniz']?.pausa,
           "fin": tiempos['barniz']?.fin,
+          "historial": tiempos['barniz']?.historial,
           "proyecto": barnizProyecto,
           "pliegos": barnizPliegos,
           "aplicacion": barnizAplicacion,
@@ -1493,7 +1574,9 @@ class OrdenTrabajoController extends ChangeNotifier {
         "embalaje": {
           "estatus": tiempos['embalaje']?.estatus,
           "inicio": tiempos['embalaje']?.inicio,
+          "pausa": tiempos['embalaje']?.pausa,
           "fin": tiempos['embalaje']?.fin,
+          "historial": tiempos['embalaje']?.historial,
           "tipo": embalajeTipo,
           "cantidadCajas": embalajeCantidadCajas,
           "notas": embalajeNotas,
@@ -1502,7 +1585,9 @@ class OrdenTrabajoController extends ChangeNotifier {
         "logistica": {
           "estatus": tiempos['logistica']?.estatus,
           "inicio": tiempos['logistica']?.inicio,
+          "pausa": tiempos['logistica']?.pausa,
           "fin": tiempos['logistica']?.fin,
+          "historial": tiempos['logistica']?.historial,
           "fechaEntrega": logisticaFechaEntrega,
           "direccion": logisticaDireccion,
           "transporte": logisticaTransporte,

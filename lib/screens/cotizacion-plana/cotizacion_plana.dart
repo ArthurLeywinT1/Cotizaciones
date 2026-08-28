@@ -853,7 +853,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     });
   }
 
-Future<void> _guardarCotizacion({String? nuevoStatus}) async {
+  Future<void> _guardarCotizacion({String? nuevoStatus}) async {
     // 1. Le da un respiro a la UI para que no se congele el hilo principal
     await Future.delayed(Duration.zero);
 
@@ -1133,16 +1133,16 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
     };
 
     final mapCorte = {"activo": false};
-    // Recotización: aunque se cargó desde cotizacionAEditar, se guarda como
-    // una cotización NUEVA (no se pisa la original).
-    final bool esNuevo = widget.cotizacionAEditar == null || widget.esRecotizacion;
-    final String statusFinal = esNuevo
-        ? (nuevoStatus ?? 'Esperando Aprobacion')
-        : (nuevoStatus ?? widget.cotizacionAEditar?.status ?? 'Esperando Aprobacion');
+
+    final String statusFinal =
+        nuevoStatus ??
+        widget.cotizacionAEditar?.status ??
+        'Esperando Aprobacion';
+
     final nuevaCotizacion = Cotizacion(
-      id: esNuevo ? null : widget.cotizacionAEditar?.id,
-      folio: esNuevo ? null : widget.cotizacionAEditar?.folio,
-      fechaCreacion: esNuevo ? null : widget.cotizacionAEditar?.fechaCreacion,
+      id: widget.cotizacionAEditar?.id,
+      folio: widget.cotizacionAEditar?.folio,
+      fechaCreacion: widget.cotizacionAEditar?.fechaCreacion,
       clienteId: clienteIdSeleccionado!,
       usuarioId: usuarioIdActual,
       descripcion: descripcionController.text.trim(),
@@ -1181,14 +1181,14 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
     );
 
     final bool exito;
-    if (esNuevo) {
-      exito = await ref
-          .read(cotizacionesProvider.notifier)
-          .crearCotizacion(nuevaCotizacion);
-    } else {
+    if (widget.cotizacionAEditar != null) {
       exito = await ref
           .read(cotizacionesProvider.notifier)
           .actualizarCotizacion(nuevaCotizacion);
+    } else {
+      exito = await ref
+          .read(cotizacionesProvider.notifier)
+          .crearCotizacion(nuevaCotizacion);
     }
 
     if (!mounted) return;
@@ -1200,7 +1200,7 @@ Future<void> _guardarCotizacion({String? nuevoStatus}) async {
           content: Text(
             isOT
                 ? 'Orden de Trabajo generada exitosamente'
-                : !esNuevo
+                : widget.cotizacionAEditar != null
                 ? 'Cotización modificada exitosamente'
                 : 'Cotización guardada exitosamente',
           ),
