@@ -1,6 +1,6 @@
-import 'dart:typed_data';
+import 'dart:io';
 import 'package:excel/excel.dart';
-import 'package:file_saver/file_saver.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 
 import 'incidente_service.dart';
@@ -41,7 +41,7 @@ class ExcelExportService {
     return values.map((v) => TextCellValue(v?.toString() ?? '-')).toList();
   }
 
-  Future<void> exportarOrdenTrabajo(Map<String, dynamic> orden) async {
+  Future<bool> exportarOrdenTrabajo(Map<String, dynamic> orden) async {
     final excel = Excel.createExcel();
 
     const sheetOTName = 'Orden de Trabajo';
@@ -343,12 +343,25 @@ class ExcelExportService {
 
     final fileBytes = excel.save();
     if (fileBytes != null) {
-      await FileSaver.instance.saveFile(
-        name: 'Reporte_OT_$noOrden',
-        bytes: Uint8List.fromList(fileBytes),
-        fileExtension: 'xlsx',
-        mimeType: MimeType.microsoftExcel,
+      final String? rutaSeleccionada = await FilePicker.platform.saveFile(
+        dialogTitle: 'Guardar Reporte de Orden de Trabajo',
+        fileName: 'Reporte_OT_$noOrden.xlsx',
+        type: FileType.custom,
+        allowedExtensions: ['xlsx'],
       );
+
+      if (rutaSeleccionada == null || rutaSeleccionada.isEmpty) {
+        return false;
+      }
+
+      final rutaFinal = rutaSeleccionada.toLowerCase().endsWith('.xlsx')
+          ? rutaSeleccionada
+          : '$rutaSeleccionada.xlsx';
+
+      final file = File(rutaFinal);
+      await file.writeAsBytes(fileBytes, flush: true);
+      return true;
     }
+    return false;
   }
 }

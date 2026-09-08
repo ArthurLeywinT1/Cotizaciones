@@ -24,9 +24,16 @@ class CatalogoOTScreen extends ConsumerWidget {
       return;
     }
 
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Preparando archivo Excel...'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+
     try {
       final excelService = ExcelExportService();
-      final guardado = await excelService.exportarOrdenTrabajo(orden);
+      final bool guardado = await excelService.exportarOrdenTrabajo(orden);
 
       if (context.mounted && guardado) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -557,7 +564,7 @@ class CatalogoOTScreen extends ConsumerWidget {
                   },
                 ),
 
-                Boton(
+              Boton(
                   icon: Icons.table_view_rounded,
                   label: "Generar Excel",
                   onPressed: () => _generarExcel(context, otSeleccionada),
