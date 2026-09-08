@@ -5,12 +5,48 @@ import 'package:intl/intl.dart';
 import '../orden de trabajo/iniciarOrden.dart';
 import '../orden de trabajo/ordenTrabajo.dart';
 import '../providers/catalogoOT_provider.dart';
+import '../services/excel.dart';
 import '../screens/modals/incidente_admin.dart';
 import '../widgets/boton.dart';
 import '../widgets/tabla.dart';
 
 class CatalogoOTScreen extends ConsumerWidget {
   const CatalogoOTScreen({super.key});
+
+  Future<void> _generarExcel(
+    BuildContext context,
+    Map<String, dynamic>? orden,
+  ) async {
+    if (orden == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selecciona una Orden de Trabajo primero')),
+      );
+      return;
+    }
+
+    try {
+      final excelService = ExcelExportService();
+      final guardado = await excelService.exportarOrdenTrabajo(orden);
+
+      if (context.mounted && guardado) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Archivo Excel guardado con éxito'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al generar Excel: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   void _eliminarOrden(
     BuildContext context,
@@ -520,6 +556,13 @@ class CatalogoOTScreen extends ConsumerWidget {
                     }
                   },
                 ),
+
+                Boton(
+                  icon: Icons.table_view_rounded,
+                  label: "Generar Excel",
+                  onPressed: () => _generarExcel(context, otSeleccionada),
+                ),
+                
                 Boton(
                   icon: Icons.refresh,
                   label: "Recargar",

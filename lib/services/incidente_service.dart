@@ -205,4 +205,33 @@ class IncidenteService {
       return [];
     }
   }
+
+  Future<List<Map<String, dynamic>>> obtenerIncidentesPorOtId(
+    String ordenTrabajoId,
+  ) async {
+    try {
+      final results = await _db.query(
+        """
+        SELECT
+          i.id as incidente_id,
+          i.area,
+          i.mensaje_operario,
+          i.mensaje_admin,
+          i.fecha_creacion,
+          i.fecha_respuesta,
+          i.estatus,
+          u.nombre as usuario_nombre
+        FROM incidentes i
+        LEFT JOIN usuarios u ON i.usuario_id = u.id
+        WHERE i.orden_trabajo_id = CAST(@ot_id AS uuid)
+        ORDER BY i.fecha_creacion ASC
+        """,
+        params: {'ot_id': ordenTrabajoId},
+      );
+      return results;
+    } catch (e) {
+      print('Excepción en obtenerIncidentesPorOtId: $e');
+      return [];
+    }
+  }
 }
