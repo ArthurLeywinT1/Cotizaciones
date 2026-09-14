@@ -15,25 +15,80 @@ class CatalogoOTScreen extends ConsumerWidget {
 
   Future<void> _generarExcel(
     BuildContext context,
-    Map<String, dynamic>? orden,
+    Map<String, dynamic>? ordenSeleccionada,
+    List<Map<String, dynamic>> todasLasOrdenes,
   ) async {
-    if (orden == null) {
+    if (todasLasOrdenes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecciona una Orden de Trabajo primero')),
+        const SnackBar(content: Text('No hay Órdenes de Trabajo para exportar')),
       );
       return;
     }
 
+    List<Map<String, dynamic>>? ordenesAExportar;
+
+    if (ordenSeleccionada != null) {
+      final seleccion = await showDialog<String>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Exportar a Excel'),
+          content: Text(
+            'Tienes seleccionada la orden "${ordenSeleccionada['folio'] ?? 'S/F'}".\n\n¿Qué deseas exportar?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'todas'),
+              child: Text('Todas (${todasLasOrdenes.length})'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, 'seleccionada'),
+              child: const Text('Solo la seleccionada'),
+            ),
+          ],
+        ),
+      );
+
+      if (seleccion == null) return;
+      ordenesAExportar = (seleccion == 'seleccionada')
+          ? [ordenSeleccionada]
+          : todasLasOrdenes;
+    } else {
+      final confirmar = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Exportar a Excel'),
+          content: Text(
+            'No has seleccionado ninguna orden.\n\n¿Deseas exportar el catálogo completo (${todasLasOrdenes.length} órdenes)?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Exportar Todas'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmar != true) return;
+      ordenesAExportar = todasLasOrdenes;
+    }
+
+    if (!context.mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Preparando archivo Excel...'),
-        duration: Duration(seconds: 1),
+        content: Text('Procesando datos para el Excel...'),
+        duration: Duration(seconds: 2),
       ),
     );
 
     try {
       final excelService = ExcelExportService();
-      final bool guardado = await excelService.exportarOrdenTrabajo(orden);
+      final guardado = await excelService.exportarOrdenesTrabajo(ordenesAExportar);
 
       if (context.mounted && guardado) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -565,10 +620,14 @@ class CatalogoOTScreen extends ConsumerWidget {
                 ),
 
               Boton(
-                  icon: Icons.table_view_rounded,
-                  label: "Generar Excel",
-                  onPressed: () => _generarExcel(context, otSeleccionada),
+                icon: Icons.table_view_rounded,
+                label: "Generar Excel",
+                onPressed: () => _generarExcel(
+                  context,
+                  otSeleccionada,
+                  otState.ordenes.cast<Map<String, dynamic>>(),
                 ),
+              ),
                 
                 Boton(
                   icon: Icons.refresh,

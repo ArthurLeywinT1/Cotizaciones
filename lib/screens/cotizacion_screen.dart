@@ -10,6 +10,7 @@ import '../widgets/tabla.dart';
 import 'cotizacion-plana/cotizacion_plana.dart';
 import 'cotizacion-revista/revista.dart';
 import 'modals/pdf.dart';
+import '../services/excel.dart';
 
 class CatalogoCotizacionesScreen extends ConsumerWidget {
   const CatalogoCotizacionesScreen({super.key});
@@ -158,6 +159,103 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _generarExcel(
+    BuildContext context,
+    Cotizacion? seleccionado,
+    List<Cotizacion> todasLasCotizaciones,
+  ) async {
+    if (todasLasCotizaciones.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No hay cotizaciones para exportar')),
+      );
+      return;
+    }
+
+    List<Cotizacion>? cotizacionesAExportar;
+
+    if (seleccionado != null) {
+      final seleccion = await showDialog<String>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Exportar a Excel'),
+          content: Text(
+            'Tienes seleccionada la cotización "${seleccionado.folio ?? 'S/F'}".\n\n¿Qué deseas exportar?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'todas'),
+              child: Text('Todas (${todasLasCotizaciones.length})'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, 'seleccionada'),
+              child: const Text('Solo la seleccionada'),
+            ),
+          ],
+        ),
+      );
+
+      if (seleccion == null) return;
+      cotizacionesAExportar = (seleccion == 'seleccionada')
+          ? [seleccionado]
+          : todasLasCotizaciones;
+    } else {
+      final confirmar = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Exportar a Excel'),
+          content: Text(
+            'No has seleccionado ninguna cotización.\n\n¿Deseas exportar el catálogo completo (${todasLasCotizaciones.length} cotizaciones)?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Exportar Todas'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmar != true) return;
+      cotizacionesAExportar = todasLasCotizaciones;
+    }
+
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Generando archivo Excel...'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    try {
+      final excelService = ExcelExportService();
+      final guardado = await excelService.exportarCotizaciones(cotizacionesAExportar);
+
+      if (context.mounted && guardado) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Archivo Excel guardado con éxito'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al generar Excel: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -391,6 +489,15 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                       );
                     }
                   },
+                ),
+                Boton(
+                  icon: Icons.table_view_rounded,
+                  label: "Generar Excel",
+                  onPressed: () => _generarExcel(
+                    context,
+                    seleccionado,
+                    cotizacionesState.cotizaciones,
+                  ),
                 ),
                 Boton(
                   icon: Icons.assignment,
