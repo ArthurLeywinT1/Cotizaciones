@@ -208,7 +208,9 @@ class LaminadosSection extends ConsumerWidget {
               ),
               child: Column(
                 children: [
-                  Row(
+                  // Wrap en vez de Row: evita overflow en pantallas angostas.
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       SizedBox(
                         width: 100,
@@ -247,7 +249,11 @@ class LaminadosSection extends ConsumerWidget {
                     color: modoProduccion ? Colors.grey[300] : Colors.indigo,
                     thickness: 0.2,
                   ),
-                  Row(
+                  // Wrap en vez de Row: "Máquina Grande" es la etiqueta más
+                  // larga de toda la app y era la que con más seguridad
+                  // desbordaba en un celular.
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       SizedBox(
                         width: 100,

@@ -169,44 +169,51 @@ class _PanelDatosPapelState extends ConsumerState<PanelDatosPapel> {
             const SizedBox(height: 16),
 
             // ================= MEDIDAS / PESO ====================
-            Row(
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 10,
+              runSpacing: 10,
               children: [
                 const SizedBox(
                   width: 180,
                   child: Text("Medidas Papel a Comprar (cm):"),
                 ),
-                SizedBox(
-                  width: 70,
-                  child: TextField(
-                    controller: widget.anchoPapelController,
-                    readOnly: true,
-                    textAlign: TextAlign.center,
-                    decoration: const InputDecoration(
-                      isDense: true,
-                      border: OutlineInputBorder(),
-                      filled: true,
-                      fillColor: Color(0xFFEEEEEE),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 70,
+                      child: TextField(
+                        controller: widget.anchoPapelController,
+                        readOnly: true,
+                        textAlign: TextAlign.center,
+                        decoration: const InputDecoration(
+                          isDense: true,
+                          border: OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Color(0xFFEEEEEE),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                const Text("X"),
-                const SizedBox(width: 10),
-                SizedBox(
-                  width: 70,
-                  child: TextField(
-                    controller: widget.largoPapelController,
-                    readOnly: true,
-                    textAlign: TextAlign.center,
-                    decoration: const InputDecoration(
-                      isDense: true,
-                      border: OutlineInputBorder(),
-                      filled: true,
-                      fillColor: Color(0xFFEEEEEE),
+                    const SizedBox(width: 10),
+                    const Text("X"),
+                    const SizedBox(width: 10),
+                    SizedBox(
+                      width: 70,
+                      child: TextField(
+                        controller: widget.largoPapelController,
+                        readOnly: true,
+                        textAlign: TextAlign.center,
+                        decoration: const InputDecoration(
+                          isDense: true,
+                          border: OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Color(0xFFEEEEEE),
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-                const SizedBox(width: 28),
                 const SizedBox(width: 120, child: Text("Peso del Papel (g):")),
                 SizedBox(
                   width: 80,
@@ -247,29 +254,37 @@ class _PanelDatosPapelState extends ConsumerState<PanelDatosPapel> {
             const SizedBox(height: 16),
 
             // ================= COSTO POR MILLAR Y TOTAL PLIEGOS ====================
-            Row(
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 12,
               children: [
-                const SizedBox(
-                  width: 170,
-                  child: Text("Costo por Millar del Papel:"),
-                ),
-                const Text("\$"),
-                const SizedBox(width: 6),
-                SizedBox(
-                  width: 120,
-                  child: TextField(
-                    controller: widget.costoMillarController,
-                    readOnly: true,
-                    decoration: const InputDecoration(
-                      isDense: true,
-                      border: OutlineInputBorder(),
-                      filled: true,
-                      fillColor: Color(0xFFEEEEEE),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(
+                      width: 170,
+                      child: Text("Costo por Millar del Papel:"),
                     ),
-                  ),
+                    const Text("\$"),
+                    const SizedBox(width: 6),
+                    SizedBox(
+                      width: 120,
+                      child: TextField(
+                        controller: widget.costoMillarController,
+                        readOnly: true,
+                        decoration: const InputDecoration(
+                          isDense: true,
+                          border: OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Color(0xFFEEEEEE),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 20),
-                Expanded(
+                SizedBox(
+                  width: 180,
                   child: TextField(
                     controller: widget.totalPliegosController,
                     readOnly: true,

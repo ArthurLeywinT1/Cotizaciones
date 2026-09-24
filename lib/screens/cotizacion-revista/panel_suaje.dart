@@ -276,8 +276,10 @@ class _PanelSuajeState extends ConsumerState<PanelSuaje> {
                             const SizedBox(height: 8),
                             _buildFilaOpcion("Opción 3", _opcion3Base, _opcion3Multiplicador),
                             const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
+                            Wrap(
+                              alignment: WrapAlignment.end,
+                              spacing: 8,
+                              runSpacing: 8,
                               children: [
                                 TextButton(
                                   onPressed: () {

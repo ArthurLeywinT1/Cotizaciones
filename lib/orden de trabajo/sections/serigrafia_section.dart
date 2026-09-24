@@ -153,38 +153,53 @@ class SerigrafiaSection extends ConsumerWidget {
                       color: modoProduccion ? Colors.grey[600] : Colors.purple,
                     ),
                   ),
-                  Row(
+                  // Wrap en vez de Row: cada radio + su etiqueta se agrupan
+                  // en su propio Row (mainAxisSize.min) para que, si no caben
+                  // los dos juntos, el segundo baje entero a otra línea en
+                  // lugar de desbordar o partirse a la mitad.
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 16,
                     children: [
-                      Radio<String>(
-                        value: 'pantone',
-                        groupValue: controller.serigrafiaModo,
-                        onChanged: modoProduccion 
-                            ? null // <--- DESACTIVADO EN PRODUCCIÓN
-                            : (v) => controller.updateSerigrafiaModo(v!),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Radio<String>(
+                            value: 'pantone',
+                            groupValue: controller.serigrafiaModo,
+                            onChanged: modoProduccion
+                                ? null // <--- DESACTIVADO EN PRODUCCIÓN
+                                : (v) => controller.updateSerigrafiaModo(v!),
+                          ),
+                          Text(
+                            "PANTONE / TEXTO",
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: modoProduccion ? Colors.black54 : Colors.black,
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        "PANTONE / TEXTO",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: modoProduccion ? Colors.black54 : Colors.black,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Radio<String>(
-                        value: 'directo',
-                        groupValue: controller.serigrafiaModo,
-                        onChanged: modoProduccion 
-                            ? null // <--- DESACTIVADO EN PRODUCCIÓN
-                            : (v) => controller.updateSerigrafiaModo(v!),
-                      ),
-                      Text(
-                        "COLOR DIRECTO",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: modoProduccion ? Colors.black54 : Colors.black,
-                        ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Radio<String>(
+                            value: 'directo',
+                            groupValue: controller.serigrafiaModo,
+                            onChanged: modoProduccion
+                                ? null // <--- DESACTIVADO EN PRODUCCIÓN
+                                : (v) => controller.updateSerigrafiaModo(v!),
+                          ),
+                          Text(
+                            "COLOR DIRECTO",
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: modoProduccion ? Colors.black54 : Colors.black,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

@@ -483,44 +483,61 @@ class _PanelMaquinaPliegoState extends ConsumerState<PanelMaquinaPliego> {
             const SizedBox(height: 16),
             const Text("Tintas a Utilizar en la Impresión:"),
             const SizedBox(height: 4),
-            Row(
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 8,
               children: [
-                SizedBox(
-                  width: 55,
-                  child: TextField(
-                    controller: widget.tintasFteController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 55,
+                      child: TextField(
+                        controller: widget.tintasFteController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    const Text("X"),
+                    const SizedBox(width: 6),
+                    SizedBox(
+                      width: 55,
+                      child: TextField(
+                        controller: widget.tintasRevController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 6),
-                const Text("X"),
-                const SizedBox(width: 6),
-                SizedBox(
-                  width: 55,
-                  child: TextField(
-                    controller: widget.tintasRevController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Checkbox(
+                      value: widget.barnizFte,
+                      onChanged: (value) {
+                        widget.onBarnizFteChanged(value ?? false);
+                        WidgetsBinding.instance.addPostFrameCallback((_) => _calcularCostosTintas());
+                      },
+                    ),
+                    const Text("Barniz Frente"),
+                  ],
                 ),
-                Checkbox(
-                  value: widget.barnizFte,
-                  onChanged: (value) {
-                    widget.onBarnizFteChanged(value ?? false);
-                    WidgetsBinding.instance.addPostFrameCallback((_) => _calcularCostosTintas());
-                  },
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Checkbox(
+                      value: widget.barnizRev,
+                      onChanged: (value) {
+                        widget.onBarnizRevChanged(value ?? false);
+                        WidgetsBinding.instance.addPostFrameCallback((_) => _calcularCostosTintas());
+                      },
+                    ),
+                    const Text("Barniz Vuelta"),
+                  ],
                 ),
-                const Text("Barniz Frente"),
-                const SizedBox(width: 15),
-                Checkbox(
-                  value: widget.barnizRev,
-                  onChanged: (value) {
-                    widget.onBarnizRevChanged(value ?? false);
-                    WidgetsBinding.instance.addPostFrameCallback((_) => _calcularCostosTintas());
-                  },
-                ),
-                const Text("Barniz Vuelta"),
               ],
             ),
             const SizedBox(height: 20),

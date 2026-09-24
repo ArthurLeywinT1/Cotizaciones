@@ -145,17 +145,24 @@ class _HomeOperarioScreenState extends ConsumerState<HomeOperarioScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // El título va en Expanded: "PENDIENTES POR PROCESAR" a fontSize 20
+          // bold ya casi llena un celular angosto por sí solo, y con el Chip
+          // al lado (sin Expanded) se desbordaba. Ahora el texto se trunca
+          // con "..." antes de chocar con el Chip, que siempre queda visible.
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                esHistorial ? "HISTORIAL DE ÓRDENES" : "PENDIENTES POR PROCESAR",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: esHistorial ? Colors.blueGrey : Colors.blue,
+              Expanded(
+                child: Text(
+                  esHistorial ? "HISTORIAL DE ÓRDENES" : "PENDIENTES POR PROCESAR",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: esHistorial ? Colors.blueGrey : Colors.blue,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              const SizedBox(width: 8),
               Chip(
                 label: Text(esHistorial ? "Finalizado" : "En Proceso"),
                 avatar: Icon(

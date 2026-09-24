@@ -498,44 +498,67 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
             const SizedBox(height: 16),
             const Text("Tintas a Utilizar en la Impresión:"),
             const SizedBox(height: 4),
-            Row(
+            // Wrap en vez de Row: esta fila combinaba 2 campos numéricos +
+            // 2 checkboxes con etiqueta en una sola línea de ancho fijo
+            // (>400dp) que desbordaba en cualquier celular. Cada grupo
+            // (campos de tintas, cada checkbox+etiqueta) va en su propio
+            // Row(mainAxisSize.min) para que baje completo a otra línea
+            // si no cabe, sin partirse a la mitad.
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 8,
               children: [
-                SizedBox(
-                  width: 55,
-                  child: TextField(
-                    controller: widget.tintasFteController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 55,
+                      child: TextField(
+                        controller: widget.tintasFteController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    const Text("X"),
+                    const SizedBox(width: 6),
+                    SizedBox(
+                      width: 55,
+                      child: TextField(
+                        controller: widget.tintasRevController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 6),
-                const Text("X"),
-                const SizedBox(width: 6),
-                SizedBox(
-                  width: 55,
-                  child: TextField(
-                    controller: widget.tintasRevController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Checkbox(
+                      value: widget.barnizFte,
+                      onChanged: (value) {
+                        widget.onBarnizFteChanged(value ?? false);
+                        WidgetsBinding.instance.addPostFrameCallback((_) => _calcularCostosTintas());
+                      },
+                    ),
+                    const Text("Barniz Frente"),
+                  ],
                 ),
-                Checkbox(
-                  value: widget.barnizFte,
-                  onChanged: (value) {
-                    widget.onBarnizFteChanged(value ?? false);
-                    WidgetsBinding.instance.addPostFrameCallback((_) => _calcularCostosTintas());
-                  },
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Checkbox(
+                      value: widget.barnizRev,
+                      onChanged: (value) {
+                        widget.onBarnizRevChanged(value ?? false);
+                        WidgetsBinding.instance.addPostFrameCallback((_) => _calcularCostosTintas());
+                      },
+                    ),
+                    const Text("Barniz Vuelta"),
+                  ],
                 ),
-                const Text("Barniz Frente"),
-                const SizedBox(width: 15),
-                Checkbox(
-                  value: widget.barnizRev,
-                  onChanged: (value) {
-                    widget.onBarnizRevChanged(value ?? false);
-                    WidgetsBinding.instance.addPostFrameCallback((_) => _calcularCostosTintas());
-                  },
-                ),
-                const Text("Barniz Vuelta"),
               ],
             ),
             const SizedBox(height: 20),

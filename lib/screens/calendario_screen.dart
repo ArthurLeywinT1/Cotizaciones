@@ -311,21 +311,36 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
                         ],
                       );
                     } else {
-                      return Column(
-                        children: [
-                          _buildCalendarioCard(
-                            colors,
-                            estadoActividades,
-                            rolUsuario,
-                          ),
-                          const SizedBox(height: 16),
-                          Expanded(
-                            child: _buildListaActividades(
-                              listaActividadesDia,
+                      // CustomScrollView en vez de Column + Expanded: el
+                      // TableCalendar en formato "mes" puede medir más que
+                      // el alto disponible en un celular, y un Column con un
+                      // hijo de tamaño fijo más grande que el espacio le
+                      // deja 0 (o negativo) al Expanded de abajo — ahí es
+                      // donde las actividades "no tenían scroll" y quedaban
+                      // empujadas fuera de la vista. Con slivers, calendario
+                      // y actividades comparten un solo scroll vertical, así
+                      // que siempre se puede bajar para ver todas las
+                      // actividades del día, sin importar cuántas sean.
+                      return CustomScrollView(
+                        slivers: [
+                          SliverToBoxAdapter(
+                            child: _buildCalendarioCard(
                               colors,
-                              esAdmin,
-                              estadoActividades.isLoading,
+                              estadoActividades,
+                              rolUsuario,
                             ),
+                          ),
+                          const SliverToBoxAdapter(
+                            child: SizedBox(height: 16),
+                          ),
+                          _buildListaActividadesSliver(
+                            listaActividadesDia,
+                            colors,
+                            esAdmin,
+                            estadoActividades.isLoading,
+                          ),
+                          const SliverToBoxAdapter(
+                            child: SizedBox(height: 16),
                           ),
                         ],
                       );
@@ -470,49 +485,104 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
     return ListView.builder(
       itemCount: listaActividadesDia.length,
       itemBuilder: (context, index) {
-        final actividad = listaActividadesDia[index];
-        return Card(
-          margin: const EdgeInsets.symmetric(vertical: 6),
-          child: ListTile(
-            title: Text(
-              actividad.titulo,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Padding(
-              padding: const EdgeInsets.only(top: 4.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Del ${actividad.fechaInicio.day}/${actividad.fechaInicio.month} al ${actividad.fechaFin.day}/${actividad.fechaFin.month} - Área: ${actividad.area}',
-                    style: TextStyle(
-                      color: colors.primary,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    actividad.descripcion,
-                    style: TextStyle(
-                      color: colors.onSurfaceVariant,
-                      fontSize: 13,
-                    ),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            trailing: esAdmin
-                ? IconButton(
-                    icon: Icon(Icons.delete, color: colors.error),
-                    onPressed: () => _eliminarActividad(actividad.id!),
-                  )
-                : null,
-          ),
+        return _buildActividadCard(
+          listaActividadesDia[index],
+          colors,
+          esAdmin,
         );
       },
+    );
+  }
+
+  // Misma lista, pero como sliver: la usa el layout de celular para que
+  // calendario + actividades compartan un solo CustomScrollView en vez de
+  // que la lista pelee por un espacio fijo dentro de un Expanded.
+  Widget _buildListaActividadesSliver(
+    List<Calendario> listaActividadesDia,
+    ColorScheme colors,
+    bool esAdmin,
+    bool isLoading,
+  ) {
+    if (isLoading) {
+      return const SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 40),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+
+    if (listaActividadesDia.isEmpty) {
+      return SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 40),
+          child: Center(
+            child: Text(
+              'Sin órdenes programadas.',
+              style: TextStyle(color: colors.onSurfaceVariant),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) => _buildActividadCard(
+          listaActividadesDia[index],
+          colors,
+          esAdmin,
+        ),
+        childCount: listaActividadesDia.length,
+      ),
+    );
+  }
+
+  Widget _buildActividadCard(
+    Calendario actividad,
+    ColorScheme colors,
+    bool esAdmin,
+  ) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      child: ListTile(
+        title: Text(
+          actividad.titulo,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Del ${actividad.fechaInicio.day}/${actividad.fechaInicio.month} al ${actividad.fechaFin.day}/${actividad.fechaFin.month} - Área: ${actividad.area}',
+                style: TextStyle(
+                  color: colors.primary,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                actividad.descripcion,
+                style: TextStyle(
+                  color: colors.onSurfaceVariant,
+                  fontSize: 13,
+                ),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+        trailing: esAdmin
+            ? IconButton(
+                icon: Icon(Icons.delete, color: colors.error),
+                onPressed: () => _eliminarActividad(actividad.id!),
+              )
+            : null,
+      ),
     );
   }
 }

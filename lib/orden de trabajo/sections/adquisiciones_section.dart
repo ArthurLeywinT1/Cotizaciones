@@ -1,4 +1,3 @@
-// lib/screens/sections/adquisiciones_section.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/orden_trabajo_provider.dart';
@@ -226,41 +225,40 @@ class AdquisicionesSection extends ConsumerWidget {
             const SizedBox(height: 8),
 
             // Botón para agregar más materiales (Oculto en modo producción)
+            // Wrap en vez de Row: en pantallas angostas (celular) los botones
+            // se acomodan en una segunda línea en lugar de desbordar.
             if (!modoProduccion)
-              Column(
+              Wrap(
+                spacing: 16,
+                runSpacing: 8,
                 children: [
-                  Row(
-                    children: [
-                      TextButton.icon(
-                        onPressed: () => controller.addMaterial(),
-                        icon: const Icon(
-                          Icons.add_circle_outline,
-                          color: Colors.teal,
-                        ),
-                        label: const Text(
-                          "Agregar Material",
-                          style: TextStyle(
-                            color: Colors.teal,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                  TextButton.icon(
+                    onPressed: () => controller.addMaterial(),
+                    icon: const Icon(
+                      Icons.add_circle_outline,
+                      color: Colors.teal,
+                    ),
+                    label: const Text(
+                      "Agregar Material",
+                      style: TextStyle(
+                        color: Colors.teal,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(width: 16),
-                      TextButton.icon(
-                        onPressed: () => _agregarProveedor(context, ref),
-                        icon: const Icon(
-                          Icons.add_circle_outline,
-                          color: Colors.teal,
-                        ),
-                        label: const Text(
-                          "Nuevo Proveedor",
-                          style: TextStyle(
-                            color: Colors.teal,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => _agregarProveedor(context, ref),
+                    icon: const Icon(
+                      Icons.add_circle_outline,
+                      color: Colors.teal,
+                    ),
+                    label: const Text(
+                      "Nuevo Proveedor",
+                      style: TextStyle(
+                        color: Colors.teal,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),

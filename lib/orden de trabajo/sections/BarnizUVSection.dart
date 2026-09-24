@@ -89,7 +89,9 @@ class BarnizUVSection extends ConsumerWidget {
               child: Column(
                 children: [
                   // APLICACIÓN (Frente/Vuelta)
-                  Row(
+                  // Wrap en vez de Row: evita overflow en pantallas angostas.
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       _buildTitle(
                         "APLICACIÓN:",
@@ -123,7 +125,9 @@ class BarnizUVSection extends ConsumerWidget {
                   ),
 
                   // PRODUCCIÓN (Romosso/Maquilador)
-                  Row(
+                  // Wrap en vez de Row: evita overflow en pantallas angostas.
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       _buildTitle(
                         "PRODUCCIÓN:",

@@ -35,8 +35,12 @@ class PantallaBase extends StatelessWidget {
           ),
 
           // BOTONERA
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          // Wrap en vez de Row: si en un celular angosto los 3 botones no
+          // caben en una línea, el tercero baja en vez de desbordar.
+          Wrap(
+            alignment: WrapAlignment.spaceEvenly,
+            spacing: 12,
+            runSpacing: 8,
             children: [
               ElevatedButton(
                 onPressed: onAgregar,

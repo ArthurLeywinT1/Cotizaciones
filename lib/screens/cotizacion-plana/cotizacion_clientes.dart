@@ -298,7 +298,10 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                 ],
               ),
               const SizedBox(height: 6),
-              Row(
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 12,
+                runSpacing: 8,
                 children: [
                   SizedBox(
                     width: 120,
@@ -308,7 +311,6 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                       decoration: const InputDecoration(labelText: "Medianil"),
                     ),
                   ),
-                  const SizedBox(width: 12),
                   ElevatedButton(
                     onPressed: widget.onCalcular,
                     child: const Text("Calcular medidas finales"),
