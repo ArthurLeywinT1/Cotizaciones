@@ -4,6 +4,7 @@ class Tabla extends StatelessWidget {
   final List<DataColumn> columns;
   final List<DataRow> rows;
   final Color? headerColor;
+  final ValueSetter<bool?>? onSelectAll;
 
   // Debajo de este ancho se muestra la vista de tarjetas en vez de la tabla.
   static const double _anchoPuntoQuiebre = 700;
@@ -13,6 +14,7 @@ class Tabla extends StatelessWidget {
     required this.columns,
     required this.rows,
     this.headerColor,
+    this.onSelectAll,
   });
 
   @override
@@ -30,6 +32,8 @@ class Tabla extends StatelessWidget {
     // Definimos los controladores de scroll para evitar conflictos con los Scrollbars
     final ScrollController horizontalController = ScrollController();
     final ScrollController verticalController = ScrollController();
+
+    final Color colorCabecera = headerColor ?? const Color(0xFF1976D2);
 
     return Container(
       width: double.infinity,
@@ -51,11 +55,13 @@ class Tabla extends StatelessWidget {
               controller: horizontalController,
               scrollDirection: Axis.horizontal,
               child: DataTable(
+                onSelectAll: onSelectAll,
                 // Actualizado a WidgetStateProperty (MaterialStateProperty está obsoleto en versiones recientes)
-                headingRowColor: WidgetStateProperty.all(
-                  headerColor ?? const Color(0xFF1976D2),
-                ),
+                headingRowColor: WidgetStateProperty.all(colorCabecera),
                 dataRowColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                  if (states.contains(WidgetState.selected)) {
+                    return colorCabecera.withOpacity(0.12);
+                  }
                   return Colors.white;
                 }),
                 columnSpacing: 24, // Un poco más de espacio ayuda a la lectura en scrolls largos
@@ -102,15 +108,53 @@ class Tabla extends StatelessWidget {
     final Color colorEncabezado = headerColor ?? const Color(0xFF1976D2);
     final ScrollController controller = ScrollController();
 
+    final bool todosSeleccionados = rows.isNotEmpty && rows.every((r) => r.selected);
+    final bool algunoSeleccionado = rows.any((r) => r.selected);
+
     return Scrollbar(
       controller: controller,
       thumbVisibility: true,
       child: SingleChildScrollView(
         controller: controller,
         child: Column(
-          children: List.generate(rows.length, (rowIndex) {
-            return _buildTarjeta(rows[rowIndex], colorEncabezado);
-          }),
+          children: [
+            if (onSelectAll != null)
+              Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: Row(
+                  children: [
+                    Checkbox(
+                      value: todosSeleccionados
+                          ? true
+                          : (algunoSeleccionado ? null : false),
+                      tristate: true,
+                      onChanged: (val) {
+                        onSelectAll!(val ?? false);
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      todosSeleccionados
+                          ? 'Deseleccionar todos'
+                          : 'Seleccionar todos (${rows.length})',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ...List.generate(rows.length, (rowIndex) {
+              return _buildTarjeta(rows[rowIndex], colorEncabezado);
+            }),
+          ],
         ),
       ),
     );

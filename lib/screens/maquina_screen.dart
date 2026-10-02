@@ -6,7 +6,7 @@ import '../widgets/boton.dart';
 import '../widgets/tabla.dart';
 import 'modals/modal_maquina.dart';
 
-final maquinaSeleccionadoProvider = StateProvider<Maquina?>((ref) => null);
+final maquinasSeleccionadasProvider = StateProvider<List<Maquina>>((ref) => []);
 
 class MaquinaScreen extends ConsumerWidget {
   const MaquinaScreen({super.key});
@@ -44,12 +44,21 @@ class MaquinaScreen extends ConsumerWidget {
     );
   }
 
-  void _eliminar(BuildContext context, WidgetRef ref, Maquina maquina) {
+  void _eliminarMaquinas(
+    BuildContext context,
+    WidgetRef ref,
+    List<Maquina> maquinas,
+  ) {
+    final esMultiple = maquinas.length > 1;
+    final mensaje = esMultiple
+        ? '¿Estás seguro de que deseas eliminar las ${maquinas.length} máquinas seleccionadas?'
+        : '¿Eliminar la máquina "${maquinas.first.nombre}"?';
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirmar Eliminación'),
-        content: Text('¿Eliminar la máquina "${maquina.nombre}"?'),
+        content: Text('$mensaje\n\nEsta acción no se puede deshacer.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -57,15 +66,25 @@ class MaquinaScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () async {
-              final success = await ref
-                  .read(maquinasProvider.notifier)
-                  .eliminarMaquina(maquina.id);
-              if (success && context.mounted) {
-                Navigator.pop(context);
-                ref.read(maquinaSeleccionadoProvider.notifier).state = null;
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('Eliminado')));
+              Navigator.pop(context);
+              int eliminadas = 0;
+              for (final m in maquinas) {
+                final success = await ref
+                    .read(maquinasProvider.notifier)
+                    .eliminarMaquina(m.id);
+                if (success) eliminadas++;
+              }
+              if (context.mounted) {
+                ref.read(maquinasSeleccionadasProvider.notifier).state = [];
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      esMultiple
+                          ? '$eliminadas máquinas eliminadas exitosamente'
+                          : 'Máquina eliminada exitosamente',
+                    ),
+                  ),
+                );
               }
             },
             child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
@@ -78,7 +97,7 @@ class MaquinaScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final maquinasState = ref.watch(maquinasProvider);
-    final seleccionado = ref.watch(maquinaSeleccionadoProvider);
+    final maquinasSeleccionadas = ref.watch(maquinasSeleccionadasProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -97,6 +116,14 @@ class MaquinaScreen extends ConsumerWidget {
                 : maquinasState.maquinas.isEmpty
                 ? const Center(child: Text('No hay máquinas registradas'))
                 : Tabla(
+                    onSelectAll: (selected) {
+                      if (selected == true) {
+                        ref.read(maquinasSeleccionadasProvider.notifier).state =
+                            List.from(maquinasState.maquinas);
+                      } else {
+                        ref.read(maquinasSeleccionadasProvider.notifier).state = [];
+                      }
+                    },
                     columns: const [
                       DataColumn(label: Text('Nombre')),
                       DataColumn(label: Text('Tintas')),
@@ -107,12 +134,19 @@ class MaquinaScreen extends ConsumerWidget {
                       DataColumn(label: Text('Fecha Modificación')),
                     ],
                     rows: maquinasState.maquinas.map((m) {
-                      final isSelected = seleccionado?.id == m.id;
+                      final isSelected = maquinasSeleccionadas.any((item) => item.id == m.id);
                       return DataRow(
                         selected: isSelected,
-                        onSelectChanged: (_) {
-                          ref.read(maquinaSeleccionadoProvider.notifier).state =
-                              isSelected ? null : m;
+                        onSelectChanged: (selected) {
+                          final actual = List<Maquina>.from(
+                            ref.read(maquinasSeleccionadasProvider),
+                          );
+                          if (selected == true) {
+                            actual.add(m);
+                          } else {
+                            actual.removeWhere((item) => item.id == m.id);
+                          }
+                          ref.read(maquinasSeleccionadasProvider.notifier).state = actual;
                         },
                         cells: [
                           DataCell(
@@ -164,9 +198,19 @@ class MaquinaScreen extends ConsumerWidget {
                   icon: Icons.edit,
                   label: "Modificar",
                   onPressed: () {
-                    if (seleccionado != null) {
-                      _agregarMaquina(context, ref, seleccionado);
+                    if (maquinasSeleccionadas.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Selecciona una máquina para modificar')),
+                      );
+                      return;
                     }
+                    if (maquinasSeleccionadas.length > 1) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Solo puedes modificar una máquina a la vez')),
+                      );
+                      return;
+                    }
+                    _agregarMaquina(context, ref, maquinasSeleccionadas.first);
                   },
                 ),
                 Boton(
@@ -174,9 +218,13 @@ class MaquinaScreen extends ConsumerWidget {
                   label: "Eliminar",
                   isDestructive: true,
                   onPressed: () {
-                    if (seleccionado != null) {
-                      _eliminar(context, ref, seleccionado);
+                    if (maquinasSeleccionadas.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Selecciona al menos una máquina para eliminar')),
+                      );
+                      return;
                     }
+                    _eliminarMaquinas(context, ref, maquinasSeleccionadas);
                   },
                 ),
                 Boton(
@@ -184,6 +232,7 @@ class MaquinaScreen extends ConsumerWidget {
                   label: "Recargar",
                   onPressed: () {
                     ref.read(maquinasProvider.notifier).recargar();
+                    ref.read(maquinasSeleccionadasProvider.notifier).state = [];
                   },
                 ),
               ],

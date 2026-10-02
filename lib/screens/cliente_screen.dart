@@ -6,6 +6,8 @@ import '../widgets/boton.dart';
 import '../widgets/tabla.dart';
 import 'modals/modal_cliente.dart';
 
+final clientesSeleccionadosProvider = StateProvider<List<Cliente>>((ref) => []);
+
 class ClienteScreen extends ConsumerWidget {
   const ClienteScreen({super.key});
 
@@ -50,12 +52,17 @@ class ClienteScreen extends ConsumerWidget {
     );
   }
 
-  void _eliminarCliente(BuildContext context, WidgetRef ref, Cliente cliente) {
+  void _eliminarClientes(BuildContext context, WidgetRef ref, List<Cliente> clientes) {
+    final esMultiple = clientes.length > 1;
+    final mensaje = esMultiple
+        ? '¿Estás seguro de que deseas eliminar los ${clientes.length} clientes seleccionados?'
+        : '¿Eliminar a "${clientes.first.razonSocial}"?';
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirmar Eliminación'),
-        content: Text('¿Eliminar a "${cliente.razonSocial}"?'),
+        content: Text('$mensaje\n\nEsta acción no se puede deshacer.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -63,17 +70,25 @@ class ClienteScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () async {
-              final success = await ref
-                  .read(clientesProvider.notifier)
-                  .eliminarCliente(cliente.id);
+              Navigator.pop(context);
+              int eliminados = 0;
+              for (final cliente in clientes) {
+                final success = await ref
+                    .read(clientesProvider.notifier)
+                    .eliminarCliente(cliente.id);
+                if (success) eliminados++;
+              }
               if (context.mounted) {
-                Navigator.pop(context);
-                if (success) {
-                  ref.read(clienteSeleccionadoProvider.notifier).state = null;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Cliente eliminado')),
-                  );
-                }
+                ref.read(clientesSeleccionadosProvider.notifier).state = [];
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      esMultiple
+                          ? '$eliminados clientes eliminados exitosamente'
+                          : 'Cliente eliminado',
+                    ),
+                  ),
+                );
               }
             },
             child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
@@ -86,7 +101,7 @@ class ClienteScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final clientesState = ref.watch(clientesProvider);
-    final clienteSeleccionado = ref.watch(clienteSeleccionadoProvider);
+    final clientesSeleccionados = ref.watch(clientesSeleccionadosProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -105,6 +120,14 @@ class ClienteScreen extends ConsumerWidget {
                 : clientesState.clientes.isEmpty
                 ? const Center(child: Text('No hay clientes registrados'))
                 : Tabla(
+                    onSelectAll: (selected) {
+                      if (selected == true) {
+                        ref.read(clientesSeleccionadosProvider.notifier).state =
+                            List.from(clientesState.clientes);
+                      } else {
+                        ref.read(clientesSeleccionadosProvider.notifier).state = [];
+                      }
+                    },
                     columns: const [
                       DataColumn(label: Text('Razón Social')),
                       DataColumn(label: Text('RFC')),
@@ -121,12 +144,17 @@ class ClienteScreen extends ConsumerWidget {
                       DataColumn(label: Text('Fecha Modificación')),
                     ],
                     rows: clientesState.clientes.map((cliente) {
-                      final isSelected = clienteSeleccionado?.id == cliente.id;
+                      final isSelected = clientesSeleccionados.any((c) => c.id == cliente.id);
                       return DataRow(
                         selected: isSelected,
-                        onSelectChanged: (_) {
-                          ref.read(clienteSeleccionadoProvider.notifier).state =
-                              isSelected ? null : cliente;
+                        onSelectChanged: (selected) {
+                          final actual = List<Cliente>.from(ref.read(clientesSeleccionadosProvider));
+                          if (selected == true) {
+                            actual.add(cliente);
+                          } else {
+                            actual.removeWhere((c) => c.id == cliente.id);
+                          }
+                          ref.read(clientesSeleccionadosProvider.notifier).state = actual;
                         },
                         cells: [
                           DataCell(
@@ -178,8 +206,19 @@ class ClienteScreen extends ConsumerWidget {
                   icon: Icons.edit,
                   label: "Modificar",
                   onPressed: () {
-                    if (clienteSeleccionado != null)
-                      _modificarCliente(context, ref, clienteSeleccionado);
+                    if (clientesSeleccionados.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Selecciona un cliente para modificar')),
+                      );
+                      return;
+                    }
+                    if (clientesSeleccionados.length > 1) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Solo puedes modificar un cliente a la vez')),
+                      );
+                      return;
+                    }
+                    _modificarCliente(context, ref, clientesSeleccionados.first);
                   },
                 ),
                 Boton(
@@ -187,8 +226,13 @@ class ClienteScreen extends ConsumerWidget {
                   label: "Eliminar",
                   isDestructive: true,
                   onPressed: () {
-                    if (clienteSeleccionado != null)
-                      _eliminarCliente(context, ref, clienteSeleccionado);
+                    if (clientesSeleccionados.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Selecciona al menos un cliente para eliminar')),
+                      );
+                      return;
+                    }
+                    _eliminarClientes(context, ref, clientesSeleccionados);
                   },
                 ),
                 Boton(
@@ -196,6 +240,7 @@ class ClienteScreen extends ConsumerWidget {
                   label: "Recargar",
                   onPressed: () {
                     ref.read(clientesProvider.notifier).recargar();
+                    ref.read(clientesSeleccionadosProvider.notifier).state = [];
                   },
                 ),
               ],

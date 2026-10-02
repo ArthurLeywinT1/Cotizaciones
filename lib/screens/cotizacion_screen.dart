@@ -12,6 +12,8 @@ import 'cotizacion-revista/revista.dart';
 import 'modals/pdf.dart';
 import '../services/excel.dart';
 
+final cotizacionesSeleccionadasProvider = StateProvider<List<Cotizacion>>((ref) => []);
+
 class CatalogoCotizacionesScreen extends ConsumerWidget {
   const CatalogoCotizacionesScreen({super.key});
 
@@ -38,28 +40,34 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
     if (tipoSeleccionado == 'P') {
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const CotizacionPlanaScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => const CotizacionPlanaScreen()),
       );
     } else if (tipoSeleccionado == 'R') {
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const RevistaPage(),
-        ),
+        MaterialPageRoute(builder: (context) => const RevistaPage()),
       );
     }
   }
 
-  void _eliminar(BuildContext context, WidgetRef ref, Cotizacion cotizacion) {
+  void _eliminar(BuildContext context, WidgetRef ref, List<Cotizacion> seleccionadas) {
+    if (seleccionadas.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selecciona al menos una cotización para eliminar')),
+      );
+      return;
+    }
+
+    final esMultiple = seleccionadas.length > 1;
+    final mensaje = esMultiple
+        ? '¿Estás seguro de que deseas eliminar las ${seleccionadas.length} cotizaciones seleccionadas?'
+        : '¿Eliminar la cotización con folio "${seleccionadas.first.folio ?? 'S/F'}"?';
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirmar Eliminación'),
-        content: Text(
-          '¿Eliminar la cotización con folio "${cotizacion.folio ?? 'S/F'}"?',
-        ),
+        content: Text('$mensaje\n\nEsta acción no se puede deshacer.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -67,16 +75,28 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () async {
-              if (cotizacion.id != null) {
-                final success = await ref
-                    .read(cotizacionesProvider.notifier)
-                    .eliminarCotizacion(cotizacion.id!);
-                if (success && context.mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Cotización eliminada')),
-                  );
+              Navigator.pop(context);
+              int eliminadas = 0;
+              for (final cotizacion in seleccionadas) {
+                if (cotizacion.id != null) {
+                  final ok = await ref
+                      .read(cotizacionesProvider.notifier)
+                      .eliminarCotizacion(cotizacion.id!);
+                  if (ok) eliminadas++;
                 }
+              }
+
+              if (context.mounted) {
+                ref.read(cotizacionesSeleccionadasProvider.notifier).state = [];
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      esMultiple
+                          ? '$eliminadas cotizaciones eliminadas con éxito'
+                          : 'Cotización eliminada exitosamente',
+                    ),
+                  ),
+                );
               }
             },
             child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
@@ -161,9 +181,70 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
     );
   }
 
+  Future<void> _noAprobar(
+    BuildContext context,
+    WidgetRef ref,
+    List<Cotizacion> seleccionadas,
+  ) async {
+    if (seleccionadas.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selecciona al menos una cotización')),
+      );
+      return;
+    }
+
+    final esMultiple = seleccionadas.length > 1;
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar Cambio de Estatus'),
+        content: Text(
+          esMultiple
+              ? '¿Deseas marcar las ${seleccionadas.length} cotizaciones seleccionadas como "No Aprobado"?'
+              : '¿Deseas marcar la cotización "${seleccionadas.first.folio ?? 'S/F'}" como "No Aprobado"?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Confirmar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar != true) return;
+
+    int actualizadas = 0;
+    for (final c in seleccionadas) {
+      if (c.id != null) {
+        final ok = await ref
+            .read(cotizacionesProvider.notifier)
+            .cambiarStatus(c.id!, 'No Aprobado');
+        if (ok) actualizadas++;
+      }
+    }
+
+    if (context.mounted) {
+      ref.read(cotizacionesSeleccionadasProvider.notifier).state = [];
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            esMultiple
+                ? '$actualizadas cotizaciones marcadas como No Aprobado'
+                : 'Cotización marcada como No Aprobado',
+          ),
+        ),
+      );
+    }
+  }
+
   Future<void> _generarExcel(
     BuildContext context,
-    Cotizacion? seleccionado,
+    List<Cotizacion> seleccionadas,
     List<Cotizacion> todasLasCotizaciones,
   ) async {
     if (todasLasCotizaciones.isEmpty) {
@@ -175,13 +256,13 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
 
     List<Cotizacion>? cotizacionesAExportar;
 
-    if (seleccionado != null) {
+    if (seleccionadas.isNotEmpty) {
       final seleccion = await showDialog<String>(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Exportar a Excel'),
           content: Text(
-            'Tienes seleccionada la cotización "${seleccionado.folio ?? 'S/F'}".\n\n¿Qué deseas exportar?',
+            'Tienes ${seleccionadas.length} cotización(es) seleccionada(s).\n\n¿Qué deseas exportar?',
           ),
           actions: [
             TextButton(
@@ -189,16 +270,16 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
               child: Text('Todas (${todasLasCotizaciones.length})'),
             ),
             FilledButton(
-              onPressed: () => Navigator.pop(context, 'seleccionada'),
-              child: const Text('Solo la seleccionada'),
+              onPressed: () => Navigator.pop(context, 'seleccionadas'),
+              child: Text('Solo las seleccionadas (${seleccionadas.length})'),
             ),
           ],
         ),
       );
 
       if (seleccion == null) return;
-      cotizacionesAExportar = (seleccion == 'seleccionada')
-          ? [seleccionado]
+      cotizacionesAExportar = (seleccion == 'seleccionadas')
+          ? seleccionadas
           : todasLasCotizaciones;
     } else {
       final confirmar = await showDialog<bool>(
@@ -261,7 +342,7 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cotizacionesState = ref.watch(cotizacionesProvider);
-    final seleccionado = ref.watch(cotizacionSeleccionadaProvider);
+    final seleccionadas = ref.watch(cotizacionesSeleccionadasProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -283,6 +364,14 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                             child: Text('No hay cotizaciones registradas'),
                           )
                         : Tabla(
+                            onSelectAll: (selected) {
+                              if (selected == true) {
+                                ref.read(cotizacionesSeleccionadasProvider.notifier).state =
+                                    List<Cotizacion>.from(cotizacionesState.cotizaciones);
+                              } else {
+                                ref.read(cotizacionesSeleccionadasProvider.notifier).state = [];
+                              }
+                            },
                             columns: const [
                               DataColumn(label: Text('Folio')),
                               DataColumn(label: Text('Fecha\nCreación')),
@@ -301,13 +390,19 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                               DataColumn(label: Text('Usuario')),
                             ],
                             rows: cotizacionesState.cotizaciones.map((c) {
-                              final isSelected = seleccionado?.id == c.id;
+                              final isSelected = seleccionadas.any((item) => item.id == c.id);
                               return DataRow(
                                 selected: isSelected,
-                                onSelectChanged: (_) {
-                                  ref
-                                      .read(cotizacionSeleccionadaProvider.notifier)
-                                      .state = isSelected ? null : c;
+                                onSelectChanged: (selected) {
+                                  final actual = List<Cotizacion>.from(
+                                    ref.read(cotizacionesSeleccionadasProvider),
+                                  );
+                                  if (selected == true) {
+                                    actual.add(c);
+                                  } else {
+                                    actual.removeWhere((item) => item.id == c.id);
+                                  }
+                                  ref.read(cotizacionesSeleccionadasProvider.notifier).state = actual;
                                 },
                                 cells: [
                                   DataCell(Text(c.folio ?? '-')),
@@ -362,132 +457,105 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                   icon: Icons.edit,
                   label: "Modificar",
                   onPressed: () {
-                    if (seleccionado != null) {
-                      final cotizacionesActuales = ref
-                          .read(cotizacionesProvider)
-                          .cotizaciones;
-                      final cotizacionFresca = cotizacionesActuales.firstWhere(
-                        (c) => c.id == seleccionado.id,
-                        orElse: () => seleccionado,
-                      );
-
-                      final esRevista = cotizacionFresca.tipoCotizacion == 'R';
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => esRevista
-                              ? RevistaPage(cotizacionAEditar: cotizacionFresca)
-                              : CotizacionPlanaScreen(
-                                  cotizacionAEditar: cotizacionFresca,
-                                ),
-                        ),
-                      );
-                    } else {
+                    if (seleccionadas.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Selecciona una cotización para modificar',
-                          ),
-                        ),
+                        const SnackBar(content: Text('Selecciona una cotización para modificar')),
                       );
+                      return;
                     }
+                    if (seleccionadas.length > 1) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Solo puedes modificar una cotización a la vez')),
+                      );
+                      return;
+                    }
+
+                    final seleccionada = seleccionadas.first;
+                    final cotizacionFresca = cotizacionesState.cotizaciones.firstWhere(
+                      (c) => c.id == seleccionada.id,
+                      orElse: () => seleccionada,
+                    );
+
+                    final esRevista = cotizacionFresca.tipoCotizacion == 'R';
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => esRevista
+                            ? RevistaPage(cotizacionAEditar: cotizacionFresca)
+                            : CotizacionPlanaScreen(cotizacionAEditar: cotizacionFresca),
+                      ),
+                    );
                   },
                 ),
                 Boton(
                   icon: Icons.content_copy,
                   label: "Recotización",
                   onPressed: () {
-                    if (seleccionado != null) {
-                      final cotizacionesActuales = ref
-                          .read(cotizacionesProvider)
-                          .cotizaciones;
-                      final cotizacionFresca = cotizacionesActuales.firstWhere(
-                        (c) => c.id == seleccionado.id,
-                        orElse: () => seleccionado,
-                      );
-                      _recotizar(context, ref, cotizacionFresca);
-                    } else {
+                    if (seleccionadas.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Selecciona una cotización para recotizar',
-                          ),
-                        ),
+                        const SnackBar(content: Text('Selecciona una cotización para recotizar')),
                       );
+                      return;
                     }
+                    if (seleccionadas.length > 1) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Solo puedes recotizar una cotización a la vez')),
+                      );
+                      return;
+                    }
+
+                    final seleccionada = seleccionadas.first;
+                    final cotizacionFresca = cotizacionesState.cotizaciones.firstWhere(
+                      (c) => c.id == seleccionada.id,
+                      orElse: () => seleccionada,
+                    );
+                    _recotizar(context, ref, cotizacionFresca);
                   },
                 ),
                 Boton(
                   icon: Icons.delete,
                   label: "Eliminar",
                   isDestructive: true,
-                  onPressed: () {
-                    if (seleccionado != null) {
-                      _eliminar(context, ref, seleccionado);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Selecciona una cotización para eliminar',
-                          ),
-                        ),
-                      );
-                    }
-                  },
+                  onPressed: () => _eliminar(context, ref, seleccionadas),
                 ),
                 Boton(
                   icon: Icons.disabled_by_default_outlined,
                   label: "No Aprobar",
                   isDestructive: true,
-                  onPressed: () async {
-                    if (seleccionado != null && seleccionado.id != null) {
-                      final ok = await ref
-                          .read(cotizacionesProvider.notifier)
-                          .cambiarStatus(seleccionado.id!, 'No Aprobado');
-
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              ok
-                                  ? 'Cotización marcada como No Aprobado'
-                                  : 'No se pudo actualizar el estatus',
-                            ),
-                          ),
-                        );
-                      }
-                    }
-                  },
+                  onPressed: () => _noAprobar(context, ref, seleccionadas),
                 ),
                 Boton(
                   icon: Icons.refresh,
                   label: "Recargar",
                   onPressed: () {
                     ref.read(cotizacionesProvider.notifier).recargar();
+                    ref.read(cotizacionesSeleccionadasProvider.notifier).state = [];
                   },
                 ),
                 Boton(
                   icon: Icons.picture_as_pdf,
                   label: "Generar PDF",
                   onPressed: () async {
-                    if (seleccionado != null) {
-                      await initializeDateFormatting('es');
-                      if (!context.mounted) return;
-
-                      showDialog(
-                        context: context,
-                        builder: (context) =>
-                            DialogoGenerarPdf(cotizacion: seleccionado),
-                      );
-                    } else {
+                    if (seleccionadas.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Selecciona una cotización para generar PDF',
-                          ),
-                        ),
+                        const SnackBar(content: Text('Selecciona una cotización para generar PDF')),
                       );
+                      return;
                     }
+                    if (seleccionadas.length > 1) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Solo puedes generar el PDF de una cotización a la vez')),
+                      );
+                      return;
+                    }
+
+                    await initializeDateFormatting('es');
+                    if (!context.mounted) return;
+
+                    showDialog(
+                      context: context,
+                      builder: (context) => DialogoGenerarPdf(cotizacion: seleccionadas.first),
+                    );
                   },
                 ),
                 Boton(
@@ -495,7 +563,7 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                   label: "Generar Excel",
                   onPressed: () => _generarExcel(
                     context,
-                    seleccionado,
+                    seleccionadas,
                     cotizacionesState.cotizaciones,
                   ),
                 ),
@@ -503,40 +571,45 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
                   icon: Icons.assignment,
                   label: "Generar OT",
                   onPressed: () async {
-                    if (seleccionado != null && seleccionado.id != null) {
+                    if (seleccionadas.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Selecciona una cotización para generar la Orden de Trabajo'),
+                        ),
+                      );
+                      return;
+                    }
+                    if (seleccionadas.length > 1) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Solo puedes generar la Orden de Trabajo de una cotización a la vez'),
+                        ),
+                      );
+                      return;
+                    }
+
+                    final seleccionada = seleccionadas.first;
+                    if (seleccionada.id != null) {
                       final ok = await ref
                           .read(cotizacionesProvider.notifier)
-                          .cambiarStatus(
-                            seleccionado.id!,
-                            'Orden de Trabajo',
-                          );
+                          .cambiarStatus(seleccionada.id!, 'Orden de Trabajo');
 
                       if (ok && context.mounted) {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => OrdenTrabajoScreen(
-                              cotizacionId: seleccionado.id!,
+                              cotizacionId: seleccionada.id!,
                             ),
                           ),
                         );
                       } else if (!ok && context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text(
-                              'Error al cambiar el estatus a Orden de Trabajo',
-                            ),
+                            content: Text('Error al cambiar el estatus a Orden de Trabajo'),
                           ),
                         );
                       }
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Selecciona una cotización para generar la Orden de Trabajo',
-                          ),
-                        ),
-                      );
                     }
                   },
                 ),
