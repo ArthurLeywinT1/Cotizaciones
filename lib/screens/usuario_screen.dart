@@ -274,6 +274,11 @@ class UsuarioScreen extends ConsumerWidget {
               runSpacing: 16,
               children: [
                 Boton(
+                  icon: Icons.add,
+                  label: "Nuevo Usuario",
+                  onPressed: () => _agregarUsuario(context, ref),
+                ),
+                Boton(
                   icon: Icons.edit,
                   label: "Modificar",
                   onPressed: () {
