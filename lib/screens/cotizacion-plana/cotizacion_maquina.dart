@@ -229,14 +229,38 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
       widget.costoUnitRevController.text = precioUnitRev.toStringAsFixed(2);
     }
 
-
-    final double millaresRedondeado = (millaresDouble - millaresDouble.floor() <= 0.5)
+// 1. Asegurar que si hay fracción menor o igual a 0.5 (pero mayor a 0), 
+    // se cobre mínimo 1 millar (igual que en millaresEscala), o si no hay millares aún, 
+    // sume al menos por 1 para que no multiplique por 0.
+    double millaresParaCalculo = (millaresDouble - millaresDouble.floor() <= 0.5)
         ? millaresDouble.floorToDouble()
         : millaresDouble.ceilToDouble();
 
-    final double totalFte = precioUnitFte * millaresRedondeado;
-    final double totalRev = precioUnitRev * millaresRedondeado;
+    if (millaresParaCalculo <= 0) {
+      millaresParaCalculo = 1.0; 
+    }
+
+    // 2. Si quieres que multiplique por los millares redondeados:
+    final double totalFte = precioUnitFte * millaresParaCalculo;
+    final double totalRev = precioUnitRev * millaresParaCalculo;
+
+    // (NOTA: Si en tu lógica de negocio el precio que devuelve la tabla YA ES el total 
+    // o quieres que simplemente sume lo que dicen las cajas "Costo por Tinta Frontal" + "Reverso"
+    // sin multiplicar de nuevo por millares, usa esto en su lugar):
+    // final double totalFte = precioUnitFte;
+    // final double totalRev = precioUnitRev;
+
     final double granTotalTintas = totalFte + totalRev;
+
+    if (widget.costoTotalFteController.text != totalFte.toStringAsFixed(2)) {
+      widget.costoTotalFteController.text = totalFte.toStringAsFixed(2);
+    }
+    if (widget.costoTotalRevController.text != totalRev.toStringAsFixed(2)) {
+      widget.costoTotalRevController.text = totalRev.toStringAsFixed(2);
+    }
+    if (widget.costoGranTotalTintasController.text != granTotalTintas.toStringAsFixed(2)) {
+      widget.costoGranTotalTintasController.text = granTotalTintas.toStringAsFixed(2);
+    }
 
     widget.costoTotalFteController.text = totalFte.toStringAsFixed(2);
     widget.costoTotalRevController.text = totalRev.toStringAsFixed(2);
