@@ -6,6 +6,8 @@ import '../../widgets/boton.dart';
 import '../../widgets/tabla.dart';
 import 'modals/modal_usuario.dart';
 
+final usuariosSeleccionadosProvider = StateProvider<List<Usuario>>((ref) => []);
+
 class UsuarioScreen extends ConsumerWidget {
   const UsuarioScreen({super.key});
 
@@ -116,43 +118,32 @@ class UsuarioScreen extends ConsumerWidget {
     );
   }
 
-  void _eliminarUsuario(BuildContext context, WidgetRef ref, Usuario usuario) {
+  void _eliminarUsuarios(BuildContext context, WidgetRef ref, List<Usuario> usuarios) {
+    final esMultiple = usuarios.length > 1;
+    final mensaje = esMultiple
+        ? '¿Estás seguro de que deseas eliminar a los ${usuarios.length} usuarios seleccionados?'
+        : '¿Estás seguro de que deseas eliminar al usuario "${usuarios.first.usuario}"?';
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirmar Eliminación'),
-        content: Text(
-          '¿Estás seguro de que deseas eliminar al usuario "${usuario.usuario}"?\n\nEsta acción no se puede deshacer.',
-        ),
+        content: Text('$mensaje\n\nEsta acción no se puede deshacer.'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
           TextButton(
             onPressed: () async {
-              final success = await ref
-                  .read(usuariosProvider.notifier)
-                  .eliminarUsuario(usuario.id);
-
+              Navigator.pop(context);
+              int eliminados = 0;
+              for (final u in usuarios) {
+                final ok = await ref.read(usuariosProvider.notifier).eliminarUsuario(u.id);
+                if (ok) eliminados++;
+              }
               if (context.mounted) {
-                Navigator.pop(context);
-                if (success) {
-                  ref.read(usuarioSeleccionadoProvider.notifier).state = null;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Usuario eliminado exitosamente'),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Error: ${ref.read(usuariosProvider).error}',
-                      ),
-                    ),
-                  );
-                }
+                ref.read(usuariosSeleccionadosProvider.notifier).state = [];
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(esMultiple ? '$eliminados usuarios eliminados' : 'Usuario eliminado')),
+                );
               }
             },
             child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
@@ -165,7 +156,7 @@ class UsuarioScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final usuariosState = ref.watch(usuariosProvider);
-    final usuarioSeleccionado = ref.watch(usuarioSeleccionadoProvider);
+    final usuariosSeleccionados = ref.watch(usuariosSeleccionadosProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -202,30 +193,33 @@ class UsuarioScreen extends ConsumerWidget {
                 : usuariosState.usuarios.isEmpty
                 ? const Center(child: Text('No hay usuarios registrados'))
                 : Tabla(
+                    onSelectAll: (selected) {
+                      if (selected == true) {
+                        ref.read(usuariosSeleccionadosProvider.notifier).state = List.from(usuariosState.usuarios);
+                      } else {
+                        ref.read(usuariosSeleccionadosProvider.notifier).state = [];
+                      }
+                    },
                     columns: const [
                       DataColumn(label: Text('Usuario')),
-                      DataColumn(label: Text('Correo')), // <-- NUEVA COLUMNA
+                      DataColumn(label: Text('Correo')),
                       DataColumn(label: Text('Rol')),
                       DataColumn(label: Text('Nombre')),
                       DataColumn(label: Text('Apellido Paterno')),
                       DataColumn(label: Text('Apellido Materno')),
                     ],
                     rows: usuariosState.usuarios.map((usuario) {
-                      final isSelected = usuarioSeleccionado?.id == usuario.id;
+                      final isSelected = usuariosSeleccionados.any((u) => u.id == usuario.id);
                       return DataRow(
                         selected: isSelected,
-                        onSelectChanged: (_) {
-                          if (isSelected) {
-                            ref
-                                    .read(usuarioSeleccionadoProvider.notifier)
-                                    .state =
-                                null;
+                        onSelectChanged: (selected) {
+                          final actual = List<Usuario>.from(ref.read(usuariosSeleccionadosProvider));
+                          if (selected == true) {
+                            actual.add(usuario);
                           } else {
-                            ref
-                                    .read(usuarioSeleccionadoProvider.notifier)
-                                    .state =
-                                usuario;
+                            actual.removeWhere((u) => u.id == usuario.id);
                           }
+                          ref.read(usuariosSeleccionadosProvider.notifier).state = actual;
                         },
                         cells: [
                           DataCell(
@@ -236,7 +230,7 @@ class UsuarioScreen extends ConsumerWidget {
                               ),
                             ),
                           ),
-                          DataCell(Text(usuario.correo)), // <-- NUEVO DATO
+                          DataCell(Text(usuario.correo)),
                           DataCell(
                             Container(
                               padding: const EdgeInsets.symmetric(
@@ -280,17 +274,27 @@ class UsuarioScreen extends ConsumerWidget {
               runSpacing: 16,
               children: [
                 Boton(
-                  icon: Icons.person_add,
-                  label: "Añadir",
+                  icon: Icons.add,
+                  label: "Nuevo Usuario",
                   onPressed: () => _agregarUsuario(context, ref),
                 ),
                 Boton(
                   icon: Icons.edit,
                   label: "Modificar",
                   onPressed: () {
-                    if (usuarioSeleccionado != null) {
-                      _modificarUsuario(context, ref, usuarioSeleccionado);
+                    if (usuariosSeleccionados.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Selecciona un usuario para modificar')),
+                      );
+                      return;
                     }
+                    if (usuariosSeleccionados.length > 1) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Solo puedes modificar un usuario a la vez')),
+                      );
+                      return;
+                    }
+                    _modificarUsuario(context, ref, usuariosSeleccionados.first);
                   },
                 ),
                 Boton(
@@ -298,9 +302,13 @@ class UsuarioScreen extends ConsumerWidget {
                   label: "Eliminar",
                   isDestructive: true,
                   onPressed: () {
-                    if (usuarioSeleccionado != null) {
-                      _eliminarUsuario(context, ref, usuarioSeleccionado);
+                    if (usuariosSeleccionados.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Selecciona al menos un usuario para eliminar')),
+                      );
+                      return;
                     }
+                    _eliminarUsuarios(context, ref, usuariosSeleccionados);
                   },
                 ),
                 Boton(

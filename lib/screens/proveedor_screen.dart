@@ -6,6 +6,8 @@ import '../widgets/boton.dart';
 import '../widgets/tabla.dart';
 import 'modals/modal_proveedor.dart';
 
+final proveedoresSeleccionadosProvider = StateProvider<List<Proveedor>>((ref) => []);
+
 class ProveedorScreen extends ConsumerWidget {
   const ProveedorScreen({super.key});
 
@@ -54,16 +56,21 @@ class ProveedorScreen extends ConsumerWidget {
     );
   }
 
-  void _eliminarProveedor(
+  void _eliminarProveedores(
     BuildContext context,
     WidgetRef ref,
-    Proveedor proveedor,
+    List<Proveedor> proveedores,
   ) {
+    final esMultiple = proveedores.length > 1;
+    final mensaje = esMultiple
+        ? '¿Estás seguro de que deseas eliminar los ${proveedores.length} proveedores seleccionados?'
+        : '¿Eliminar a "${proveedores.first.razonSocial}"?';
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirmar Eliminación'),
-        content: Text('¿Eliminar a "${proveedor.razonSocial}"?'),
+        content: Text('$mensaje\n\nEsta acción no se puede deshacer.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -71,17 +78,25 @@ class ProveedorScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () async {
-              final success = await ref
-                  .read(proveedoresProvider.notifier)
-                  .eliminarProveedor(proveedor.id);
+              Navigator.pop(context);
+              int eliminados = 0;
+              for (final proveedor in proveedores) {
+                final success = await ref
+                    .read(proveedoresProvider.notifier)
+                    .eliminarProveedor(proveedor.id);
+                if (success) eliminados++;
+              }
               if (context.mounted) {
-                Navigator.pop(context);
-                if (success) {
-                  ref.read(proveedorSeleccionadoProvider.notifier).state = null;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Proveedor eliminado')),
-                  );
-                }
+                ref.read(proveedoresSeleccionadosProvider.notifier).state = [];
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      esMultiple
+                          ? '$eliminados proveedores eliminados exitosamente'
+                          : 'Proveedor eliminado',
+                    ),
+                  ),
+                );
               }
             },
             child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
@@ -94,7 +109,7 @@ class ProveedorScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final proveedoresState = ref.watch(proveedoresProvider);
-    final proveedorSeleccionado = ref.watch(proveedorSeleccionadoProvider);
+    final proveedoresSeleccionados = ref.watch(proveedoresSeleccionadosProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -113,6 +128,14 @@ class ProveedorScreen extends ConsumerWidget {
                 : proveedoresState.proveedores.isEmpty
                 ? const Center(child: Text('No hay proveedores registrados'))
                 : Tabla(
+                    onSelectAll: (selected) {
+                      if (selected == true) {
+                        ref.read(proveedoresSeleccionadosProvider.notifier).state =
+                            List.from(proveedoresState.proveedores);
+                      } else {
+                        ref.read(proveedoresSeleccionadosProvider.notifier).state = [];
+                      }
+                    },
                     columns: const [
                       DataColumn(label: Text('Razón Social')),
                       DataColumn(label: Text('RFC')),
@@ -122,16 +145,19 @@ class ProveedorScreen extends ConsumerWidget {
                       DataColumn(label: Text('Fecha Modificación')),
                     ],
                     rows: proveedoresState.proveedores.map((proveedor) {
-                      final isSelected =
-                          proveedorSeleccionado?.id == proveedor.id;
+                      final isSelected = proveedoresSeleccionados.any((p) => p.id == proveedor.id);
                       return DataRow(
                         selected: isSelected,
-                        onSelectChanged: (_) {
-                          ref
-                              .read(proveedorSeleccionadoProvider.notifier)
-                              .state = isSelected
-                              ? null
-                              : proveedor;
+                        onSelectChanged: (selected) {
+                          final actual = List<Proveedor>.from(
+                            ref.read(proveedoresSeleccionadosProvider),
+                          );
+                          if (selected == true) {
+                            actual.add(proveedor);
+                          } else {
+                            actual.removeWhere((p) => p.id == proveedor.id);
+                          }
+                          ref.read(proveedoresSeleccionadosProvider.notifier).state = actual;
                         },
                         cells: [
                           DataCell(
@@ -176,8 +202,19 @@ class ProveedorScreen extends ConsumerWidget {
                   icon: Icons.edit,
                   label: "Modificar",
                   onPressed: () {
-                    if (proveedorSeleccionado != null)
-                      _modificarProveedor(context, ref, proveedorSeleccionado);
+                    if (proveedoresSeleccionados.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Selecciona un proveedor para modificar')),
+                      );
+                      return;
+                    }
+                    if (proveedoresSeleccionados.length > 1) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Solo puedes modificar un proveedor a la vez')),
+                      );
+                      return;
+                    }
+                    _modificarProveedor(context, ref, proveedoresSeleccionados.first);
                   },
                 ),
                 Boton(
@@ -185,8 +222,13 @@ class ProveedorScreen extends ConsumerWidget {
                   label: "Eliminar",
                   isDestructive: true,
                   onPressed: () {
-                    if (proveedorSeleccionado != null)
-                      _eliminarProveedor(context, ref, proveedorSeleccionado);
+                    if (proveedoresSeleccionados.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Selecciona al menos un proveedor para eliminar')),
+                      );
+                      return;
+                    }
+                    _eliminarProveedores(context, ref, proveedoresSeleccionados);
                   },
                 ),
                 Boton(
@@ -194,6 +236,7 @@ class ProveedorScreen extends ConsumerWidget {
                   label: "Recargar",
                   onPressed: () {
                     ref.read(proveedoresProvider.notifier).recargar();
+                    ref.read(proveedoresSeleccionadosProvider.notifier).state = [];
                   },
                 ),
               ],

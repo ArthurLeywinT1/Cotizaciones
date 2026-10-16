@@ -7,6 +7,8 @@ import '../widgets/boton.dart';
 import '../widgets/tabla.dart';
 import 'modals/modal_descuento.dart';
 
+final descuentosSeleccionadosProvider = StateProvider<List<DescuentoPapel>>((ref) => []);
+
 class DescuentoScreen extends ConsumerWidget {
   const DescuentoScreen({super.key});
 
@@ -60,16 +62,21 @@ class DescuentoScreen extends ConsumerWidget {
     );
   }
 
-  void _eliminar(
+  void _eliminarDescuentos(
     BuildContext context,
     WidgetRef ref,
-    DescuentoPapel descuento,
+    List<DescuentoPapel> descuentos,
   ) {
+    final esMultiple = descuentos.length > 1;
+    final mensaje = esMultiple
+        ? '¿Estás seguro de que deseas eliminar los ${descuentos.length} descuentos seleccionados?'
+        : '¿Eliminar este descuento?';
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirmar Eliminación'),
-        content: const Text('¿Eliminar este descuento?'),
+        content: Text('$mensaje\n\nEsta acción no se puede deshacer.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -77,15 +84,25 @@ class DescuentoScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () async {
-              final success = await ref
-                  .read(descuentosProvider.notifier)
-                  .eliminarDescuento(descuento.id);
-              if (success && context.mounted) {
-                Navigator.pop(context);
-                ref.read(descuentoSeleccionadoProvider.notifier).state = null;
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('Eliminado')));
+              Navigator.pop(context);
+              int eliminados = 0;
+              for (final d in descuentos) {
+                final success = await ref
+                    .read(descuentosProvider.notifier)
+                    .eliminarDescuento(d.id);
+                if (success) eliminados++;
+              }
+              if (context.mounted) {
+                ref.read(descuentosSeleccionadosProvider.notifier).state = [];
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      esMultiple
+                          ? '$eliminados descuentos eliminados exitosamente'
+                          : 'Descuento eliminado',
+                    ),
+                  ),
+                );
               }
             },
             child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
@@ -99,7 +116,7 @@ class DescuentoScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final descuentosState = ref.watch(descuentosProvider);
     final papelesState = ref.watch(papelesProvider);
-    final seleccionado = ref.watch(descuentoSeleccionadoProvider);
+    final descuentosSeleccionados = ref.watch(descuentosSeleccionadosProvider);
 
     final isLoading = descuentosState.isLoading || papelesState.isLoading;
 
@@ -118,6 +135,14 @@ class DescuentoScreen extends ConsumerWidget {
                     ),
                   )
                 : Tabla(
+                    onSelectAll: (selected) {
+                      if (selected == true) {
+                        ref.read(descuentosSeleccionadosProvider.notifier).state =
+                            List.from(descuentosState.descuentos);
+                      } else {
+                        ref.read(descuentosSeleccionadosProvider.notifier).state = [];
+                      }
+                    },
                     columns: const [
                       DataColumn(label: Text('Cantidad Desde')),
                       DataColumn(label: Text('Cantidad Hasta')),
@@ -125,15 +150,19 @@ class DescuentoScreen extends ConsumerWidget {
                       DataColumn(label: Text('Fecha Modificación')),
                     ],
                     rows: descuentosState.descuentos.map((d) {
-                      final isSelected = seleccionado?.id == d.id;
+                      final isSelected = descuentosSeleccionados.any((item) => item.id == d.id);
                       return DataRow(
                         selected: isSelected,
-                        onSelectChanged: (_) {
-                          ref
-                              .read(descuentoSeleccionadoProvider.notifier)
-                              .state = isSelected
-                              ? null
-                              : d;
+                        onSelectChanged: (selected) {
+                          final actual = List<DescuentoPapel>.from(
+                            ref.read(descuentosSeleccionadosProvider),
+                          );
+                          if (selected == true) {
+                            actual.add(d);
+                          } else {
+                            actual.removeWhere((item) => item.id == d.id);
+                          }
+                          ref.read(descuentosSeleccionadosProvider.notifier).state = actual;
                         },
                         cells: [
                           DataCell(Text(d.cantidadDesde.toString())),
@@ -176,8 +205,19 @@ class DescuentoScreen extends ConsumerWidget {
                   icon: Icons.edit,
                   label: "Modificar",
                   onPressed: () {
-                    if (seleccionado != null)
-                      _agregarDescuento(context, ref, seleccionado);
+                    if (descuentosSeleccionados.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Selecciona un descuento para modificar')),
+                      );
+                      return;
+                    }
+                    if (descuentosSeleccionados.length > 1) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Solo puedes modificar un descuento a la vez')),
+                      );
+                      return;
+                    }
+                    _agregarDescuento(context, ref, descuentosSeleccionados.first);
                   },
                 ),
                 Boton(
@@ -185,8 +225,13 @@ class DescuentoScreen extends ConsumerWidget {
                   label: "Eliminar",
                   isDestructive: true,
                   onPressed: () {
-                    if (seleccionado != null)
-                      _eliminar(context, ref, seleccionado);
+                    if (descuentosSeleccionados.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Selecciona al menos un descuento para eliminar')),
+                      );
+                      return;
+                    }
+                    _eliminarDescuentos(context, ref, descuentosSeleccionados);
                   },
                 ),
                 Boton(
@@ -194,6 +239,7 @@ class DescuentoScreen extends ConsumerWidget {
                   label: "Recargar",
                   onPressed: () {
                     ref.read(descuentosProvider.notifier).recargar();
+                    ref.read(descuentosSeleccionadosProvider.notifier).state = [];
                   },
                 ),
               ],

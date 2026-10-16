@@ -8,6 +8,8 @@ import '../widgets/tabla.dart';
 import 'modals/modal_papel.dart';
 import '../utils/formatters.dart';
 
+final papelesSeleccionadosProvider = StateProvider<List<Papel>>((ref) => []);
+
 class PapelScreen extends ConsumerWidget {
   const PapelScreen({super.key});
 
@@ -58,12 +60,17 @@ class PapelScreen extends ConsumerWidget {
     );
   }
 
-  void _eliminarPapel(BuildContext context, WidgetRef ref, Papel papel) {
+  void _eliminarPapeles(BuildContext context, WidgetRef ref, List<Papel> papeles) {
+    final esMultiple = papeles.length > 1;
+    final mensaje = esMultiple
+        ? '¿Estás seguro de que deseas eliminar los ${papeles.length} papeles seleccionados?'
+        : '¿Eliminar a "${papeles.first.nombre}"?';
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirmar Eliminación'),
-        content: Text('¿Eliminar a "${papel.nombre}"?'),
+        content: Text('$mensaje\n\nEsta acción no se puede deshacer.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -71,17 +78,25 @@ class PapelScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () async {
-              final success = await ref
-                  .read(papelesProvider.notifier)
-                  .eliminarPapel(papel.id);
+              Navigator.pop(context);
+              int eliminados = 0;
+              for (final papel in papeles) {
+                final success = await ref
+                    .read(papelesProvider.notifier)
+                    .eliminarPapel(papel.id);
+                if (success) eliminados++;
+              }
               if (context.mounted) {
-                Navigator.pop(context);
-                if (success) {
-                  ref.read(papelSeleccionadoProvider.notifier).state = null;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Papel eliminado')),
-                  );
-                }
+                ref.read(papelesSeleccionadosProvider.notifier).state = [];
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      esMultiple
+                          ? '$eliminados papeles eliminados exitosamente'
+                          : 'Papel eliminado',
+                    ),
+                  ),
+                );
               }
             },
             child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
@@ -105,7 +120,7 @@ class PapelScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final papelesState = ref.watch(papelesProvider);
     final proveedoresState = ref.watch(proveedoresProvider);
-    final papelSeleccionado = ref.watch(papelSeleccionadoProvider);
+    final papelesSeleccionados = ref.watch(papelesSeleccionadosProvider);
 
     final isLoading = papelesState.isLoading || proveedoresState.isLoading;
 
@@ -126,6 +141,14 @@ class PapelScreen extends ConsumerWidget {
                 : papelesState.papeles.isEmpty
                 ? const Center(child: Text('No hay papeles registrados'))
                 : Tabla(
+                    onSelectAll: (selected) {
+                      if (selected == true) {
+                        ref.read(papelesSeleccionadosProvider.notifier).state =
+                            List.from(papelesState.papeles);
+                      } else {
+                        ref.read(papelesSeleccionadosProvider.notifier).state = [];
+                      }
+                    },
                     columns: const [
                       DataColumn(label: Text('Nombre Papel')),
                       DataColumn(label: Text('Tipo')),
@@ -136,12 +159,17 @@ class PapelScreen extends ConsumerWidget {
                       DataColumn(label: Text('Fecha Modificación')),
                     ],
                     rows: papelesState.papeles.map((papel) {
-                      final isSelected = papelSeleccionado?.id == papel.id;
+                      final isSelected = papelesSeleccionados.any((p) => p.id == papel.id);
                       return DataRow(
                         selected: isSelected,
-                        onSelectChanged: (_) {
-                          ref.read(papelSeleccionadoProvider.notifier).state =
-                              isSelected ? null : papel;
+                        onSelectChanged: (selected) {
+                          final actual = List<Papel>.from(ref.read(papelesSeleccionadosProvider));
+                          if (selected == true) {
+                            actual.add(papel);
+                          } else {
+                            actual.removeWhere((p) => p.id == papel.id);
+                          }
+                          ref.read(papelesSeleccionadosProvider.notifier).state = actual;
                         },
                         cells: [
                           DataCell(
@@ -195,9 +223,19 @@ class PapelScreen extends ConsumerWidget {
                   icon: Icons.edit,
                   label: "Modificar",
                   onPressed: () {
-                    if (papelSeleccionado != null) {
-                      _modificarPapel(context, ref, papelSeleccionado);
+                    if (papelesSeleccionados.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Selecciona un papel para modificar')),
+                      );
+                      return;
                     }
+                    if (papelesSeleccionados.length > 1) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Solo puedes modificar un papel a la vez')),
+                      );
+                      return;
+                    }
+                    _modificarPapel(context, ref, papelesSeleccionados.first);
                   },
                 ),
                 Boton(
@@ -205,9 +243,13 @@ class PapelScreen extends ConsumerWidget {
                   label: "Eliminar",
                   isDestructive: true,
                   onPressed: () {
-                    if (papelSeleccionado != null) {
-                      _eliminarPapel(context, ref, papelSeleccionado);
+                    if (papelesSeleccionados.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Selecciona al menos un papel para eliminar')),
+                      );
+                      return;
                     }
+                    _eliminarPapeles(context, ref, papelesSeleccionados);
                   },
                 ),
                 Boton(
@@ -215,6 +257,7 @@ class PapelScreen extends ConsumerWidget {
                   label: "Recargar",
                   onPressed: () {
                     ref.read(papelesProvider.notifier).recargar();
+                    ref.read(papelesSeleccionadosProvider.notifier).state = [];
                   },
                 ),
               ],

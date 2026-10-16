@@ -6,6 +6,8 @@ import '../widgets/boton.dart';
 import '../widgets/tabla.dart';
 import 'modals/modal_extra.dart';
 
+final extrasSeleccionadosProvider = StateProvider<List<Extra>>((ref) => []);
+
 class ExtraScreen extends ConsumerWidget {
   const ExtraScreen({super.key});
 
@@ -42,12 +44,17 @@ class ExtraScreen extends ConsumerWidget {
     );
   }
 
-  void _eliminar(BuildContext context, WidgetRef ref, Extra extra) {
+  void _eliminarExtras(BuildContext context, WidgetRef ref, List<Extra> extras) {
+    final esMultiple = extras.length > 1;
+    final mensaje = esMultiple
+        ? '¿Estás seguro de que deseas eliminar los ${extras.length} acabados seleccionados?'
+        : '¿Eliminar el acabado "${extras.first.nombre}"?';
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirmar Eliminación'),
-        content: Text('¿Eliminar el acabado "${extra.nombre}"?'),
+        content: Text('$mensaje\n\nEsta acción no se puede deshacer.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -55,15 +62,25 @@ class ExtraScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () async {
-              final success = await ref
-                  .read(extrasProvider.notifier)
-                  .eliminarExtra(extra.id);
-              if (success && context.mounted) {
-                Navigator.pop(context);
-                ref.read(extraSeleccionadoProvider.notifier).state = null;
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('Eliminado')));
+              Navigator.pop(context);
+              int eliminados = 0;
+              for (final extra in extras) {
+                final success = await ref
+                    .read(extrasProvider.notifier)
+                    .eliminarExtra(extra.id);
+                if (success) eliminados++;
+              }
+              if (context.mounted) {
+                ref.read(extrasSeleccionadosProvider.notifier).state = [];
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      esMultiple
+                          ? '$eliminados acabados eliminados exitosamente'
+                          : 'Acabado eliminado',
+                    ),
+                  ),
+                );
               }
             },
             child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
@@ -76,7 +93,7 @@ class ExtraScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final extrasState = ref.watch(extrasProvider);
-    final seleccionado = ref.watch(extraSeleccionadoProvider);
+    final extrasSeleccionados = ref.watch(extrasSeleccionadosProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -95,6 +112,14 @@ class ExtraScreen extends ConsumerWidget {
                 : extrasState.extras.isEmpty
                 ? const Center(child: Text('No hay extras registrados'))
                 : Tabla(
+                    onSelectAll: (selected) {
+                      if (selected == true) {
+                        ref.read(extrasSeleccionadosProvider.notifier).state =
+                            List.from(extrasState.extras);
+                      } else {
+                        ref.read(extrasSeleccionadosProvider.notifier).state = [];
+                      }
+                    },
                     columns: const [
                       DataColumn(label: Text('Nombre')),
                       DataColumn(label: Text('Costo cm²')),
@@ -103,12 +128,19 @@ class ExtraScreen extends ConsumerWidget {
                       DataColumn(label: Text('Fecha Modificación')),
                     ],
                     rows: extrasState.extras.map((e) {
-                      final isSelected = seleccionado?.id == e.id;
+                      final isSelected = extrasSeleccionados.any((item) => item.id == e.id);
                       return DataRow(
                         selected: isSelected,
-                        onSelectChanged: (_) {
-                          ref.read(extraSeleccionadoProvider.notifier).state =
-                              isSelected ? null : e;
+                        onSelectChanged: (selected) {
+                          final actual = List<Extra>.from(
+                            ref.read(extrasSeleccionadosProvider),
+                          );
+                          if (selected == true) {
+                            actual.add(e);
+                          } else {
+                            actual.removeWhere((item) => item.id == e.id);
+                          }
+                          ref.read(extrasSeleccionadosProvider.notifier).state = actual;
                         },
                         cells: [
                           DataCell(
@@ -164,8 +196,19 @@ class ExtraScreen extends ConsumerWidget {
                   icon: Icons.edit,
                   label: "Modificar",
                   onPressed: () {
-                    if (seleccionado != null)
-                      _agregarExtra(context, ref, seleccionado);
+                    if (extrasSeleccionados.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Selecciona un acabado para modificar')),
+                      );
+                      return;
+                    }
+                    if (extrasSeleccionados.length > 1) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Solo puedes modificar un acabado a la vez')),
+                      );
+                      return;
+                    }
+                    _agregarExtra(context, ref, extrasSeleccionados.first);
                   },
                 ),
                 Boton(
@@ -173,8 +216,13 @@ class ExtraScreen extends ConsumerWidget {
                   label: "Eliminar",
                   isDestructive: true,
                   onPressed: () {
-                    if (seleccionado != null)
-                      _eliminar(context, ref, seleccionado);
+                    if (extrasSeleccionados.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Selecciona al menos un acabado para eliminar')),
+                      );
+                      return;
+                    }
+                    _eliminarExtras(context, ref, extrasSeleccionados);
                   },
                 ),
                 Boton(
@@ -182,6 +230,7 @@ class ExtraScreen extends ConsumerWidget {
                   label: "Recargar",
                   onPressed: () {
                     ref.read(extrasProvider.notifier).recargar();
+                    ref.read(extrasSeleccionadosProvider.notifier).state = [];
                   },
                 ),
               ],
