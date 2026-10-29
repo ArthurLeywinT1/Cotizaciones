@@ -254,59 +254,55 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
       return;
     }
 
-    List<Cotizacion>? cotizacionesAExportar;
-
-    if (seleccionadas.isNotEmpty) {
-      final seleccion = await showDialog<String>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Exportar a Excel'),
-          content: Text(
-            'Tienes ${seleccionadas.length} cotización(es) seleccionada(s).\n\n¿Qué deseas exportar?',
+    final modoSeleccionado = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Exportar a Excel'),
+        content: Text(
+          seleccionadas.isNotEmpty
+              ? 'Tienes ${seleccionadas.length} cotización(es) seleccionada(s).\n\n¿Qué deseas exportar?'
+              : 'Selecciona qué cotizaciones deseas exportar a Excel:',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, null),
+            child: const Text('Cancelar'),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, 'todas'),
-              child: Text('Todas (${todasLasCotizaciones.length})'),
-            ),
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context, 'rango_mes'),
+            child: const Text('Por rango de mes'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'todas'),
+            child: Text('Todas (${todasLasCotizaciones.length})'),
+          ),
+          if (seleccionadas.isNotEmpty)
             FilledButton(
               onPressed: () => Navigator.pop(context, 'seleccionadas'),
-              child: Text('Solo las seleccionadas (${seleccionadas.length})'),
+              child: Text('Seleccionadas (${seleccionadas.length})'),
             ),
-          ],
-        ),
-      );
+        ],
+      ),
+    );
 
-      if (seleccion == null) return;
-      cotizacionesAExportar = (seleccion == 'seleccionadas')
-          ? seleccionadas
-          : todasLasCotizaciones;
-    } else {
-      final confirmar = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Exportar a Excel'),
-          content: Text(
-            'No has seleccionado ninguna cotización.\n\n¿Deseas exportar el catálogo completo (${todasLasCotizaciones.length} cotizaciones)?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancelar'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Exportar Todas'),
-            ),
-          ],
-        ),
-      );
+    if (modoSeleccionado == null || !context.mounted) return;
 
-      if (confirmar != true) return;
+    List<Cotizacion>? cotizacionesAExportar;
+
+    if (modoSeleccionado == 'seleccionadas') {
+      cotizacionesAExportar = seleccionadas;
+    } else if (modoSeleccionado == 'todas') {
       cotizacionesAExportar = todasLasCotizaciones;
+    } else if (modoSeleccionado == 'rango_mes') {
+      cotizacionesAExportar = await _seleccionarRangoMeses(
+        context,
+        todasLasCotizaciones,
+      );
     }
 
-    if (!context.mounted) return;
+    if (cotizacionesAExportar == null || cotizacionesAExportar.isEmpty || !context.mounted) {
+      return;
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -337,6 +333,193 @@ class CatalogoCotizacionesScreen extends ConsumerWidget {
         );
       }
     }
+  }
+
+  Future<List<Cotizacion>?> _seleccionarRangoMeses(
+    BuildContext context,
+    List<Cotizacion> todasLasCotizaciones,
+  ) async {
+    final ahora = DateTime.now();
+    int mesInicio = ahora.month;
+    int anioInicio = ahora.year;
+    int mesFin = ahora.month;
+    int anioFin = ahora.year;
+
+    final aniosDisponibles = todasLasCotizaciones
+        .where((c) => c.fechaCreacion != null)
+        .map((c) => c.fechaCreacion!.toLocal().year)
+        .toSet()
+        .toList();
+    if (!aniosDisponibles.contains(ahora.year)) {
+      aniosDisponibles.add(ahora.year);
+    }
+    aniosDisponibles.sort();
+
+    const nombresMeses = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+
+    return showDialog<List<Cotizacion>>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final fechaInicio = DateTime(anioInicio, mesInicio, 1);
+            final fechaFin = DateTime(anioFin, mesFin + 1, 0, 23, 59, 59, 999);
+
+            final rangoValido = !fechaInicio.isAfter(fechaFin);
+
+            final cotizacionesEnRango = rangoValido
+                ? todasLasCotizaciones.where((c) {
+                    if (c.fechaCreacion == null) return false;
+                    final fecha = c.fechaCreacion!.toLocal();
+                    return !fecha.isBefore(fechaInicio) && !fecha.isAfter(fechaFin);
+                  }).toList()
+                : <Cotizacion>[];
+
+            return AlertDialog(
+              title: const Text('Exportar por Rango de Mes'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Desde:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: DropdownButtonFormField<int>(
+                          value: mesInicio,
+                          decoration: const InputDecoration(
+                            labelText: 'Mes',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                          items: List.generate(12, (index) {
+                            return DropdownMenuItem(
+                              value: index + 1,
+                              child: Text(nombresMeses[index]),
+                            );
+                          }),
+                          onChanged: (val) {
+                            if (val != null) setState(() => mesInicio = val);
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 2,
+                        child: DropdownButtonFormField<int>(
+                          value: anioInicio,
+                          decoration: const InputDecoration(
+                            labelText: 'Año',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                          items: aniosDisponibles.map((anio) {
+                            return DropdownMenuItem(
+                              value: anio,
+                              child: Text(anio.toString()),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) setState(() => anioInicio = val);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Hasta:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: DropdownButtonFormField<int>(
+                          value: mesFin,
+                          decoration: const InputDecoration(
+                            labelText: 'Mes',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                          items: List.generate(12, (index) {
+                            return DropdownMenuItem(
+                              value: index + 1,
+                              child: Text(nombresMeses[index]),
+                            );
+                          }),
+                          onChanged: (val) {
+                            if (val != null) setState(() => mesFin = val);
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 2,
+                        child: DropdownButtonFormField<int>(
+                          value: anioFin,
+                          decoration: const InputDecoration(
+                            labelText: 'Año',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                          items: aniosDisponibles.map((anio) {
+                            return DropdownMenuItem(
+                              value: anio,
+                              child: Text(anio.toString()),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) setState(() => anioFin = val);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  if (!rangoValido)
+                    const Text(
+                      'El mes de inicio no puede ser mayor al mes final.',
+                      style: TextStyle(color: Colors.red, fontSize: 13),
+                    )
+                  else
+                    Text(
+                      'Cotizaciones encontradas: ${cotizacionesEnRango.length}',
+                      style: TextStyle(
+                        color: cotizacionesEnRango.isEmpty
+                            ? Colors.orange.shade800
+                            : Colors.green.shade700,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, null),
+                  child: const Text('Cancelar'),
+                ),
+                FilledButton(
+                  onPressed: (rangoValido && cotizacionesEnRango.isNotEmpty)
+                      ? () => Navigator.pop(context, cotizacionesEnRango)
+                      : null,
+                  child: const Text('Exportar Rango'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
