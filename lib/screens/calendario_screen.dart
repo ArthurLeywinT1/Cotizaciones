@@ -207,6 +207,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
                       fechaFin: finRango,
                       usuarioId: currentUserId,
                       area: areaAsignada,
+                      completado: false,
                     );
 
                     final success = await ref
@@ -311,16 +312,6 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
                         ],
                       );
                     } else {
-                      // CustomScrollView en vez de Column + Expanded: el
-                      // TableCalendar en formato "mes" puede medir más que
-                      // el alto disponible en un celular, y un Column con un
-                      // hijo de tamaño fijo más grande que el espacio le
-                      // deja 0 (o negativo) al Expanded de abajo — ahí es
-                      // donde las actividades "no tenían scroll" y quedaban
-                      // empujadas fuera de la vista. Con slivers, calendario
-                      // y actividades comparten un solo scroll vertical, así
-                      // que siempre se puede bajar para ver todas las
-                      // actividades del día, sin importar cuántas sean.
                       return CustomScrollView(
                         slivers: [
                           SliverToBoxAdapter(
@@ -494,9 +485,6 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
     );
   }
 
-  // Misma lista, pero como sliver: la usa el layout de celular para que
-  // calendario + actividades compartan un solo CustomScrollView en vez de
-  // que la lista pelee por un espacio fijo dentro de un Expanded.
   Widget _buildListaActividadesSliver(
     List<Calendario> listaActividadesDia,
     ColorScheme colors,
@@ -543,12 +531,35 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
     ColorScheme colors,
     bool esAdmin,
   ) {
+    final bool estaPrendida = actividad.completado;
+
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: ListTile(
+        leading: IconButton(
+          icon: Icon(
+            estaPrendida
+                ? Icons.check_circle_rounded
+                : Icons.radio_button_unchecked_rounded,
+            color: estaPrendida ? Colors.green.shade600 : Colors.grey.shade500,
+            size: 28,
+          ),
+          tooltip: estaPrendida ? 'Desmarcar' : 'Marcar',
+          onPressed: () {
+            if (actividad.id != null) {
+              ref
+                  .read(calendarioProvider.notifier)
+                  .toggleCompletado(actividad.id!, !estaPrendida);
+            }
+          },
+        ),
         title: Text(
           actividad.titulo,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            decoration: estaPrendida ? TextDecoration.lineThrough : null,
+            color: estaPrendida ? Colors.grey.shade600 : null,
+          ),
         ),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4.0),

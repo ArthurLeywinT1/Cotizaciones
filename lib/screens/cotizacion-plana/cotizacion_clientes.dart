@@ -52,8 +52,11 @@ class PanelClientes extends ConsumerStatefulWidget {
   final ValueChanged<bool> onGrabadoChanged;
   final bool acabadosEspeciales;
   final ValueChanged<bool?> onAcabadosEspecialesChanged;
+  final bool extras;
+  final ValueChanged<bool?> onExtrasChanged;
 
   const PanelClientes({
+    super.key,
     required this.razonSocialController,
     required this.onClienteIdSeleccionado,
     required this.proyectoController,
@@ -78,6 +81,8 @@ class PanelClientes extends ConsumerStatefulWidget {
     required this.onLaminadosChanged,
     required this.acabadosEspeciales,
     required this.onAcabadosEspecialesChanged,
+    required this.extras,
+    required this.onExtrasChanged,
     required this.serigrafia,
     required this.onSerigrafiaChanged,
     required this.grabado,
@@ -107,12 +112,9 @@ class PanelClientes extends ConsumerStatefulWidget {
 }
 
 class _PanelClientesState extends ConsumerState<PanelClientes> {
-  
-  // 🔹 NUEVO: Agregamos initState para precargar el valor por defecto
   @override
   void initState() {
     super.initState();
-    // Si el controlador viene vacío de origen, le asignamos el 0.5 por defecto
     if (widget.medianilController.text.isEmpty) {
       widget.medianilController.text = "0.5";
     }
@@ -245,6 +247,12 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
             ),
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
+              title: const Text("Extras"),
+              value: widget.extras,
+              onChanged: widget.onExtrasChanged,
+            ),
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
               title: const Text("Suaje"),
               value: widget.suaje,
               onChanged: (v) => widget.onSuajeChanged(v ?? false),
@@ -306,8 +314,10 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                   SizedBox(
                     width: 120,
                     child: TextField(
-                      controller: widget.medianilController, // 🔹 Sigue siendo editable
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      controller: widget.medianilController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       decoration: const InputDecoration(labelText: "Medianil"),
                     ),
                   ),
@@ -340,7 +350,9 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                       child: TextField(
                         controller: widget.cantidadCartaController,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: "Cantidad Carta"),
+                        decoration: const InputDecoration(
+                          labelText: "Cantidad Carta",
+                        ),
                         onChanged: (value) => calcularTotal(
                           widget.cantidadCartaController,
                           widget.precioCartaController,
@@ -353,7 +365,9 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                       child: TextField(
                         controller: widget.precioCartaController,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: "Precio Carta"),
+                        decoration: const InputDecoration(
+                          labelText: "Precio Carta",
+                        ),
                         onChanged: (value) => calcularTotal(
                           widget.cantidadCartaController,
                           widget.precioCartaController,
@@ -390,7 +404,9 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                       child: TextField(
                         controller: widget.cantidadTabloideController,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: "Cantidad Tabloide"),
+                        decoration: const InputDecoration(
+                          labelText: "Cantidad Tabloide",
+                        ),
                         onChanged: (value) => calcularTotal(
                           widget.cantidadTabloideController,
                           widget.precioTabloideController,
@@ -403,7 +419,9 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                       child: TextField(
                         controller: widget.precioTabloideController,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: "Precio Tabloide"),
+                        decoration: const InputDecoration(
+                          labelText: "Precio Tabloide",
+                        ),
                         onChanged: (value) => calcularTotal(
                           widget.cantidadTabloideController,
                           widget.precioTabloideController,
@@ -440,7 +458,9 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                       child: TextField(
                         controller: widget.cantidadMediaCartaController,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: "Cantidad Media Carta"),
+                        decoration: const InputDecoration(
+                          labelText: "Cantidad Media Carta",
+                        ),
                         onChanged: (value) => calcularTotal(
                           widget.cantidadMediaCartaController,
                           widget.precioMediaCartaController,
@@ -453,7 +473,9 @@ class _PanelClientesState extends ConsumerState<PanelClientes> {
                       child: TextField(
                         controller: widget.precioMediaCartaController,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: "Precio Media Carta"),
+                        decoration: const InputDecoration(
+                          labelText: "Precio Media Carta",
+                        ),
                         onChanged: (value) => calcularTotal(
                           widget.cantidadMediaCartaController,
                           widget.precioMediaCartaController,

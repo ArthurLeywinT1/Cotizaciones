@@ -1,3 +1,4 @@
+
 import '../models/calendario_model.dart';
 import 'db.dart';
 
@@ -9,6 +10,7 @@ class CalendarioService {
       final results = await _db.query(
         'SELECT * FROM calendario ORDER BY fecha_inicio ASC',
       );
+
       return results.map((row) => Calendario.fromJson(row)).toList();
     } catch (e) {
       print('Error al obtener registros del calendario: $e');
@@ -20,8 +22,17 @@ class CalendarioService {
     try {
       final rowsAffected = await _db.execute(
         '''
-        INSERT INTO calendario (titulo, descripcion, fecha_inicio, fecha_fin, usuario_id, area)
-        VALUES (@titulo, @descripcion, @fechaInicio, @fechaFin, CAST(NULLIF(@usuarioId, '') AS uuid), @area)
+        INSERT INTO calendario
+        (titulo, descripcion, fecha_inicio, fecha_fin, usuario_id, area, completado)
+        VALUES (
+          @titulo,
+          @descripcion,
+          @fechaInicio,
+          @fechaFin,
+          CAST(NULLIF(@usuarioId, '') AS uuid),
+          @area,
+          @completado
+        )
         ''',
         params: {
           'titulo': calendario.titulo,
@@ -30,11 +41,34 @@ class CalendarioService {
           'fechaFin': calendario.fechaFin.toIso8601String(),
           'usuarioId': calendario.usuarioId ?? '',
           'area': calendario.area,
+          'completado': calendario.completado,
         },
       );
+
       return rowsAffected > 0;
     } catch (e) {
       print('Error al crear registro en calendario: $e');
+      return false;
+    }
+  }
+
+  Future<bool> actualizarCompletado(String id, bool completado) async {
+    try {
+      final rowsAffected = await _db.execute(
+        '''
+        UPDATE calendario
+        SET completado = @completado
+        WHERE id = CAST(@id AS uuid)
+        ''',
+        params: {
+          'id': id,
+          'completado': completado,
+        },
+      );
+
+      return rowsAffected > 0;
+    } catch (e) {
+      print('Error al actualizar el estado completado: $e');
       return false;
     }
   }
@@ -45,6 +79,7 @@ class CalendarioService {
         'DELETE FROM calendario WHERE id = CAST(@id AS uuid)',
         params: {'id': id},
       );
+
       return rowsAffected > 0;
     } catch (e) {
       print('Error al eliminar registro de calendario: $e');
@@ -58,18 +93,25 @@ class CalendarioService {
 
       if (area.toLowerCase() == 'todos' ||
           area.toLowerCase() == 'general' ||
-          area.isEmpty) {
-        results = await _db.query("SELECT correo FROM usuarios");
+          area.trim().isEmpty) {
+        results = await _db.query(
+          'SELECT correo FROM usuarios',
+        );
       } else {
         results = await _db.query(
-          "SELECT correo FROM usuarios WHERE LOWER(tipo_usuario) = LOWER(@area)",
-          params: {'area': area},
+          '''
+          SELECT correo
+          FROM usuarios
+          WHERE LOWER(tipo_usuario) = LOWER(@area)
+          ''',
+          params: {'area': area.trim()},
         );
       }
 
       return results
           .where((row) => row['correo'] != null)
           .map((row) => row['correo'].toString().trim())
+          .where((correo) => correo.isNotEmpty)
           .toList();
     } catch (e) {
       print('Error en obtenerCorreosParaCalendario: $e');

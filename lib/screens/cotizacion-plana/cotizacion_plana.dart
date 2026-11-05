@@ -13,6 +13,7 @@ import 'cotizacion_maquina.dart';
 import 'cotizacion_acabados.dart';
 import 'cotizacion_suaje.dart';
 import 'cotizacion_acabadosEspeciales.dart';
+import 'cotizacion_extras.dart';
 import 'cotizacion_costoTotal.dart';
 import 'cotizacion_laminado.dart';
 import 'cotizacion_serigrafia.dart';
@@ -65,10 +66,8 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   final TextEditingController paginasInternasPorPiezaController =
       TextEditingController(text: "0");
 
-
   bool cambiarPrecioTinta = false;
   bool cambiarPrecioBarniz = false;
-
 
   // ===== PRUEBA DE COLOR INTERNAS =====
   bool pruebaCarta = false;
@@ -135,7 +134,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   final TextEditingController costoPapelConIvaController =
       TextEditingController(text: "0.00");
 
-
   // Controladores maquina
   final TextEditingController nombreMaquinaController = TextEditingController();
   final TextEditingController costoPlacaController = TextEditingController(
@@ -182,7 +180,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   String? configuracionFrente;
   String? configuracionVuelta;
 
-  // Contoladores suaje
+  // Controladores suaje
   final TextEditingController tamanoSuajeController = TextEditingController();
   final TextEditingController costoSuajeCmController = TextEditingController(
     text: "0.00",
@@ -207,7 +205,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   final Map<String, TextEditingController> acabadosCostoTotalControllers = {};
 
   // LAMINADOS – ESTADO
-
   final Map<String, Map<String, bool>> laminados = {
     "Plastificado Brillante": {"frente": false, "vuelta": false},
     "Plastificado Mate": {"frente": false, "vuelta": false},
@@ -216,7 +213,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   // =======================
   // CONTROLADORES DE COSTO
   // =======================
-
   final Map<String, TextEditingController> laminadosCostoCm2Controllers = {};
   final Map<String, TextEditingController> laminadosCostoTotalControllers = {};
 
@@ -256,7 +252,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   final costoTotalGrabadoController = TextEditingController(text: "0.00");
 
   // EMBALAJE
-
   final List<String> embalajeItems = [
     "Cajas",
     "Envoltura",
@@ -279,14 +274,22 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   List<bool> acabadosEspecialesActivos = List.generate(5, (_) => false);
   late final List<TextEditingController> acabadosEspecialesDescControllers;
   late final List<TextEditingController>
-  acabadosEspecialesCostoMillarControllers;
+      acabadosEspecialesCostoMillarControllers;
   late final List<TextEditingController>
-  acabadosEspecialesCostoTotalControllers;
+      acabadosEspecialesCostoTotalControllers;
 
   // =======================
-  // COSTO TOTAL (NUEVOS)
+  // EXTRAS (DINÁMICOS)
   // =======================
+  List<bool> extrasActivos = [];
+  List<TextEditingController> extrasDescControllers = [];
+  List<TextEditingController> extrasCantidadControllers = [];
+  List<TextEditingController> extrasCostoUnitarioControllers = [];
+  List<TextEditingController> extrasCostoTotalControllers = [];
 
+  // =======================
+  // COSTO TOTAL
+  // =======================
   final TextEditingController costoTotalController = TextEditingController(
     text: "0.00",
   );
@@ -334,6 +337,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   bool barnizUV = false;
   bool laminadosActivo = false;
   bool acabadosEspeciales = false;
+  bool extrasActivo = false;
   bool seCuentaConSuaje = false;
   bool serigrafia = false;
   bool embalaje = false;
@@ -345,6 +349,51 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     "Barniz UV Mate Plasta": {"frente": false, "vuelta": false},
   };
 
+  void _inicializarExtras(int cantidad) {
+    for (var c in extrasDescControllers) {
+      c.dispose();
+    }
+    for (var c in extrasCantidadControllers) {
+      c.dispose();
+    }
+    for (var c in extrasCostoUnitarioControllers) {
+      c.dispose();
+    }
+    for (var c in extrasCostoTotalControllers) {
+      c.dispose();
+    }
+
+    extrasActivos = List.generate(cantidad, (_) => false);
+    extrasDescControllers = List.generate(
+      cantidad,
+      (_) => TextEditingController(),
+    );
+    extrasCantidadControllers = List.generate(
+      cantidad,
+      (_) => TextEditingController(text: cantidadImpresionController.text),
+    );
+    extrasCostoUnitarioControllers = List.generate(
+      cantidad,
+      (_) => TextEditingController(),
+    );
+    extrasCostoTotalControllers = List.generate(
+      cantidad,
+      (_) => TextEditingController(text: "0.00"),
+    );
+  }
+
+  void _agregarSlotExtra() {
+    setState(() {
+      extrasActivos.add(false);
+      extrasDescControllers.add(TextEditingController());
+      extrasCantidadControllers.add(
+        TextEditingController(text: cantidadImpresionController.text),
+      );
+      extrasCostoUnitarioControllers.add(TextEditingController());
+      extrasCostoTotalControllers.add(TextEditingController(text: "0.00"));
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -355,12 +404,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     totalPliegosController.addListener(calcularPliegosSuaje);
     cantidadImpresionController.addListener(calcularPliegosSuaje);
 
-    // Precio total automático: cuando cambian los pliegos (edición,
-    // recotización, o segmentación), se vuelve a sumar todo y a recalcular
-    // utilidad/IVA sin esperar a que se presione "Calcular" o "Guardar".
-    // El Future.delayed(Duration.zero) le da tiempo a Acabados, Laminados,
-    // Suaje, etc. de terminar de recalcular SUS propios totales primero
-    // (mismo truco que ya usa _guardarCotizacion() más abajo).
     totalPliegosController.addListener(_actualizarPrecioTotalAutomatico);
 
     for (var key in acabados.keys) {
@@ -378,13 +421,12 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     costoUnitBarnizRevController = TextEditingController(text: "0.00");
 
     embalajeCostoControllers = List.generate(7, (_) => TextEditingController());
-
     embalajeCantidadControllers = List.generate(
       7,
       (_) => TextEditingController(),
     );
-
     embalajeTotalControllers = List.generate(7, (_) => TextEditingController());
+
     acabadosEspecialesDescControllers = List.generate(
       5,
       (_) => TextEditingController(),
@@ -398,6 +440,9 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       (_) => TextEditingController(text: "0.00"),
     );
 
+    // Inicia con 5 espacios por defecto para Extras
+    _inicializarExtras(5);
+
     if (widget.cotizacionAEditar != null) {
       _cargarDatosEdicion(widget.cotizacionAEditar!);
     }
@@ -410,7 +455,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     altoController.text = edit.altoMedida.toString();
     tintasFteController.text = edit.tintaFrontal.toString();
     tintasRevController.text = edit.tintaReverso.toString();
-    // Recotización: si viene un piezasOverride, manda sobre el valor guardado.
     cantidadImpresionController.text =
         (widget.piezasOverride ?? edit.cantidadImpresiones).toString();
     totalPliegosController.text = edit.totalPliegos.toString();
@@ -455,8 +499,10 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         }
         if (pcInt["tabloide"] != null) {
           pruebaTabloide = pcInt["tabloide"]["activo"] ?? false;
-          cantidadTabloideController.text = pcInt["tabloide"]["cantidad"] ?? "0";
-          precioTabloideController.text = pcInt["tabloide"]["precio"] ?? "0.00";
+          cantidadTabloideController.text =
+              pcInt["tabloide"]["cantidad"] ?? "0";
+          precioTabloideController.text =
+              pcInt["tabloide"]["precio"] ?? "0.00";
           totalTabloideController.text = pcInt["tabloide"]["total"] ?? "0.00";
         }
         if (pcInt["mediaCarta"] != null) {
@@ -465,7 +511,8 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
               pcInt["mediaCarta"]["cantidad"] ?? "0";
           precioMediaCartaController.text =
               pcInt["mediaCarta"]["precio"] ?? "0.00";
-          totalMediaCartaController.text = pcInt["mediaCarta"]["total"] ?? "0.00";
+          totalMediaCartaController.text =
+              pcInt["mediaCarta"]["total"] ?? "0.00";
         }
       }
 
@@ -479,6 +526,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         grabado = sw["grabado"] ?? false;
         embalaje = sw["embalaje"] ?? false;
         acabadosEspeciales = sw["acabadosEspeciales"] ?? false;
+        extrasActivo = sw["extras"] ?? false;
       }
     }
 
@@ -635,7 +683,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       }
     }
 
-    // 10. Embalaje (Con reseteo previo seguro)
+    // 10. Embalaje
     final itemsGuardados = edit.configEmbalaje?["items"] as List?;
     for (int i = 0; i < embalajeItems.length; i++) {
       dynamic itemDb;
@@ -677,7 +725,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       gastosEntrega = mc["gastosEntregaActivo"] ?? false;
     }
 
-    // 12. Acabados Especiales (Con reseteo de los 5 slots)
+    // 12. Acabados Especiales
     final detallesGuardados =
         edit.configAcabadosEspeciales?["detalles"] as List?;
     for (int i = 0; i < 5; i++) {
@@ -694,6 +742,33 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         acabadosEspecialesDescControllers[i].clear();
         acabadosEspecialesCostoMillarControllers[i].clear();
         acabadosEspecialesCostoTotalControllers[i].text = "0.00";
+      }
+    }
+
+    // 13. Extras (soporta 5 o más slots guardados)
+    if (edit.configAcabadosEspeciales?["extrasActivo"] != null) {
+      extrasActivo = edit.configAcabadosEspeciales!["extrasActivo"] ?? false;
+    }
+    final extrasGuardados =
+        edit.configAcabadosEspeciales?["extrasDetalles"] as List?;
+    final int totalSlotsExtras =
+        (extrasGuardados != null && extrasGuardados.length > 5)
+            ? extrasGuardados.length
+            : 5;
+    _inicializarExtras(totalSlotsExtras);
+
+    if (extrasGuardados != null) {
+      for (int i = 0; i < extrasGuardados.length; i++) {
+        extrasActivos[i] = true;
+        extrasDescControllers[i].text =
+            extrasGuardados[i]["descripcion"]?.toString() ?? "";
+        extrasCantidadControllers[i].text =
+            extrasGuardados[i]["cantidad"]?.toString() ??
+            cantidadImpresionController.text;
+        extrasCostoUnitarioControllers[i].text =
+            extrasGuardados[i]["costoUnitario"]?.toString() ?? "";
+        extrasCostoTotalControllers[i].text =
+            extrasGuardados[i]["costoTotal"]?.toString() ?? "0.00";
       }
     }
 
@@ -734,12 +809,9 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
 
   void calcularTotalEmbalaje(int index) {
     final costo = double.tryParse(embalajeCostoControllers[index].text) ?? 0.0;
-
     final cantidad =
         double.tryParse(embalajeCantidadControllers[index].text) ?? 0.0;
-
     final total = costo * cantidad;
-
     embalajeTotalControllers[index].text = total.toStringAsFixed(2);
   }
 
@@ -747,14 +819,9 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     if (!suaje) return;
 
     int pliegosBase;
-
     if (offsetActivo) {
-      // Espejo directo: el # de Pliegos del suaje siempre es
-      // el total de pliegos a utilizar (sin fórmula aparte).
       pliegosBase = int.tryParse(totalPliegosController.text) ?? 0;
     } else {
-      // CORRECCIÓN AQUÍ:
-      // Asigna el total de pliegos calculados, en vez de la cantidad de impresiones/piezas.
       pliegosBase = int.tryParse(totalPliegosController.text) ??
           int.tryParse(cantidadImpresionController.text) ??
           0;
@@ -778,7 +845,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     if (pruebaTabloide) total += _limpiar(totalTabloideController.text);
     if (pruebaMediaCarta) total += _limpiar(totalMediaCartaController.text);
 
-    // OFFSET INTERNAS Y
+    // OFFSET
     if (offsetActivo) {
       total += _limpiar(costoPapelConIvaController.text);
       total += _limpiar(costoGranTotalTintasController.text);
@@ -787,17 +854,18 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
 
       if (barnizFte) total += _limpiar(costoBarnizController.text);
       if (barnizRev) total += _limpiar(costoBarnizController.text);
-
     }
 
     // ACABADOS UV Y LAMINADOS
     if (barnizUV) {
-      for (var c in acabadosCostoTotalControllers.values)
+      for (var c in acabadosCostoTotalControllers.values) {
         total += _limpiar(c.text);
+      }
     }
     if (laminadosActivo) {
-      for (var c in laminadosCostoTotalControllers.values)
+      for (var c in laminadosCostoTotalControllers.values) {
         total += _limpiar(c.text);
+      }
     }
 
     // OTROS MÓDULOS
@@ -811,13 +879,22 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     }
     if (embalaje) {
       for (int i = 0; i < embalajeTotalControllers.length; i++) {
-        if (embalajeActivoItems[i])
+        if (embalajeActivoItems[i]) {
           total += _limpiar(embalajeTotalControllers[i].text);
+        }
       }
     }
     if (acabadosEspeciales) {
-      for (var c in acabadosEspecialesCostoTotalControllers)
+      for (var c in acabadosEspecialesCostoTotalControllers) {
         total += _limpiar(c.text);
+      }
+    }
+    if (extrasActivo) {
+      for (int i = 0; i < extrasCostoTotalControllers.length; i++) {
+        if (extrasActivos[i]) {
+          total += _limpiar(extrasCostoTotalControllers[i].text);
+        }
+      }
     }
 
     // SETEAR COSTO TOTAL CON COMAS
@@ -835,7 +912,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     double iva = precioConDescuento * 0.16;
     double precioConIva = precioConDescuento + iva;
 
-    // ASIGNAR A CONTROLADORES CON COMAS
     precioUtilidadController.text = _f.format(precioConUtilidad);
     precioDescuentoController.text = _f.format(precioConDescuento);
     precioUnitarioController.text = _f.format(unitario);
@@ -854,7 +930,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   }
 
   Future<void> _guardarCotizacion({String? nuevoStatus}) async {
-    // 1. Le da un respiro a la UI para que no se congele el hilo principal
     await Future.delayed(Duration.zero);
 
     calcularMedidasFinales();
@@ -927,6 +1002,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         "grabado": grabado,
         "embalaje": embalaje,
         "acabadosEspeciales": acabadosEspeciales,
+        "extras": extrasActivo,
       },
     };
 
@@ -1064,7 +1140,8 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       "costoTotalGrabado": costoTotalGrabadoController.text,
     };
 
-    List<Map<String, String>> listaMarcos = [];
+// 1. Reemplaza el bloque de listaMarcos (aprox. línea 1143):
+    final listaMarcos = [];
     for (int i = 0; i < anchoMarcos.length; i++) {
       listaMarcos.add({
         "ancho": anchoMarcos[i].text,
@@ -1088,8 +1165,8 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       "costoMillarSerigrafia": costoMillarSerigrafiaController.text,
       "totalEntrada": totalEntradaController.text,
     };
-
-    List<Map<String, dynamic>> embalajeDetalles = [];
+// 2. Reemplaza el bloque de embalajeDetalles (aprox. línea 1168):
+    final embalajeDetalles = [];
     for (int i = 0; i < embalajeItems.length; i++) {
       if (embalajeActivoItems[i]) {
         embalajeDetalles.add({
@@ -1116,7 +1193,8 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       "gastosEntregaActivo": gastosEntrega,
     };
 
-    List<Map<String, dynamic>> acabadosEspecialesDetalles = [];
+// 3. Reemplaza el bloque de acabadosEspecialesDetalles y extrasDetalles (aprox. línea 1195):
+    final acabadosEspecialesDetalles = [];
     for (int i = 0; i < 5; i++) {
       if (acabadosEspecialesActivos[i]) {
         acabadosEspecialesDetalles.add({
@@ -1127,9 +1205,23 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       }
     }
 
+    final extrasDetalles = [];
+    for (int i = 0; i < extrasActivos.length; i++) {
+      if (extrasActivos[i]) {
+        extrasDetalles.add({
+          "descripcion": extrasDescControllers[i].text,
+          "cantidad": extrasCantidadControllers[i].text,
+          "costoUnitario": extrasCostoUnitarioControllers[i].text,
+          "costoTotal": extrasCostoTotalControllers[i].text,
+        });
+      }
+    }
+
     final mapAcabadosEspeciales = {
       "activo": acabadosEspeciales,
       "detalles": acabadosEspecialesDetalles,
+      "extrasActivo": extrasActivo,
+      "extrasDetalles": extrasDetalles,
     };
 
     final mapCorte = {"activo": false};
@@ -1279,10 +1371,12 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     paginasInternasTotalesController.dispose();
     costoArregloSuajeController.dispose();
     costoTotalSuajadoController.dispose();
-    for (var controller in acabadosCostoCm2Controllers.values)
+    for (var controller in acabadosCostoCm2Controllers.values) {
       controller.dispose();
-    for (var controller in acabadosCostoTotalControllers.values)
+    }
+    for (var controller in acabadosCostoTotalControllers.values) {
       controller.dispose();
+    }
     cantidadCartaController.dispose();
     precioCartaController.dispose();
     totalCartaController.dispose();
@@ -1314,9 +1408,28 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       c.dispose();
     }
 
-    for (var c in acabadosEspecialesDescControllers) c.dispose();
-    for (var c in acabadosEspecialesCostoMillarControllers) c.dispose();
-    for (var c in acabadosEspecialesCostoTotalControllers) c.dispose();
+    for (var c in acabadosEspecialesDescControllers) {
+      c.dispose();
+    }
+    for (var c in acabadosEspecialesCostoMillarControllers) {
+      c.dispose();
+    }
+    for (var c in acabadosEspecialesCostoTotalControllers) {
+      c.dispose();
+    }
+
+    for (var c in extrasDescControllers) {
+      c.dispose();
+    }
+    for (var c in extrasCantidadControllers) {
+      c.dispose();
+    }
+    for (var c in extrasCostoUnitarioControllers) {
+      c.dispose();
+    }
+    for (var c in extrasCostoTotalControllers) {
+      c.dispose();
+    }
 
     costoTotalController.dispose();
     margenController.dispose();
@@ -1369,7 +1482,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
                   serigrafia = v;
                 });
               },
-
               offset: offsetActivo,
               onOffsetChanged: (v) {
                 setState(() {
@@ -1440,6 +1552,9 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
               acabadosEspeciales: acabadosEspeciales,
               onAcabadosEspecialesChanged: (v) =>
                   setState(() => acabadosEspeciales = v ?? false),
+              extras: extrasActivo,
+              onExtrasChanged: (v) =>
+                  setState(() => extrasActivo = v ?? false),
               embalaje: embalaje,
               onEmbalajeChanged: (v) {
                 setState(() {
@@ -1469,7 +1584,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
                 cantidadPliegosController: cantidadPliegosController,
                 pliegosExtraController: pliegosExtraController,
                 cantidadImpresionesController: cantidadImpresionController,
-                
               ),
 
               PanelDatosPapel(
@@ -1535,13 +1649,11 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
                 valorInicialVuelta: configuracionVuelta,
                 onConfiguracionFrenteChanged: (valor) {
                   setState(() {
-                    // <--- Agrega setState
                     configuracionFrente = valor;
                   });
                 },
                 onConfiguracionVueltaChanged: (valor) {
                   setState(() {
-                    // <--- Agrega setState
                     configuracionVuelta = valor;
                   });
                 },
@@ -1560,7 +1672,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
                 controllersCostoTotal: acabadosCostoTotalControllers,
               ),
 
-            /// LAMINADOS
             if (laminadosActivo)
               PanelLaminados(
                 readOnly: laminadosActivo,
@@ -1601,37 +1712,31 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
                   calcularPliegosSuaje();
                 },
               ),
+
             if (grabado)
               PanelGrabado(
                 piezasTotalesController: cantidadImpresionController,
-
                 cantidadPlacasController: cantidadPlacasGrabadoController,
                 costoPlacaController: costoPlacaGrabadoController,
                 costoTotalPlacasController: costoTotalPlacasGrabadoController,
-
                 costoEntradaController: costoEntradaGrabadoController,
                 costoTotalEntradaController: costoTotalEntradaGrabadoController,
-
                 costoTotalGrabadoController: costoTotalGrabadoController,
               ),
 
             if (serigrafia)
               CotizacionPlanaSerigrafia(
                 piezasTotalesController: cantidadImpresionController,
-
                 cantidadMarcosController: cantidadMarcosController,
                 totalMarcosController: totalMarcosController,
                 anchoMarcos: anchoMarcos,
                 altoMarcos: altoMarcos,
                 precioMarcos: precioMarcos,
-
                 cantidadNegativosController: cantidadNegativosController,
                 precioNegativoController: precioNegativoController,
-
                 cantidadTintasController: cantidadTintasController,
                 costoTintasController: costoTintasController,
                 totalTintasController: totalTintasController,
-
                 numeroEntradasController: numeroEntradasController,
                 costoMillarController: costoMillarSerigrafiaController,
                 totalEntradaController: totalEntradaController,
@@ -1672,6 +1777,28 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
                 },
               ),
             ],
+
+            if (extrasActivo) ...[
+              PanelExtras(
+                cantidadImpresionController: cantidadImpresionController,
+                activos: extrasActivos,
+                descripcionControllers: extrasDescControllers,
+                cantidadControllers: extrasCantidadControllers,
+                costoUnitarioControllers: extrasCostoUnitarioControllers,
+                costoTotalControllers: extrasCostoTotalControllers,
+                onChangedActivo: (index, value) {
+                  setState(() {
+                    extrasActivos[index] = value;
+                  });
+                  calcularCostoTotalGeneral();
+                },
+                onCalcularCosto: (index) {
+                  calcularCostoTotalGeneral();
+                },
+                onAgregarExtra: _agregarSlotExtra,
+              ),
+            ],
+
             PanelCostoTotal(
               costoTotalController: costoTotalController,
               margenController: margenController,
@@ -1683,10 +1810,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
               ivaController: ivaController,
               precioConIvaController: precioConIvaController,
               onRecalcular: () {
-                // 1. Recolecta todos los costos de los paneles
                 calcularCostoTotalGeneral();
-
-                // 2. Procesa la utilidad basada en el número limpio
                 double costoBaseLimpio = _limpiar(costoTotalController.text);
                 _calcularUtilidadYFinal(costoBaseLimpio);
               },

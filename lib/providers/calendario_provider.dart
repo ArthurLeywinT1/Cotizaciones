@@ -90,6 +90,30 @@ class CalendarioController extends StateNotifier<CalendarioState> {
     return success;
   }
 
+  Future<bool> toggleCompletado(String id, bool nuevoValor) async {
+    final listaAnterior = state.calendarios;
+
+    // Cambia visualmente de inmediato
+    final listaActualizada = state.calendarios.map((act) {
+      if (act.id == id) {
+        return act.copyWith(completado: nuevoValor);
+      }
+      return act;
+    }).toList();
+
+    state = state.copyWith(calendarios: listaActualizada);
+
+    // Guarda en base de datos para otros dispositivos
+    final success = await _service.actualizarCompletado(id, nuevoValor);
+    if (!success) {
+      state = state.copyWith(
+        calendarios: listaAnterior,
+        error: 'Error al sincronizar la palomita',
+      );
+    }
+    return success;
+  }
+
   Future<bool> eliminarCalendario(String id) async {
     state = state.copyWith(isLoading: true);
     final success = await _service.eliminarCalendario(id);
