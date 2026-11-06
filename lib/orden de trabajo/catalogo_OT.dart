@@ -10,15 +10,215 @@ import '../screens/modals/incidente_admin.dart';
 import '../widgets/boton.dart';
 import '../widgets/tabla.dart';
 
-final otsSeleccionadasProvider = StateProvider<List<Map<String, dynamic>>>((ref) => []);
+typedef OrdenMap = Map<String, dynamic>;
+
+final otsSeleccionadasProvider = StateProvider<List<OrdenMap>>((ref) => []);
 
 class CatalogoOTScreen extends ConsumerWidget {
   const CatalogoOTScreen({super.key});
 
+  DateTime? _obtenerFechaCreacion(OrdenMap orden) {
+    final fecha = orden['fecha_creacion'];
+    if (fecha == null || fecha.toString().isEmpty || fecha.toString() == 'null') {
+      return null;
+    }
+    if (fecha is DateTime) {
+      return fecha.toLocal();
+    }
+    return DateTime.tryParse(fecha.toString())?.toLocal();
+  }
+
+  Future<List<OrdenMap>?> _seleccionarRangoMeses(
+    BuildContext context,
+    List<OrdenMap> todasLasOrdenes,
+  ) async {
+    final ahora = DateTime.now();
+    int mesInicio = ahora.month;
+    int anioInicio = ahora.year;
+    int mesFin = ahora.month;
+    int anioFin = ahora.year;
+
+    final aniosDisponibles = todasLasOrdenes
+        .map((o) => _obtenerFechaCreacion(o)?.year)
+        .whereType<int>()
+        .toSet()
+        .toList();
+    if (!aniosDisponibles.contains(ahora.year)) {
+      aniosDisponibles.add(ahora.year);
+    }
+    aniosDisponibles.sort();
+
+    const nombresMeses = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+
+    return showDialog<List<OrdenMap>>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final fechaInicio = DateTime(anioInicio, mesInicio, 1);
+            final fechaFin = DateTime(anioFin, mesFin + 1, 0, 23, 59, 59, 999);
+
+            final rangoValido = !fechaInicio.isAfter(fechaFin);
+
+            final ordenesEnRango = rangoValido
+                ? todasLasOrdenes.where((o) {
+                    final fecha = _obtenerFechaCreacion(o);
+                    if (fecha == null) return false;
+                    return !fecha.isBefore(fechaInicio) && !fecha.isAfter(fechaFin);
+                  }).toList()
+                : <OrdenMap>[];
+
+            return AlertDialog(
+              title: const Text('Exportar por Rango de Mes'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Desde:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: DropdownButtonFormField<int>(
+                          initialValue: mesInicio,
+                          decoration: const InputDecoration(
+                            labelText: 'Mes',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                          items: List.generate(12, (index) {
+                            return DropdownMenuItem(
+                              value: index + 1,
+                              child: Text(nombresMeses[index]),
+                            );
+                          }),
+                          onChanged: (val) {
+                            if (val != null) setState(() => mesInicio = val);
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 2,
+                        child: DropdownButtonFormField<int>(
+                          initialValue: anioInicio,
+                          decoration: const InputDecoration(
+                            labelText: 'Año',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                          items: aniosDisponibles.map((anio) {
+                            return DropdownMenuItem(
+                              value: anio,
+                              child: Text(anio.toString()),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) setState(() => anioInicio = val);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Hasta:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: DropdownButtonFormField<int>(
+                          initialValue: mesFin,
+                          decoration: const InputDecoration(
+                            labelText: 'Mes',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                          items: List.generate(12, (index) {
+                            return DropdownMenuItem(
+                              value: index + 1,
+                              child: Text(nombresMeses[index]),
+                            );
+                          }),
+                          onChanged: (val) {
+                            if (val != null) setState(() => mesFin = val);
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 2,
+                        child: DropdownButtonFormField<int>(
+                          initialValue: anioFin,
+                          decoration: const InputDecoration(
+                            labelText: 'Año',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                          items: aniosDisponibles.map((anio) {
+                            return DropdownMenuItem(
+                              value: anio,
+                              child: Text(anio.toString()),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) setState(() => anioFin = val);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  if (!rangoValido)
+                    const Text(
+                      'El mes de inicio no puede ser mayor al mes final.',
+                      style: TextStyle(color: Colors.red, fontSize: 13),
+                    )
+                  else
+                    Text(
+                      'Órdenes encontradas: ${ordenesEnRango.length}',
+                      style: TextStyle(
+                        color: ordenesEnRango.isEmpty
+                            ? Colors.orange.shade800
+                            : Colors.green.shade700,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, null),
+                  child: const Text('Cancelar'),
+                ),
+                FilledButton(
+                  onPressed: (rangoValido && ordenesEnRango.isNotEmpty)
+                      ? () => Navigator.pop(context, ordenesEnRango)
+                      : null,
+                  child: const Text('Exportar Rango'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   Future<void> _generarExcel(
     BuildContext context,
-    List<Map<String, dynamic>> ordenesSeleccionadas,
-    List<Map<String, dynamic>> todasLasOrdenes,
+    List<OrdenMap> ordenesSeleccionadas,
+    List<OrdenMap> todasLasOrdenes,
   ) async {
     if (todasLasOrdenes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -27,59 +227,55 @@ class CatalogoOTScreen extends ConsumerWidget {
       return;
     }
 
-    List<Map<String, dynamic>>? ordenesAExportar;
-
-    if (ordenesSeleccionadas.isNotEmpty) {
-      final seleccion = await showDialog<String>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Exportar a Excel'),
-          content: Text(
-            'Tienes seleccionadas ${ordenesSeleccionadas.length} órdenes.\n\n¿Qué deseas exportar?',
+    final modoSeleccionado = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Exportar a Excel'),
+        content: Text(
+          ordenesSeleccionadas.isNotEmpty
+              ? 'Tienes seleccionadas ${ordenesSeleccionadas.length} órdenes.\n\n¿Qué deseas exportar?'
+              : 'Selecciona qué órdenes deseas exportar a Excel:',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, null),
+            child: const Text('Cancelar'),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, 'todas'),
-              child: Text('Todas (${todasLasOrdenes.length})'),
-            ),
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context, 'rango_mes'),
+            child: const Text('Por rango de mes'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'todas'),
+            child: Text('Todas (${todasLasOrdenes.length})'),
+          ),
+          if (ordenesSeleccionadas.isNotEmpty)
             FilledButton(
               onPressed: () => Navigator.pop(context, 'seleccionadas'),
-              child: Text('Solo las seleccionadas (${ordenesSeleccionadas.length})'),
+              child: Text('Seleccionadas (${ordenesSeleccionadas.length})'),
             ),
-          ],
-        ),
-      );
+        ],
+      ),
+    );
 
-      if (seleccion == null) return;
-      ordenesAExportar = (seleccion == 'seleccionadas')
-          ? ordenesSeleccionadas
-          : todasLasOrdenes;
-    } else {
-      final confirmar = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Exportar a Excel'),
-          content: Text(
-            'No has seleccionado ninguna orden.\n\n¿Deseas exportar el catálogo completo (${todasLasOrdenes.length} órdenes)?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancelar'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Exportar Todas'),
-            ),
-          ],
-        ),
-      );
+    if (modoSeleccionado == null || !context.mounted) return;
 
-      if (confirmar != true) return;
+    List<OrdenMap>? ordenesAExportar;
+
+    if (modoSeleccionado == 'seleccionadas') {
+      ordenesAExportar = ordenesSeleccionadas;
+    } else if (modoSeleccionado == 'todas') {
       ordenesAExportar = todasLasOrdenes;
+    } else if (modoSeleccionado == 'rango_mes') {
+      ordenesAExportar = await _seleccionarRangoMeses(
+        context,
+        todasLasOrdenes,
+      );
     }
 
-    if (!context.mounted) return;
+    if (ordenesAExportar == null || ordenesAExportar.isEmpty || !context.mounted) {
+      return;
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
