@@ -21,6 +21,9 @@ import 'embalaje.dart';
 import 'cotizacion_grabado.dart';
 import '../../orden de trabajo/ordenTrabajo.dart';
 
+typedef MapaLados = Map<String, bool>;
+typedef MapaAcabados = Map<String, MapaLados>;
+
 // Pantalla principal de cotización plana
 class CotizacionPlanaScreen extends ConsumerStatefulWidget {
   final VoidCallback? onNavigateToCatalog;
@@ -43,6 +46,9 @@ class CotizacionPlanaScreen extends ConsumerStatefulWidget {
 
 class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   final NumberFormat _f = NumberFormat("#,##0.00", "en_US");
+  bool _recalculoPendiente = false;
+  String? tipoSegmentacionSeleccionada;
+
   // =============================
   // CONTROLADORES – CLIENTES
   // =============================
@@ -205,14 +211,12 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   final Map<String, TextEditingController> acabadosCostoTotalControllers = {};
 
   // LAMINADOS – ESTADO
-  final Map<String, Map<String, bool>> laminados = {
+  final MapaAcabados laminados = {
     "Plastificado Brillante": {"frente": false, "vuelta": false},
     "Plastificado Mate": {"frente": false, "vuelta": false},
   };
 
-  // =======================
-  // CONTROLADORES DE COSTO
-  // =======================
+  // CONTROLADORES DE COSTO LAMINADOS
   final Map<String, TextEditingController> laminadosCostoCm2Controllers = {};
   final Map<String, TextEditingController> laminadosCostoTotalControllers = {};
 
@@ -268,9 +272,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   late final List<TextEditingController> embalajeCantidadControllers;
   late final List<TextEditingController> embalajeTotalControllers;
 
-  // =======================
   // ACABADOS ESPECIALES
-  // =======================
   List<bool> acabadosEspecialesActivos = List.generate(5, (_) => false);
   late final List<TextEditingController> acabadosEspecialesDescControllers;
   late final List<TextEditingController>
@@ -278,18 +280,14 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   late final List<TextEditingController>
       acabadosEspecialesCostoTotalControllers;
 
-  // =======================
   // EXTRAS (DINÁMICOS)
-  // =======================
   List<bool> extrasActivos = [];
   List<TextEditingController> extrasDescControllers = [];
   List<TextEditingController> extrasCantidadControllers = [];
   List<TextEditingController> extrasCostoUnitarioControllers = [];
   List<TextEditingController> extrasCostoTotalControllers = [];
 
-  // =======================
   // COSTO TOTAL
-  // =======================
   final TextEditingController costoTotalController = TextEditingController(
     text: "0.00",
   );
@@ -303,7 +301,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   );
 
   final TextEditingController diasEntregaController = TextEditingController(
-    text: "1",
+    text: "7",
   );
 
   final TextEditingController precioUtilidadController = TextEditingController(
@@ -343,7 +341,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   bool embalaje = false;
   bool grabado = false;
 
-  Map<String, Map<String, bool>> acabados = {
+  MapaAcabados acabados = {
     "Barniz UV a Registro": {"frente": false, "vuelta": false},
     "Barniz UV Brillante a Plasta": {"frente": false, "vuelta": false},
     "Barniz UV Mate Plasta": {"frente": false, "vuelta": false},
@@ -360,6 +358,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       c.dispose();
     }
     for (var c in extrasCostoTotalControllers) {
+      c.removeListener(_actualizarPrecioTotalAutomatico);
       c.dispose();
     }
 
@@ -376,10 +375,11 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       cantidad,
       (_) => TextEditingController(),
     );
-    extrasCostoTotalControllers = List.generate(
-      cantidad,
-      (_) => TextEditingController(text: "0.00"),
-    );
+    extrasCostoTotalControllers = List.generate(cantidad, (_) {
+      final ctrl = TextEditingController(text: "0.00");
+      ctrl.addListener(_actualizarPrecioTotalAutomatico);
+      return ctrl;
+    });
   }
 
   void _agregarSlotExtra() {
@@ -390,7 +390,9 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         TextEditingController(text: cantidadImpresionController.text),
       );
       extrasCostoUnitarioControllers.add(TextEditingController());
-      extrasCostoTotalControllers.add(TextEditingController(text: "0.00"));
+      final nuevoTotalCtrl = TextEditingController(text: "0.00");
+      nuevoTotalCtrl.addListener(_actualizarPrecioTotalAutomatico);
+      extrasCostoTotalControllers.add(nuevoTotalCtrl);
     });
   }
 
@@ -403,8 +405,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     largoSuajeController.addListener(calcularPliegosSuaje);
     totalPliegosController.addListener(calcularPliegosSuaje);
     cantidadImpresionController.addListener(calcularPliegosSuaje);
-
-    totalPliegosController.addListener(_actualizarPrecioTotalAutomatico);
 
     for (var key in acabados.keys) {
       acabadosCostoCm2Controllers[key] = TextEditingController(text: "0.00");
@@ -440,11 +440,42 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       (_) => TextEditingController(text: "0.00"),
     );
 
-    // Inicia con 5 espacios por defecto para Extras
     _inicializarExtras(5);
+    _registrarListenersAutomaticos();
 
     if (widget.cotizacionAEditar != null) {
       _cargarDatosEdicion(widget.cotizacionAEditar!);
+    }
+  }
+
+  void _registrarListenersAutomaticos() {
+    final List<TextEditingController> controladoresMonitoreados = [
+      cantidadImpresionController,
+      totalPliegosController,
+      totalCartaController,
+      totalTabloideController,
+      totalMediaCartaController,
+      costoPapelConIvaController,
+      costoGranTotalTintasController,
+      costoTotalPlacasController,
+      costoTotalPlacas790Controller,
+      costoBarnizController,
+      costoTotalSuajadoController,
+      costoTotalGrabadoController,
+      totalMarcosController,
+      totalNegativosController,
+      totalTintasController,
+      totalEntradaController,
+      margenController,
+      descuentoController,
+      ...acabadosCostoTotalControllers.values,
+      ...laminadosCostoTotalControllers.values,
+      ...embalajeTotalControllers,
+      ...acabadosEspecialesCostoTotalControllers,
+    ];
+
+    for (final ctrl in controladoresMonitoreados) {
+      ctrl.addListener(_actualizarPrecioTotalAutomatico);
     }
   }
 
@@ -461,7 +492,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
 
     void restaurarAcabados(
       Map<String, dynamic>? dataJson,
-      Map<String, Map<String, bool>> mapEstado,
+      MapaAcabados mapEstado,
       Map<String, TextEditingController> mapCm2,
       Map<String, TextEditingController> mapTotal,
     ) {
@@ -476,7 +507,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       });
     }
 
-    // 1. Clientes y Configuración General
     if (edit.configClientes != null) {
       final cli = edit.configClientes!;
       proyectoController.text = cli["proyecto"] ?? "";
@@ -530,7 +560,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       }
     }
 
-    // 2. Pliegos
     if (edit.configPliegos != null) {
       final pInt = edit.configPliegos!["interior"];
       if (pInt != null) {
@@ -543,10 +572,10 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         cantidadPliegosController.text = pInt["cantidadPliegos"] ?? "";
         pliegosSobrantesController.text = pInt["pliegosSobrantes"] ?? "";
         millaresController.text = pInt["millares"] ?? "";
+        tipoSegmentacionSeleccionada = pInt["tipoSegmentacion"]?.toString();
       }
     }
 
-    // 3. Datos del Papel
     if (edit.configDatosPapel != null) {
       final dpInt = edit.configDatosPapel!["interior"];
       if (dpInt != null) {
@@ -559,7 +588,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       }
     }
 
-    // 4. Costo del Papel
     if (edit.configCostoPapel != null) {
       final cpInt = edit.configCostoPapel!["interior"];
       if (cpInt != null) {
@@ -570,7 +598,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       }
     }
 
-    // 5. Máquina
     if (edit.configMaquina != null) {
       final mqInt = edit.configMaquina!["interior"];
       if (mqInt != null) {
@@ -603,7 +630,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       }
     }
 
-    // 6. Acabados y Laminado
     if (edit.configAcabados != null) {
       restaurarAcabados(
         edit.configAcabados!["interior"]?["detalles"],
@@ -622,7 +648,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       );
     }
 
-    // 7. Suaje
     if (edit.configSuaje != null) {
       final ms = edit.configSuaje!;
       seCuentaConSuaje = ms["seCuentaConSuaje"] ?? false;
@@ -638,7 +663,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       costoMillarSuajeController.text = ms["costoMillarSuaje"] ?? "";
     }
 
-    // 8. Grabado
     if (edit.configGrabado != null) {
       final mg = edit.configGrabado!;
       cantidadPlacasGrabadoController.text = mg["cantidadPlacas"] ?? "";
@@ -649,7 +673,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       costoTotalGrabadoController.text = mg["costoTotalGrabado"] ?? "";
     }
 
-    // 9. Serigrafía
     if (edit.configSerigrafia != null) {
       final ms = edit.configSerigrafia!;
       cantidadMarcosController.text = ms["cantidadMarcos"] ?? "";
@@ -683,7 +706,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       }
     }
 
-    // 10. Embalaje
     final itemsGuardados = edit.configEmbalaje?["items"] as List?;
     for (int i = 0; i < embalajeItems.length; i++) {
       dynamic itemDb;
@@ -710,13 +732,14 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       }
     }
 
-    // 11. Costo Total
     if (edit.configCostoTotal != null) {
       final mc = edit.configCostoTotal!;
       costoTotalController.text = mc["costoTotal"] ?? "";
       margenController.text = mc["margen"] ?? "";
       descuentoController.text = mc["descuento"] ?? "";
-      diasEntregaController.text = mc["diasEntrega"] ?? "";
+      final String diasGuardados = mc["diasEntrega"]?.toString() ?? "";
+      diasEntregaController.text =
+          diasGuardados.isNotEmpty ? diasGuardados : "7";
       precioUtilidadController.text = mc["precioUtilidad"] ?? "";
       precioDescuentoController.text = mc["precioDescuento"] ?? "";
       precioUnitarioController.text = mc["precioUnitario"] ?? "";
@@ -725,7 +748,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       gastosEntrega = mc["gastosEntregaActivo"] ?? false;
     }
 
-    // 12. Acabados Especiales
     final detallesGuardados =
         edit.configAcabadosEspeciales?["detalles"] as List?;
     for (int i = 0; i < 5; i++) {
@@ -745,7 +767,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       }
     }
 
-    // 13. Extras (soporta 5 o más slots guardados)
     if (edit.configAcabadosEspeciales?["extrasActivo"] != null) {
       extrasActivo = edit.configAcabadosEspeciales!["extrasActivo"] ?? false;
     }
@@ -773,6 +794,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     }
 
     setState(() {});
+    _actualizarPrecioTotalAutomatico();
   }
 
   void calcularMedidasFinales() {
@@ -783,6 +805,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       anchoFinalController.text = (ancho + medianil).toStringAsFixed(2);
       altoFinalController.text = (alto + medianil).toStringAsFixed(2);
     });
+    _actualizarPrecioTotalAutomatico();
   }
 
   void calcularPruebaColor({
@@ -799,12 +822,14 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     setState(() {
       acabados[nombre]?[lado] = valor;
     });
+    _actualizarPrecioTotalAutomatico();
   }
 
   void actualizarLaminado(String nombre, String lado, bool valor) {
     setState(() {
       laminados[nombre]?[lado] = valor;
     });
+    _actualizarPrecioTotalAutomatico();
   }
 
   void calcularTotalEmbalaje(int index) {
@@ -813,6 +838,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         double.tryParse(embalajeCantidadControllers[index].text) ?? 0.0;
     final total = costo * cantidad;
     embalajeTotalControllers[index].text = total.toStringAsFixed(2);
+    _actualizarPrecioTotalAutomatico();
   }
 
   void calcularPliegosSuaje() {
@@ -840,23 +866,21 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
   void calcularCostoTotalGeneral() {
     double total = 0.0;
 
-    // PRUEBAS COLOR
     if (pruebaCarta) total += _limpiar(totalCartaController.text);
     if (pruebaTabloide) total += _limpiar(totalTabloideController.text);
     if (pruebaMediaCarta) total += _limpiar(totalMediaCartaController.text);
 
-    // OFFSET
     if (offsetActivo) {
       total += _limpiar(costoPapelConIvaController.text);
       total += _limpiar(costoGranTotalTintasController.text);
       total += _limpiar(costoTotalPlacasController.text);
       total += _limpiar(costoTotalPlacas790Controller.text);
 
-      if (barnizFte) total += _limpiar(costoBarnizController.text);
-      if (barnizRev) total += _limpiar(costoBarnizController.text);
+      if (barnizFte || barnizRev) {
+        total += _limpiar(costoBarnizController.text);
+      }
     }
 
-    // ACABADOS UV Y LAMINADOS
     if (barnizUV) {
       for (var c in acabadosCostoTotalControllers.values) {
         total += _limpiar(c.text);
@@ -868,7 +892,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       }
     }
 
-    // OTROS MÓDULOS
     if (suaje) total += _limpiar(costoTotalSuajadoController.text);
     if (grabado) total += _limpiar(costoTotalGrabadoController.text);
     if (serigrafia) {
@@ -885,8 +908,10 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       }
     }
     if (acabadosEspeciales) {
-      for (var c in acabadosEspecialesCostoTotalControllers) {
-        total += _limpiar(c.text);
+      for (int i = 0; i < acabadosEspecialesCostoTotalControllers.length; i++) {
+        if (acabadosEspecialesActivos[i]) {
+          total += _limpiar(acabadosEspecialesCostoTotalControllers[i].text);
+        }
       }
     }
     if (extrasActivo) {
@@ -897,8 +922,10 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       }
     }
 
-    // SETEAR COSTO TOTAL CON COMAS
-    costoTotalController.text = _f.format(total);
+    final String nuevoCostoFormateado = _f.format(total);
+    if (costoTotalController.text != nuevoCostoFormateado) {
+      costoTotalController.text = nuevoCostoFormateado;
+    }
   }
 
   void _calcularUtilidadYFinal(double costoBase) {
@@ -917,12 +944,13 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     precioUnitarioController.text = _f.format(unitario);
     ivaController.text = _f.format(iva);
     precioConIvaController.text = _f.format(precioConIva);
-
-    setState(() {});
   }
 
   void _actualizarPrecioTotalAutomatico() {
-    Future.delayed(Duration.zero, () {
+    if (_recalculoPendiente || !mounted) return;
+    _recalculoPendiente = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _recalculoPendiente = false;
       if (!mounted) return;
       calcularCostoTotalGeneral();
       _calcularUtilidadYFinal(_limpiar(costoTotalController.text));
@@ -1018,6 +1046,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         "pliegosSobrantes": pliegosSobrantesController.text,
         "totalPliegos": totalPliegosController.text,
         "millares": millaresController.text,
+        "tipoSegmentacion": tipoSegmentacionSeleccionada ?? "",
       },
     };
 
@@ -1075,7 +1104,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     };
 
     Map<String, dynamic> extraerEstado(
-      Map<String, Map<String, bool>> estado,
+      MapaAcabados estado,
       Map<String, TextEditingController> costoCm2,
       Map<String, TextEditingController> costoTotal,
     ) {
@@ -1140,7 +1169,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       "costoTotalGrabado": costoTotalGrabadoController.text,
     };
 
-// 1. Reemplaza el bloque de listaMarcos (aprox. línea 1143):
     final listaMarcos = [];
     for (int i = 0; i < anchoMarcos.length; i++) {
       listaMarcos.add({
@@ -1165,7 +1193,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       "costoMillarSerigrafia": costoMillarSerigrafiaController.text,
       "totalEntrada": totalEntradaController.text,
     };
-// 2. Reemplaza el bloque de embalajeDetalles (aprox. línea 1168):
+
     final embalajeDetalles = [];
     for (int i = 0; i < embalajeItems.length; i++) {
       if (embalajeActivoItems[i]) {
@@ -1193,7 +1221,6 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
       "gastosEntregaActivo": gastosEntrega,
     };
 
-// 3. Reemplaza el bloque de acabadosEspecialesDetalles y extrasDetalles (aprox. línea 1195):
     final acabadosEspecialesDetalles = [];
     for (int i = 0; i < 5; i++) {
       if (acabadosEspecialesActivos[i]) {
@@ -1377,6 +1404,12 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
     for (var controller in acabadosCostoTotalControllers.values) {
       controller.dispose();
     }
+    for (var controller in laminadosCostoCm2Controllers.values) {
+      controller.dispose();
+    }
+    for (var controller in laminadosCostoTotalControllers.values) {
+      controller.dispose();
+    }
     cantidadCartaController.dispose();
     precioCartaController.dispose();
     totalCartaController.dispose();
@@ -1468,19 +1501,24 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
               paginasInternasPorPiezaController:
                   paginasInternasPorPiezaController,
               barnizUV: barnizUV,
-              onBarnizUVChanged: (v) => setState(() => barnizUV = v ?? false),
+              onBarnizUVChanged: (v) {
+                setState(() => barnizUV = v ?? false);
+                _actualizarPrecioTotalAutomatico();
+              },
               suaje: suaje,
               onSuajeChanged: (v) {
                 setState(() {
                   suaje = v;
                 });
                 calcularPliegosSuaje();
+                _actualizarPrecioTotalAutomatico();
               },
               serigrafia: serigrafia,
               onSerigrafiaChanged: (v) {
                 setState(() {
                   serigrafia = v;
                 });
+                _actualizarPrecioTotalAutomatico();
               },
               offset: offsetActivo,
               onOffsetChanged: (v) {
@@ -1488,6 +1526,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
                   offsetActivo = v;
                 });
                 calcularPliegosSuaje();
+                _actualizarPrecioTotalAutomatico();
               },
               onCalcular: calcularMedidasFinales,
               paginasInternasTotalesController:
@@ -1506,6 +1545,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
                     });
                   }
                 });
+                _actualizarPrecioTotalAutomatico();
               },
               pruebaCarta: pruebaCarta,
               onPruebaCartaChanged: (v) {
@@ -1517,6 +1557,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
                     totalCartaController.text = "0.00";
                   }
                 });
+                _actualizarPrecioTotalAutomatico();
               },
               pruebaTabloide: pruebaTabloide,
               onPruebaTabloideChanged: (v) {
@@ -1528,6 +1569,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
                     totalTabloideController.text = "0.00";
                   }
                 });
+                _actualizarPrecioTotalAutomatico();
               },
               pruebaMediaCarta: pruebaMediaCarta,
               onPruebaMediaCartaChanged: (v) {
@@ -1539,6 +1581,7 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
                     totalMediaCartaController.text = "0.00";
                   }
                 });
+                _actualizarPrecioTotalAutomatico();
               },
               cantidadCartaController: cantidadCartaController,
               precioCartaController: precioCartaController,
@@ -1550,254 +1593,346 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
               precioMediaCartaController: precioMediaCartaController,
               totalMediaCartaController: totalMediaCartaController,
               acabadosEspeciales: acabadosEspeciales,
-              onAcabadosEspecialesChanged: (v) =>
-                  setState(() => acabadosEspeciales = v ?? false),
+              onAcabadosEspecialesChanged: (v) {
+                setState(() => acabadosEspeciales = v ?? false);
+                _actualizarPrecioTotalAutomatico();
+              },
               extras: extrasActivo,
-              onExtrasChanged: (v) =>
-                  setState(() => extrasActivo = v ?? false),
+              onExtrasChanged: (v) {
+                setState(() => extrasActivo = v ?? false);
+                _actualizarPrecioTotalAutomatico();
+              },
               embalaje: embalaje,
               onEmbalajeChanged: (v) {
                 setState(() {
                   embalaje = v;
                 });
+                _actualizarPrecioTotalAutomatico();
               },
               grabado: grabado,
               onGrabadoChanged: (v) {
                 setState(() {
                   grabado = v;
                 });
+                _actualizarPrecioTotalAutomatico();
               },
             ),
 
-            if (offsetActivo) ...[
-              PanelPliegos(
-                anchoFinalController: anchoFinalController,
-                altoFinalController: altoFinalController,
-                pliegoAnchoController: pliegoAnchoController,
-                pliegoAltoController: pliegoAltoController,
-                posicionPiezasController: posicionPiezasController,
-                piezasPorPliegoController: piezasPorPliegoController,
-                tamanoPorPliegoController: tamanoPorPliegoController,
-                pliegosSobrantesController: pliegosSobrantesController,
-                totalPliegosController: totalPliegosController,
-                millaresController: millaresController,
-                cantidadPliegosController: cantidadPliegosController,
-                pliegosExtraController: pliegosExtraController,
-                cantidadImpresionesController: cantidadImpresionController,
+            // ================= PROCESO: OFFSET =================
+            if (offsetActivo)
+              AcordeonProceso(
+                titulo: "Proceso: Offset (Pliegos, Papel y Máquina)",
+                color: const Color(0xFF1976D2),
+                icono: Icons.print,
+                child: Column(
+                  children: [
+                    PanelPliegos(
+                      anchoFinalController: anchoFinalController,
+                      altoFinalController: altoFinalController,
+                      pliegoAnchoController: pliegoAnchoController,
+                      pliegoAltoController: pliegoAltoController,
+                      posicionPiezasController: posicionPiezasController,
+                      piezasPorPliegoController: piezasPorPliegoController,
+                      tamanoPorPliegoController: tamanoPorPliegoController,
+                      pliegosSobrantesController: pliegosSobrantesController,
+                      totalPliegosController: totalPliegosController,
+                      millaresController: millaresController,
+                      cantidadPliegosController: cantidadPliegosController,
+                      pliegosExtraController: pliegosExtraController,
+                      cantidadImpresionesController:
+                          cantidadImpresionController,
+                      onTipoSegmentacionChanged: (nombreSeg) {
+                        setState(() {
+                          tipoSegmentacionSeleccionada = nombreSeg;
+                        });
+                      },
+                    ),
+                    PanelDatosPapel(
+                      nombrePapelController: nombrePapelController,
+                      tipoPapelController: tipoPapelController,
+                      anchoPapelController: anchoPapelController,
+                      largoPapelController: largoPapelController,
+                      pesoPapelController: pesoPapelController,
+                      proveedorPapelController: proveedorPapelController,
+                      costoMillarController: costoMillarController,
+                      totalPliegosController: totalPliegosController,
+                      pliegoAnchoController: pliegoAnchoController,
+                      pliegoAltoController: pliegoAltoController,
+                    ),
+                    PanelCostoPapel(
+                      costoMillarController: costoMillarController,
+                      totalPliegosController: totalPliegosController,
+                      costoTotalPapelController: costoTotalPapelController,
+                      descuentoController: descuentoPapelController,
+                      costoConIvaController: costoPapelConIvaController,
+                    ),
+                    PanelMaquina(
+                      nombreMaquinaController: nombreMaquinaController,
+                      costoPlacaController: costoPlacaController,
+                      tintasFteController: tintasFteController,
+                      tintasRevController: tintasRevController,
+                      costoUnitFteController: costoUnitFteController,
+                      costoTotalFteController: costoTotalFteController,
+                      costoUnitRevController: costoUnitRevController,
+                      costoTotalRevController: costoTotalRevController,
+                      costoGranTotalTintasController:
+                          costoGranTotalTintasController,
+                      cantidadPlacasController: cantidadPlacasController,
+                      costoBarnizController: costoBarnizController,
+                      costoTotalPlacasController: costoTotalPlacasController,
+                      onBarnizMaquinaChanged: (v) {
+                        setState(() => barnizMaquina = v ?? false);
+                        _actualizarPrecioTotalAutomatico();
+                      },
+                      cambiarPrecioPlaca: cambiarPrecioPlaca,
+                      onCambiarPrecioPlacaChanged: (v) {
+                        setState(() => cambiarPrecioPlaca = v ?? false);
+                        _actualizarPrecioTotalAutomatico();
+                      },
+                      cambiarPrecioTinta: cambiarPrecioTinta,
+                      onCambiarPrecioTintaChanged: (v) {
+                        setState(() => cambiarPrecioTinta = v ?? false);
+                        _actualizarPrecioTotalAutomatico();
+                      },
+                      cambiarPrecioBarniz: cambiarPrecioBarniz,
+                      onCambiarPrecioBarnizChanged: (v) {
+                        setState(() => cambiarPrecioBarniz = v ?? false);
+                        _actualizarPrecioTotalAutomatico();
+                      },
+                      cantidadPlacas790Controller: cantidadPlacas790Controller,
+                      costoPlaca790Controller: costoPlaca790Controller,
+                      costoTotalPlacas790Controller:
+                          costoTotalPlacas790Controller,
+                      millaresController: millaresController,
+                      opcionesFrente: opcionesFrente,
+                      opcionesVuelta: opcionesVuelta,
+                      barnizFte: barnizFte,
+                      barnizRev: barnizRev,
+                      barnizFteController: barnizFteController,
+                      barnizRevController: barnizRevController,
+                      costoUnitBarnizFteController:
+                          costoUnitBarnizFteController,
+                      costoUnitBarnizRevController:
+                          costoUnitBarnizRevController,
+                      onBarnizFteChanged: (v) {
+                        setState(() => barnizFte = v);
+                        _actualizarPrecioTotalAutomatico();
+                      },
+                      onBarnizRevChanged: (v) {
+                        setState(() => barnizRev = v);
+                        _actualizarPrecioTotalAutomatico();
+                      },
+                      valorInicialFrente: configuracionFrente,
+                      valorInicialVuelta: configuracionVuelta,
+                      onConfiguracionFrenteChanged: (valor) {
+                        setState(() {
+                          configuracionFrente = valor;
+                        });
+                        _actualizarPrecioTotalAutomatico();
+                      },
+                      onConfiguracionVueltaChanged: (valor) {
+                        setState(() {
+                          configuracionVuelta = valor;
+                        });
+                        _actualizarPrecioTotalAutomatico();
+                      },
+                      pliegoAnchoController: pliegoAnchoController,
+                      pliegoAltoController: pliegoAltoController,
+                      tipoSegmentacion: tipoSegmentacionSeleccionada,
+                    ),
+                  ],
+                ),
               ),
 
-              PanelDatosPapel(
-                nombrePapelController: nombrePapelController,
-                tipoPapelController: tipoPapelController,
-                anchoPapelController: anchoPapelController,
-                largoPapelController: largoPapelController,
-                pesoPapelController: pesoPapelController,
-                proveedorPapelController: proveedorPapelController,
-                costoMillarController: costoMillarController,
-                totalPliegosController: totalPliegosController,
-                pliegoAnchoController: pliegoAnchoController,
-                pliegoAltoController: pliegoAltoController,
-              ),
-
-              PanelCostoPapel(
-                costoMillarController: costoMillarController,
-                totalPliegosController: totalPliegosController,
-                costoTotalPapelController: costoTotalPapelController,
-                descuentoController: descuentoPapelController,
-                costoConIvaController: costoPapelConIvaController,
-              ),
-
-              PanelMaquina(
-                nombreMaquinaController: nombreMaquinaController,
-                costoPlacaController: costoPlacaController,
-                tintasFteController: tintasFteController,
-                tintasRevController: tintasRevController,
-                costoUnitFteController: costoUnitFteController,
-                costoTotalFteController: costoTotalFteController,
-                costoUnitRevController: costoUnitRevController,
-                costoTotalRevController: costoTotalRevController,
-                costoGranTotalTintasController: costoGranTotalTintasController,
-                cantidadPlacasController: cantidadPlacasController,
-                costoBarnizController: costoBarnizController,
-                costoTotalPlacasController: costoTotalPlacasController,
-                onBarnizMaquinaChanged: (v) =>
-                    setState(() => barnizMaquina = v ?? false),
-                cambiarPrecioPlaca: cambiarPrecioPlaca,
-                onCambiarPrecioPlacaChanged: (v) =>
-                    setState(() => cambiarPrecioPlaca = v ?? false),
-                cambiarPrecioTinta: cambiarPrecioTinta,
-                onCambiarPrecioTintaChanged: (v) =>
-                    setState(() => cambiarPrecioTinta = v ?? false),
-                cambiarPrecioBarniz: cambiarPrecioBarniz,
-                onCambiarPrecioBarnizChanged: (v) =>
-                    setState(() => cambiarPrecioBarniz = v ?? false),
-                cantidadPlacas790Controller: cantidadPlacas790Controller,
-                costoPlaca790Controller: costoPlaca790Controller,
-                costoTotalPlacas790Controller: costoTotalPlacas790Controller,
-                millaresController: millaresController,
-                opcionesFrente: opcionesFrente,
-                opcionesVuelta: opcionesVuelta,
-                barnizFte: barnizFte,
-                barnizRev: barnizRev,
-                barnizFteController: barnizFteController,
-                barnizRevController: barnizRevController,
-                costoUnitBarnizFteController: costoUnitBarnizFteController,
-                costoUnitBarnizRevController: costoUnitBarnizRevController,
-                onBarnizFteChanged: (v) => setState(() => barnizFte = v),
-                onBarnizRevChanged: (v) => setState(() => barnizRev = v),
-                valorInicialFrente: configuracionFrente,
-                valorInicialVuelta: configuracionVuelta,
-                onConfiguracionFrenteChanged: (valor) {
-                  setState(() {
-                    configuracionFrente = valor;
-                  });
-                },
-                onConfiguracionVueltaChanged: (valor) {
-                  setState(() {
-                    configuracionVuelta = valor;
-                  });
-                },
-              ),
-            ],
-
+            // ================= PROCESO: BARNIZ UV =================
             if (barnizUV)
-              PanelAcabados(
-                read_Only: panelAcabadosActivo,
-                acabados: acabados,
-                onAcabadoChanged: actualizarAcabado,
-                anchoFinalController: anchoFinalController,
-                altoFinalController: altoFinalController,
-                totalPliegosController: totalPliegosController,
-                controllersCostoCm2: acabadosCostoCm2Controllers,
-                controllersCostoTotal: acabadosCostoTotalControllers,
+              AcordeonProceso(
+                titulo: "Proceso: Barniz UV",
+                color: const Color(0xFF7B1FA2),
+                icono: Icons.auto_awesome,
+                child: PanelAcabados(
+                  read_Only: panelAcabadosActivo,
+                  acabados: acabados,
+                  onAcabadoChanged: actualizarAcabado,
+                  anchoFinalController: anchoFinalController,
+                  altoFinalController: altoFinalController,
+                  totalPliegosController: totalPliegosController,
+                  controllersCostoCm2: acabadosCostoCm2Controllers,
+                  controllersCostoTotal: acabadosCostoTotalControllers,
+                ),
               ),
 
+            // ================= PROCESO: LAMINADO =================
             if (laminadosActivo)
-              PanelLaminados(
-                readOnly: laminadosActivo,
-                laminados: laminados,
-                onLaminadoChanged: actualizarLaminado,
-                pliegoAnchoController: pliegoAnchoController,
-                pliegoAltoController: pliegoAltoController,
-                totalPliegosController: totalPliegosController,
-                controllersCostoCm2: laminadosCostoCm2Controllers,
-                controllersCostoTotal: laminadosCostoTotalControllers,
-                cantidadImpresionController: cantidadImpresionController,
-                isOffset: offsetActivo,
+              AcordeonProceso(
+                titulo: "Proceso: Plastificado / Laminado",
+                color: const Color(0xFF00796B),
+                icono: Icons.layers,
+                child: PanelLaminados(
+                  readOnly: laminadosActivo,
+                  laminados: laminados,
+                  onLaminadoChanged: actualizarLaminado,
+                  pliegoAnchoController: pliegoAnchoController,
+                  pliegoAltoController: pliegoAltoController,
+                  totalPliegosController: totalPliegosController,
+                  controllersCostoCm2: laminadosCostoCm2Controllers,
+                  controllersCostoTotal: laminadosCostoTotalControllers,
+                  cantidadImpresionController: cantidadImpresionController,
+                  isOffset: offsetActivo,
+                ),
               ),
 
+            // ================= PROCESO: SUAJE =================
             if (suaje)
-              PanelSuaje(
-                enabled: true,
-                tamanoSuajeController: tamanoSuajeController,
-                anchoSuajeController: anchoSuajeController,
-                largoSuajeController: largoSuajeController,
-                costoSuajeCmController: costoSuajeCmController,
-                costoTotalSuajeController: costoTotalSuajeController,
-                costoArregloSuajeController: costoArregloSuajeController,
-                costoTotalSuajadoController: costoTotalSuajadoController,
-                pliegosSuajeController: pliegosSuajeController,
-                costoMillarSuajeController: costoMillarSuajeController,
-                seCuentaConSuaje: seCuentaConSuaje,
-                onSeCuentaConSuajeChanged: (value) {
-                  setState(() {
-                    seCuentaConSuaje = value ?? false;
-                  });
-                },
-                duplicarCostoSuaje: duplicarCostoSuaje,
-                onDuplicarCostoSuajeChanged: (value) {
-                  setState(() {
-                    duplicarCostoSuaje = value ?? false;
-                  });
-                  calcularPliegosSuaje();
-                },
+              AcordeonProceso(
+                titulo: "Proceso: Suaje",
+                color: const Color(0xFFEF6C00),
+                icono: Icons.content_cut,
+                child: PanelSuaje(
+                  enabled: true,
+                  tamanoSuajeController: tamanoSuajeController,
+                  anchoSuajeController: anchoSuajeController,
+                  largoSuajeController: largoSuajeController,
+                  costoSuajeCmController: costoSuajeCmController,
+                  costoTotalSuajeController: costoTotalSuajeController,
+                  costoArregloSuajeController: costoArregloSuajeController,
+                  costoTotalSuajadoController: costoTotalSuajadoController,
+                  pliegosSuajeController: pliegosSuajeController,
+                  costoMillarSuajeController: costoMillarSuajeController,
+                  seCuentaConSuaje: seCuentaConSuaje,
+                  onSeCuentaConSuajeChanged: (value) {
+                    setState(() {
+                      seCuentaConSuaje = value ?? false;
+                    });
+                    _actualizarPrecioTotalAutomatico();
+                  },
+                  duplicarCostoSuaje: duplicarCostoSuaje,
+                  onDuplicarCostoSuajeChanged: (value) {
+                    setState(() {
+                      duplicarCostoSuaje = value ?? false;
+                    });
+                    calcularPliegosSuaje();
+                    _actualizarPrecioTotalAutomatico();
+                  },
+                ),
               ),
 
+            // ================= PROCESO: GRABADO =================
             if (grabado)
-              PanelGrabado(
-                piezasTotalesController: cantidadImpresionController,
-                cantidadPlacasController: cantidadPlacasGrabadoController,
-                costoPlacaController: costoPlacaGrabadoController,
-                costoTotalPlacasController: costoTotalPlacasGrabadoController,
-                costoEntradaController: costoEntradaGrabadoController,
-                costoTotalEntradaController: costoTotalEntradaGrabadoController,
-                costoTotalGrabadoController: costoTotalGrabadoController,
+              AcordeonProceso(
+                titulo: "Proceso: Grabado",
+                color: const Color(0xFF5D4037),
+                icono: Icons.vignette,
+                child: PanelGrabado(
+                  piezasTotalesController: cantidadImpresionController,
+                  cantidadPlacasController: cantidadPlacasGrabadoController,
+                  costoPlacaController: costoPlacaGrabadoController,
+                  costoTotalPlacasController: costoTotalPlacasGrabadoController,
+                  costoEntradaController: costoEntradaGrabadoController,
+                  costoTotalEntradaController:
+                      costoTotalEntradaGrabadoController,
+                  costoTotalGrabadoController: costoTotalGrabadoController,
+                ),
               ),
 
+            // ================= PROCESO: SERIGRAFÍA =================
             if (serigrafia)
-              CotizacionPlanaSerigrafia(
-                piezasTotalesController: cantidadImpresionController,
-                cantidadMarcosController: cantidadMarcosController,
-                totalMarcosController: totalMarcosController,
-                anchoMarcos: anchoMarcos,
-                altoMarcos: altoMarcos,
-                precioMarcos: precioMarcos,
-                cantidadNegativosController: cantidadNegativosController,
-                precioNegativoController: precioNegativoController,
-                cantidadTintasController: cantidadTintasController,
-                costoTintasController: costoTintasController,
-                totalTintasController: totalTintasController,
-                numeroEntradasController: numeroEntradasController,
-                costoMillarController: costoMillarSerigrafiaController,
-                totalEntradaController: totalEntradaController,
-                totalNegativosController: totalNegativosController,
+              AcordeonProceso(
+                titulo: "Proceso: Serigrafía",
+                color: const Color(0xFFC2185B),
+                icono: Icons.format_paint,
+                child: CotizacionPlanaSerigrafia(
+                  piezasTotalesController: cantidadImpresionController,
+                  cantidadMarcosController: cantidadMarcosController,
+                  totalMarcosController: totalMarcosController,
+                  anchoMarcos: anchoMarcos,
+                  altoMarcos: altoMarcos,
+                  precioMarcos: precioMarcos,
+                  cantidadNegativosController: cantidadNegativosController,
+                  precioNegativoController: precioNegativoController,
+                  cantidadTintasController: cantidadTintasController,
+                  costoTintasController: costoTintasController,
+                  totalTintasController: totalTintasController,
+                  numeroEntradasController: numeroEntradasController,
+                  costoMillarController: costoMillarSerigrafiaController,
+                  totalEntradaController: totalEntradaController,
+                  totalNegativosController: totalNegativosController,
+                ),
               ),
 
+            // ================= PROCESO: EMBALAJE =================
             if (embalaje)
-              PanelEmbalaje(
-                items: embalajeItems,
-                activo: embalajeActivoItems,
-                costoControllers: embalajeCostoControllers,
-                cantidadControllers: embalajeCantidadControllers,
-                totalControllers: embalajeTotalControllers,
-                onCalcular: calcularTotalEmbalaje,
-                onItemChanged: (index, value) {
-                  setState(() {
-                    embalajeActivoItems[index] = value;
-                  });
-                },
+              AcordeonProceso(
+                titulo: "Proceso: Embalaje",
+                color: const Color(0xFF388E3C),
+                icono: Icons.inventory_2,
+                child: PanelEmbalaje(
+                  items: embalajeItems,
+                  activo: embalajeActivoItems,
+                  costoControllers: embalajeCostoControllers,
+                  cantidadControllers: embalajeCantidadControllers,
+                  totalControllers: embalajeTotalControllers,
+                  onCalcular: calcularTotalEmbalaje,
+                  onItemChanged: (index, value) {
+                    setState(() {
+                      embalajeActivoItems[index] = value;
+                    });
+                    _actualizarPrecioTotalAutomatico();
+                  },
+                ),
               ),
 
-            if (acabadosEspeciales) ...[
-              PanelAcabadosEspeciales(
-                cantidadImpresionController: cantidadImpresionController,
-                activos: acabadosEspecialesActivos,
-                descripcionControllers: acabadosEspecialesDescControllers,
-                costoMillarControllers:
-                    acabadosEspecialesCostoMillarControllers,
-                costoTotalControllers: acabadosEspecialesCostoTotalControllers,
-                onChangedActivo: (index, value) {
-                  setState(() {
-                    acabadosEspecialesActivos[index] = value;
-                  });
-                  calcularCostoTotalGeneral();
-                },
-                onCalcularCosto: (index) {
-                  calcularCostoTotalGeneral();
-                },
+            // ================= PROCESO: ACABADOS ESPECIALES =================
+            if (acabadosEspeciales)
+              AcordeonProceso(
+                titulo: "Proceso: Acabados Especiales",
+                color: const Color(0xFF303F9F),
+                icono: Icons.star_border,
+                child: PanelAcabadosEspeciales(
+                  cantidadImpresionController: cantidadImpresionController,
+                  activos: acabadosEspecialesActivos,
+                  descripcionControllers: acabadosEspecialesDescControllers,
+                  costoMillarControllers:
+                      acabadosEspecialesCostoMillarControllers,
+                  costoTotalControllers:
+                      acabadosEspecialesCostoTotalControllers,
+                  onChangedActivo: (index, value) {
+                    setState(() {
+                      acabadosEspecialesActivos[index] = value;
+                    });
+                    _actualizarPrecioTotalAutomatico();
+                  },
+                  onCalcularCosto: (index) {
+                    _actualizarPrecioTotalAutomatico();
+                  },
+                ),
               ),
-            ],
 
-            if (extrasActivo) ...[
-              PanelExtras(
-                cantidadImpresionController: cantidadImpresionController,
-                activos: extrasActivos,
-                descripcionControllers: extrasDescControllers,
-                cantidadControllers: extrasCantidadControllers,
-                costoUnitarioControllers: extrasCostoUnitarioControllers,
-                costoTotalControllers: extrasCostoTotalControllers,
-                onChangedActivo: (index, value) {
-                  setState(() {
-                    extrasActivos[index] = value;
-                  });
-                  calcularCostoTotalGeneral();
-                },
-                onCalcularCosto: (index) {
-                  calcularCostoTotalGeneral();
-                },
-                onAgregarExtra: _agregarSlotExtra,
+            // ================= PROCESO: EXTRAS =================
+            if (extrasActivo)
+              AcordeonProceso(
+                titulo: "Proceso: Extras",
+                color: const Color(0xFF00838F),
+                icono: Icons.add_circle_outline,
+                child: PanelExtras(
+                  cantidadImpresionController: cantidadImpresionController,
+                  activos: extrasActivos,
+                  descripcionControllers: extrasDescControllers,
+                  cantidadControllers: extrasCantidadControllers,
+                  costoUnitarioControllers: extrasCostoUnitarioControllers,
+                  costoTotalControllers: extrasCostoTotalControllers,
+                  onChangedActivo: (index, value) {
+                    setState(() {
+                      extrasActivos[index] = value;
+                    });
+                    _actualizarPrecioTotalAutomatico();
+                  },
+                  onCalcularCosto: (index) {
+                    _actualizarPrecioTotalAutomatico();
+                  },
+                  onAgregarExtra: _agregarSlotExtra,
+                ),
               ),
-            ],
 
             PanelCostoTotal(
               costoTotalController: costoTotalController,
@@ -1849,6 +1984,146 @@ class _CotizacionPlanaScreenState extends ConsumerState<CotizacionPlanaScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
       ),
       child: Text(texto, textAlign: TextAlign.center),
+    );
+  }
+}
+
+class AcordeonProceso extends StatefulWidget {
+  final String titulo;
+  final Color color;
+  final IconData icono;
+  final Widget child;
+  final bool inicialmenteExpandido;
+
+  const AcordeonProceso({
+    super.key,
+    required this.titulo,
+    required this.color,
+    required this.icono,
+    required this.child,
+    this.inicialmenteExpandido = true,
+  });
+
+  @override
+  State<AcordeonProceso> createState() => _AcordeonProcesoState();
+}
+
+class _AcordeonProcesoState extends State<AcordeonProceso> {
+  late bool _expandido;
+
+  @override
+  void initState() {
+    super.initState();
+    _expandido = widget.inicialmenteExpandido;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: widget.color, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: widget.color.withOpacity(0.12),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Material(
+            color: widget.color,
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(8),
+              topRight: const Radius.circular(8),
+              bottomLeft: Radius.circular(_expandido ? 0 : 8),
+              bottomRight: Radius.circular(_expandido ? 0 : 8),
+            ),
+            child: InkWell(
+              borderRadius: BorderRadius.only(
+                topLeft: const Radius.circular(8),
+                topRight: const Radius.circular(8),
+                bottomLeft: Radius.circular(_expandido ? 0 : 8),
+                bottomRight: Radius.circular(_expandido ? 0 : 8),
+              ),
+              onTap: () => setState(() => _expandido = !_expandido),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: Row(
+                  children: [
+                    Icon(widget.icono, color: Colors.white, size: 22),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        widget.titulo,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _expandido ? "Minimizar" : "Expandir",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            _expandido
+                                ? Icons.keyboard_arrow_up
+                                : Icons.keyboard_arrow_down,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Visibility(
+            visible: _expandido,
+            maintainState: true,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: widget.color.withOpacity(0.03),
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(8),
+                  bottomRight: Radius.circular(8),
+                ),
+              ),
+              child: widget.child,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -49,6 +49,10 @@ class PanelMaquina extends ConsumerStatefulWidget {
   final String? valorInicialFrente;
   final String? valorInicialVuelta;
 
+  final TextEditingController? pliegoAnchoController;
+  final TextEditingController? pliegoAltoController;
+  final String? tipoSegmentacion;
+
   const PanelMaquina({
     super.key,
     required this.nombreMaquinaController,
@@ -86,8 +90,11 @@ class PanelMaquina extends ConsumerStatefulWidget {
     required this.costoUnitBarnizRevController,
     required this.onConfiguracionFrenteChanged,
     required this.onConfiguracionVueltaChanged,
-    required this.valorInicialFrente, 
-    required this.valorInicialVuelta, 
+    required this.valorInicialFrente,
+    required this.valorInicialVuelta,
+    this.pliegoAnchoController,
+    this.pliegoAltoController,
+    this.tipoSegmentacion,
   });
 
   @override
@@ -97,6 +104,8 @@ class PanelMaquina extends ConsumerStatefulWidget {
 class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
   String? _opcionFrente;
   String? _opcionVuelta;
+  int _ultimasTintasCalculadas = -1;
+  String _ultimoModoSegmentacion = '';
 
   @override
   void initState() {
@@ -108,8 +117,9 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
     widget.tintasFteController.addListener(_calcularCostosTintas);
     widget.tintasRevController.addListener(_calcularCostosTintas);
     widget.millaresController.addListener(_calcularCostosTintas);
-    widget.costoUnitFteController.addListener(_calcularCostosTintas);
-    widget.costoUnitRevController.addListener(_calcularCostosTintas);
+
+    widget.pliegoAnchoController?.addListener(_onSegmentacionChanged);
+    widget.pliegoAltoController?.addListener(_onSegmentacionChanged);
 
     widget.cantidadPlacasController.addListener(_calcularTotalPlacas);
     widget.costoPlacaController.addListener(_calcularTotalPlacas);
@@ -121,6 +131,57 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
       _calcularCostosTintas();
       _cargarCostoPlacaDefault();
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant PanelMaquina oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.tipoSegmentacion != widget.tipoSegmentacion) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {});
+          _calcularCostosTintas();
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.tintasFteController.removeListener(_calcularCostosTintas);
+    widget.tintasRevController.removeListener(_calcularCostosTintas);
+    widget.millaresController.removeListener(_calcularCostosTintas);
+    widget.pliegoAnchoController?.removeListener(_onSegmentacionChanged);
+    widget.pliegoAltoController?.removeListener(_onSegmentacionChanged);
+    widget.cantidadPlacasController.removeListener(_calcularTotalPlacas);
+    widget.costoPlacaController.removeListener(_calcularTotalPlacas);
+    widget.cantidadPlacas790Controller.removeListener(_calcularTotalPlacas790);
+    widget.costoPlaca790Controller.removeListener(_calcularTotalPlacas790);
+    super.dispose();
+  }
+
+  void _onSegmentacionChanged() {
+    if (mounted) {
+      setState(() {});
+      _calcularCostosTintas();
+    }
+  }
+
+  // Determina qué placa(s) activar:
+  // - 'mitad'     -> Solo activa 615 X 724
+  // - 'extendido' -> Solo activa 790 X 1030
+  // - 'especial'  -> Manual o Medida Especial: LAS DOS ACTIVAS
+  String get _modoSegmentacion {
+    final String titulo = (widget.tipoSegmentacion ?? '').toLowerCase().trim();
+
+    if (titulo.contains('mitad')) return 'mitad';
+    if (titulo.contains('extendido')) return 'extendido';
+    if (titulo.contains('especial') || titulo.contains('manual')) {
+      return 'especial';
+    }
+
+    // Si está vacío (escritura manual o aún sin elegir en lupa), deja las dos activas
+    return 'especial';
   }
 
   void _actualizarListasOpciones() {
@@ -135,7 +196,7 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
       widget.opcionesVuelta.addAll(_generarOpciones(cantRevInt));
 
       if (!widget.opcionesFrente.contains(_opcionFrente)) {
-        _opcionFrente = null; 
+        _opcionFrente = null;
       }
       if (!widget.opcionesVuelta.contains(_opcionVuelta)) {
         _opcionVuelta = null;
@@ -158,13 +219,30 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
       ];
     }
     if (cantidad == 2) {
-      return ["8 OFICIO 2 COLORES", "8 OFICIO 1 COLOR 1 PLASTA UNA CABEZA CMYK", "8 OFICIO 1 COLOR 1 PLASTA DOS CABEZAS CMYK", "4 CARTA 2 COLORES", "OTRO"];
+      return [
+        "8 OFICIO 2 COLORES",
+        "8 OFICIO 1 COLOR 1 PLASTA UNA CABEZA CMYK",
+        "8 OFICIO 1 COLOR 1 PLASTA DOS CABEZAS CMYK",
+        "4 CARTA 2 COLORES",
+        "OTRO",
+      ];
     }
     if (cantidad == 3) {
-      return ["8 OFICIO 3 COLORES", "8 OFICIO 2 COLORES 1 PLASTA UNA CABEZA CMYK", "8 OFICIO 2 COLORES 1 PLASTA DOS CABEZAS CMYK", "4 CARTA 3 COLORES", "OTRO"];
+      return [
+        "8 OFICIO 3 COLORES",
+        "8 OFICIO 2 COLORES 1 PLASTA UNA CABEZA CMYK",
+        "8 OFICIO 2 COLORES 1 PLASTA DOS CABEZAS CMYK",
+        "4 CARTA 3 COLORES",
+        "OTRO",
+      ];
     }
     if (cantidad == 4) {
-      return ["8 OFICIO 4 COLORES", "4 CARTA 4 COLORES", "8 OFICIO 20 PTS 4 COLORES", "OTRO"];
+      return [
+        "8 OFICIO 4 COLORES",
+        "4 CARTA 4 COLORES",
+        "8 OFICIO 20 PTS 4 COLORES",
+        "OTRO",
+      ];
     }
     return ["OTRO"];
   }
@@ -184,43 +262,75 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
 
     final int cantFteInt = int.tryParse(widget.tintasFteController.text) ?? 0;
     final int cantRevInt = int.tryParse(widget.tintasRevController.text) ?? 0;
-    final double millaresDouble = double.tryParse(widget.millaresController.text) ?? 0.0;
-    
-    // Si hay millares parciales (ej. 0.5), se toma como mínimo 1 millar para la escala de precios
-    int millaresEscala = millaresDouble.floor();
-    if (millaresEscala <= 0 && millaresDouble > 0) millaresEscala = 1;
+    final double millaresDouble =
+        double.tryParse(widget.millaresController.text) ?? 0.0;
 
-    // Placas dinámicas por número total de tintas
+    int millares = (millaresDouble - millaresDouble.floor() <= 0.5)
+        ? millaresDouble.floor()
+        : millaresDouble.ceil();
+
+    if (millares <= 0) millares = 1;
+
     final int totalPlacasCalculadas = cantFteInt + cantRevInt;
-    final String stringTotalPlacas = totalPlacasCalculadas > 0 ? totalPlacasCalculadas.toString() : "0";
+    final String stringTotalPlacas =
+        totalPlacasCalculadas > 0 ? totalPlacasCalculadas.toString() : "0";
 
-    if (widget.cantidadPlacasController.text != stringTotalPlacas) {
-      widget.cantidadPlacasController.text = stringTotalPlacas;
+    final String modo = _modoSegmentacion;
+    final bool cambiaronTintasOModo =
+        (totalPlacasCalculadas != _ultimasTintasCalculadas) ||
+        (modo != _ultimoModoSegmentacion);
+
+    _ultimasTintasCalculadas = totalPlacasCalculadas;
+    _ultimoModoSegmentacion = modo;
+
+    if (modo == 'mitad') {
+      // Mitad de pliego: solo activa 615 X 724, apaga 790 X 1030
+      if (widget.cantidadPlacasController.text != stringTotalPlacas) {
+        widget.cantidadPlacasController.text = stringTotalPlacas;
+      }
+      if (widget.cantidadPlacas790Controller.text != "0") {
+        widget.cantidadPlacas790Controller.text = "0";
+      }
+    } else if (modo == 'extendido') {
+      // Pliego extendido: solo activa 790 X 1030, apaga 615 X 724
+      if (widget.cantidadPlacasController.text != "0") {
+        widget.cantidadPlacasController.text = "0";
+      }
+      if (widget.cantidadPlacas790Controller.text != stringTotalPlacas) {
+        widget.cantidadPlacas790Controller.text = stringTotalPlacas;
+      }
+    } else {
+      // Manual / Medida Especial: las dos están activas.
+      // Solo pre-llenamos cuando cambian las tintas o el modo, para permitir
+      // que el usuario edite o ponga 0 en la que no ocupe sin que se sobreescriba.
+      if (cambiaronTintasOModo) {
+        widget.cantidadPlacasController.text = stringTotalPlacas;
+        widget.cantidadPlacas790Controller.text = stringTotalPlacas;
+      }
     }
-    if (widget.cantidadPlacas790Controller.text != stringTotalPlacas) {
-      widget.cantidadPlacas790Controller.text = stringTotalPlacas;
-    }
+
+    _calcularTotalPlacas();
+    _calcularTotalPlacas790();
 
     _actualizarListasOpciones();
 
     double precioUnitFte = 0.0;
     double precioUnitRev = 0.0;
 
-    // Determinar precio unitario
     if (widget.cambiarPrecioTinta) {
-      precioUnitFte = double.tryParse(widget.costoUnitFteController.text) ?? 0.0;
-      precioUnitRev = double.tryParse(widget.costoUnitRevController.text) ?? 0.0;
+      precioUnitFte =
+          double.tryParse(widget.costoUnitFteController.text) ?? 0.0;
+      precioUnitRev =
+          double.tryParse(widget.costoUnitRevController.text) ?? 0.0;
     } else {
-      // FRENTE
-      if (cantFteInt > 0 && _opcionFrente != null && millaresEscala > 0) {
-        precioUnitFte = _calcularPrecioPorOpcion(_opcionFrente!, millaresEscala);
+      if (cantFteInt > 0 && _opcionFrente != null) {
+        precioUnitFte = _calcularPrecioPorOpcion(_opcionFrente!, millares);
       } else {
         precioUnitFte = cantFteInt > 0 ? costoFijoTinta : 0.0;
       }
 
-      // REVERSO
-      if (cantRevInt > 0 && _opcionVuelta != null && millaresEscala > 0) {
-        precioUnitRev = _calcularPrecioPorOpcion(_opcionVuelta!, millaresEscala);
+      if (cantRevInt > 0 && _opcionVuelta != null) {
+        precioUnitRev = _calcularPrecioPorOpcion(_opcionVuelta!, millares);
       } else {
         precioUnitRev = cantRevInt > 0 ? costoFijoTinta : 0.0;
       }
@@ -229,62 +339,37 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
       widget.costoUnitRevController.text = precioUnitRev.toStringAsFixed(2);
     }
 
-// 1. Asegurar que si hay fracción menor o igual a 0.5 (pero mayor a 0), 
-    // se cobre mínimo 1 millar (igual que en millaresEscala), o si no hay millares aún, 
-    // sume al menos por 1 para que no multiplique por 0.
-    double millaresParaCalculo = (millaresDouble - millaresDouble.floor() <= 0.5)
-        ? millaresDouble.floorToDouble()
-        : millaresDouble.ceilToDouble();
-
-    if (millaresParaCalculo <= 0) {
-      millaresParaCalculo = 1.0; 
-    }
-
-    // 2. Si quieres que multiplique por los millares redondeados:
-    final double totalFte = precioUnitFte * millaresParaCalculo;
-    final double totalRev = precioUnitRev * millaresParaCalculo;
-
-    // (NOTA: Si en tu lógica de negocio el precio que devuelve la tabla YA ES el total 
-    // o quieres que simplemente sume lo que dicen las cajas "Costo por Tinta Frontal" + "Reverso"
-    // sin multiplicar de nuevo por millares, usa esto en su lugar):
-    // final double totalFte = precioUnitFte;
-    // final double totalRev = precioUnitRev;
-
+    final double totalFte = precioUnitFte * millares;
+    final double totalRev = precioUnitRev * millares;
     final double granTotalTintas = totalFte + totalRev;
-
-    if (widget.costoTotalFteController.text != totalFte.toStringAsFixed(2)) {
-      widget.costoTotalFteController.text = totalFte.toStringAsFixed(2);
-    }
-    if (widget.costoTotalRevController.text != totalRev.toStringAsFixed(2)) {
-      widget.costoTotalRevController.text = totalRev.toStringAsFixed(2);
-    }
-    if (widget.costoGranTotalTintasController.text != granTotalTintas.toStringAsFixed(2)) {
-      widget.costoGranTotalTintasController.text = granTotalTintas.toStringAsFixed(2);
-    }
 
     widget.costoTotalFteController.text = totalFte.toStringAsFixed(2);
     widget.costoTotalRevController.text = totalRev.toStringAsFixed(2);
-    widget.costoGranTotalTintasController.text = granTotalTintas.toStringAsFixed(2);
+    widget.costoGranTotalTintasController.text = granTotalTintas
+        .toStringAsFixed(2);
 
-    // BARNIZ
-    double precioBarnizFte = 0;
-    double precioBarnizRev = 0;
+    if (!widget.cambiarPrecioBarniz) {
+      double precioBarnizFte = 0;
+      double precioBarnizRev = 0;
 
-    if (widget.barnizFte && millaresEscala > 0 && _opcionFrente != null) {
-      bool es20Pts = _opcionFrente!.toUpperCase().contains("20");
-      precioBarnizFte = _calcularPrecioBarniz(es20Pts, millaresEscala);
+      if (widget.barnizFte && _opcionFrente != null) {
+        bool es20Pts = _opcionFrente!.toUpperCase().contains("20");
+        precioBarnizFte = _calcularPrecioBarniz(es20Pts, millares);
+      }
+
+      if (widget.barnizRev && _opcionVuelta != null) {
+        bool es20Pts = _opcionVuelta!.toUpperCase().contains("20");
+        precioBarnizRev = _calcularPrecioBarniz(es20Pts, millares);
+      }
+
+      double totalBarniz = (widget.barnizFte || widget.barnizRev)
+          ? (precioBarnizFte + precioBarnizRev)
+          : 0;
+      widget.costoBarnizController.text = totalBarniz.toStringAsFixed(2);
     }
 
-    if (widget.barnizRev && millaresEscala > 0 && _opcionVuelta != null) {
-      bool es20Pts = _opcionVuelta!.toUpperCase().contains("20");
-      precioBarnizRev = _calcularPrecioBarniz(es20Pts, millaresEscala);
-    }
-
-    double totalBarniz = (widget.barnizFte || widget.barnizRev) ? (precioBarnizFte + precioBarnizRev) : 0;
-    widget.costoBarnizController.text = totalBarniz.toStringAsFixed(2);
-
-    // Informar al padre
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       widget.onConfiguracionFrenteChanged(_opcionFrente);
       widget.onConfiguracionVueltaChanged(_opcionVuelta);
     });
@@ -315,9 +400,12 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
         if (millares >= 7 && millares <= 10) return 1300;
         if (millares >= 11 && millares <= 31) return 1200;
         return 1200;
-      case "4 CARTAS POR SELECCIÓN": return 450;
-      case "4 CARTAS PANTONE LINEA": return 600;
-      case "4 CARTAS PANTONE PLASTA": return 800;
+      case "4 CARTAS POR SELECCIÓN":
+        return 450;
+      case "4 CARTAS PANTONE LINEA":
+        return 600;
+      case "4 CARTAS PANTONE PLASTA":
+        return 800;
       case "8 OFICIOS DE 20 pts PANTONE LINEA":
         if (millares == 1) return 3000;
         if (millares == 2) return 2000;
@@ -355,7 +443,8 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
         if (millares >= 21 && millares <= 30) return 1580;
         if (millares >= 31 && millares <= 50) return 1550;
         return 1530;
-      case "4 CARTA 2 COLORES": return 700;
+      case "4 CARTA 2 COLORES":
+        return 700;
       case "8 OFICIO 3 COLORES":
         if (millares <= 1) return 1200;
         if (millares == 2) return 1035;
@@ -389,7 +478,8 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
         if (millares >= 21 && millares <= 30) return 1770;
         if (millares >= 31 && millares <= 50) return 1725;
         return 1695;
-      case "4 CARTA 3 COLORES": return 800;
+      case "4 CARTA 3 COLORES":
+        return 800;
       case "8 OFICIO 4 COLORES":
         if (millares <= 1) return 1400;
         if (millares == 2) return 1200;
@@ -401,12 +491,14 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
         if (millares >= 21 && millares <= 30) return 760;
         if (millares >= 31 && millares <= 50) return 700;
         return 660;
-      case "4 CARTA 4 COLORES": return 900;
+      case "4 CARTA 4 COLORES":
+        return 900;
       case "8 OFICIO 20 PTS 4 COLORES":
         if (millares == 1) return 4800;
         if (millares == 2) return 4400;
         return 3800;
-      default: return 0;
+      default:
+        return 0;
     }
   }
 
@@ -424,10 +516,16 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
   }
 
   void _cargarCostoPlacaDefault() {
-    if (widget.costoPlacaController.text.isNotEmpty && widget.costoPlacaController.text != "0" && widget.costoPlacaController.text != "0.0") return;
+    if (widget.costoPlacaController.text.isNotEmpty &&
+        widget.costoPlacaController.text != "0" &&
+        widget.costoPlacaController.text != "0.0") {
+      return;
+    }
     final extrasState = ref.read(extrasProvider);
     try {
-      final extraPlacas = extrasState.extras.firstWhere((e) => e.nombre.trim().toLowerCase() == 'placas');
+      final extraPlacas = extrasState.extras.firstWhere(
+        (e) => e.nombre.trim().toLowerCase() == 'placas',
+      );
       double costoFijoPlaca = extraPlacas.costoFijo ?? 0.0;
       if (costoFijoPlaca > 0) {
         widget.costoPlacaController.text = costoFijoPlaca.toStringAsFixed(2);
@@ -437,15 +535,45 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
   }
 
   void _calcularTotalPlacas() {
-    final double cantidad = double.tryParse(widget.cantidadPlacasController.text) ?? 0.0;
-    final double costoUnitario = double.tryParse(widget.costoPlacaController.text) ?? 0.0;
-    widget.costoTotalPlacasController.text = (cantidad * costoUnitario).toStringAsFixed(2);
+    final String modo = _modoSegmentacion;
+    final bool activa = (modo == 'mitad' || modo == 'especial');
+
+    if (!activa) {
+      if (widget.costoTotalPlacasController.text != "0.00") {
+        widget.costoTotalPlacasController.text = "0.00";
+      }
+      return;
+    }
+
+    final double cantidad =
+        double.tryParse(widget.cantidadPlacasController.text) ?? 0.0;
+    final double costoUnitario =
+        double.tryParse(widget.costoPlacaController.text) ?? 0.0;
+    final String nuevoTotal = (cantidad * costoUnitario).toStringAsFixed(2);
+    if (widget.costoTotalPlacasController.text != nuevoTotal) {
+      widget.costoTotalPlacasController.text = nuevoTotal;
+    }
   }
 
   void _calcularTotalPlacas790() {
-    final double cantidad = double.tryParse(widget.cantidadPlacas790Controller.text) ?? 0.0;
-    final double costoUnitario = double.tryParse(widget.costoPlaca790Controller.text) ?? 0.0;
-    widget.costoTotalPlacas790Controller.text = (cantidad * costoUnitario).toStringAsFixed(2);
+    final String modo = _modoSegmentacion;
+    final bool activa = (modo == 'extendido' || modo == 'especial');
+
+    if (!activa) {
+      if (widget.costoTotalPlacas790Controller.text != "0.00") {
+        widget.costoTotalPlacas790Controller.text = "0.00";
+      }
+      return;
+    }
+
+    final double cantidad =
+        double.tryParse(widget.cantidadPlacas790Controller.text) ?? 0.0;
+    final double costoUnitario =
+        double.tryParse(widget.costoPlaca790Controller.text) ?? 0.0;
+    final String nuevoTotal = (cantidad * costoUnitario).toStringAsFixed(2);
+    if (widget.costoTotalPlacas790Controller.text != nuevoTotal) {
+      widget.costoTotalPlacas790Controller.text = nuevoTotal;
+    }
   }
 
   void _buscarMaquina() {
@@ -454,8 +582,11 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
       builder: (_) => DialogoSelectorMaquina(
         onSeleccionado: (maquina) {
           widget.nombreMaquinaController.text = maquina.nombre;
-          widget.costoPlacaController.text = maquina.costoPlaca615x724.toStringAsFixed(2);
-          widget.costoPlaca790Controller.text = maquina.costoPlaca790x1030.toStringAsFixed(2);
+          widget.costoPlacaController.text = maquina.costoPlaca615x724
+              .toStringAsFixed(2);
+          widget.costoPlaca790Controller.text = maquina.costoPlaca790x1030
+              .toStringAsFixed(2);
+          _calcularCostosTintas();
           _calcularTotalPlacas();
           _calcularTotalPlacas790();
         },
@@ -470,13 +601,23 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
         titulo: maquina == null ? 'Nueva Máquina' : 'Modificar Máquina',
         maquinaInicial: maquina,
         onGuardar: (nuevaMaquina) async {
-          bool success = maquina == null 
-            ? await ref.read(maquinasProvider.notifier).crearMaquina(nuevaMaquina)
-            : await ref.read(maquinasProvider.notifier).actualizarMaquina(nuevaMaquina);
+          bool success = maquina == null
+              ? await ref
+                    .read(maquinasProvider.notifier)
+                    .crearMaquina(nuevaMaquina)
+              : await ref
+                    .read(maquinasProvider.notifier)
+                    .actualizarMaquina(nuevaMaquina);
 
           if (success && context.mounted) {
             Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(maquina == null ? 'Máquina creada' : 'Máquina actualizada')));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  maquina == null ? 'Máquina creada' : 'Máquina actualizada',
+                ),
+              ),
+            );
           }
         },
       ),
@@ -490,6 +631,13 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
       _cargarCostoPlacaDefault();
     });
 
+    final String modo = _modoSegmentacion;
+    // Mitad -> solo 615x724 activa
+    // Extendido -> solo 790x1030 activa
+    // Especial / Manual -> LAS DOS ACTIVAS
+    final bool activa615 = (modo == 'mitad' || modo == 'especial');
+    final bool activa790 = (modo == 'extendido' || modo == 'especial');
+
     return Card(
       margin: const EdgeInsets.only(bottom: 20),
       child: Padding(
@@ -497,7 +645,10 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("Datos Máquina de Impresión a Usar:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const Text(
+              "Datos Máquina de Impresión a Usar:",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -515,19 +666,21 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                IconButton(onPressed: _buscarMaquina, icon: const Icon(Icons.search), tooltip: "Buscar máquina"),
-                IconButton(onPressed: () => _agregarMaquina(context, ref, null), icon: const Icon(Icons.add), tooltip: "Agregar máquina"),
+                IconButton(
+                  onPressed: _buscarMaquina,
+                  icon: const Icon(Icons.search),
+                  tooltip: "Buscar máquina",
+                ),
+                IconButton(
+                  onPressed: () => _agregarMaquina(context, ref, null),
+                  icon: const Icon(Icons.add),
+                  tooltip: "Agregar máquina",
+                ),
               ],
             ),
             const SizedBox(height: 16),
             const Text("Tintas a Utilizar en la Impresión:"),
             const SizedBox(height: 4),
-            // Wrap en vez de Row: esta fila combinaba 2 campos numéricos +
-            // 2 checkboxes con etiqueta en una sola línea de ancho fijo
-            // (>400dp) que desbordaba en cualquier celular. Cada grupo
-            // (campos de tintas, cada checkbox+etiqueta) va en su propio
-            // Row(mainAxisSize.min) para que baje completo a otra línea
-            // si no cabe, sin partirse a la mitad.
             Wrap(
               crossAxisAlignment: WrapCrossAlignment.center,
               spacing: 12,
@@ -541,7 +694,10 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
                       child: TextField(
                         controller: widget.tintasFteController,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -552,7 +708,10 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
                       child: TextField(
                         controller: widget.tintasRevController,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
                       ),
                     ),
                   ],
@@ -564,7 +723,9 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
                       value: widget.barnizFte,
                       onChanged: (value) {
                         widget.onBarnizFteChanged(value ?? false);
-                        WidgetsBinding.instance.addPostFrameCallback((_) => _calcularCostosTintas());
+                        WidgetsBinding.instance.addPostFrameCallback(
+                          (_) => _calcularCostosTintas(),
+                        );
                       },
                     ),
                     const Text("Barniz Frente"),
@@ -577,7 +738,9 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
                       value: widget.barnizRev,
                       onChanged: (value) {
                         widget.onBarnizRevChanged(value ?? false);
-                        WidgetsBinding.instance.addPostFrameCallback((_) => _calcularCostosTintas());
+                        WidgetsBinding.instance.addPostFrameCallback(
+                          (_) => _calcularCostosTintas(),
+                        );
                       },
                     ),
                     const Text("Barniz Vuelta"),
@@ -591,7 +754,9 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
               const SizedBox(height: 4),
               DropdownButtonFormField<String>(
                 value: _opcionFrente,
-                items: widget.opcionesFrente.map((op) => DropdownMenuItem(value: op, child: Text(op))).toList(),
+                items: widget.opcionesFrente
+                    .map((op) => DropdownMenuItem(value: op, child: Text(op)))
+                    .toList(),
                 onChanged: (value) {
                   setState(() => _opcionFrente = value);
                   widget.onConfiguracionFrenteChanged(value);
@@ -605,7 +770,9 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
               const SizedBox(height: 4),
               DropdownButtonFormField<String>(
                 value: _opcionVuelta,
-                items: widget.opcionesVuelta.map((op) => DropdownMenuItem(value: op, child: Text(op))).toList(),
+                items: widget.opcionesVuelta
+                    .map((op) => DropdownMenuItem(value: op, child: Text(op)))
+                    .toList(),
                 onChanged: (value) {
                   setState(() => _opcionVuelta = value);
                   widget.onConfiguracionVueltaChanged(value);
@@ -615,7 +782,15 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
             ],
             Row(
               children: [
-                Checkbox(value: widget.cambiarPrecioTinta, onChanged: widget.onCambiarPrecioTintaChanged),
+                Checkbox(
+                  value: widget.cambiarPrecioTinta,
+                  onChanged: (val) {
+                    widget.onCambiarPrecioTintaChanged(val);
+                    WidgetsBinding.instance.addPostFrameCallback(
+                      (_) => _calcularCostosTintas(),
+                    );
+                  },
+                ),
                 const Text("Cambiar precio por tinta"),
               ],
             ),
@@ -627,9 +802,20 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Costo por Tinta Frontal:"),
+                      const Text("Costo Tinta Frontal (Millar):"),
                       const SizedBox(height: 4),
-                      _MonedaInput(controller: widget.costoUnitFteController, readOnly: !widget.cambiarPrecioTinta),
+                      _MonedaInput(
+                        controller: widget.costoUnitFteController,
+                        readOnly: !widget.cambiarPrecioTinta,
+                        onChanged: (_) => _calcularCostosTintas(),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text("Subtotal Frente:"),
+                      const SizedBox(height: 4),
+                      _MonedaInput(
+                        controller: widget.costoTotalFteController,
+                        readOnly: true,
+                      ),
                     ],
                   ),
                 ),
@@ -638,71 +824,205 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Costo por Tinta Reverso:"),
+                      const Text("Costo Tinta Reverso (Millar):"),
                       const SizedBox(height: 4),
-                      _MonedaInput(controller: widget.costoUnitRevController, readOnly: !widget.cambiarPrecioTinta),
+                      _MonedaInput(
+                        controller: widget.costoUnitRevController,
+                        readOnly: !widget.cambiarPrecioTinta,
+                        onChanged: (_) => _calcularCostosTintas(),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text("Subtotal Reverso:"),
+                      const SizedBox(height: 4),
+                      _MonedaInput(
+                        controller: widget.costoTotalRevController,
+                        readOnly: true,
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            const Text("Costo Total Tintas:", style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              "Costo Total Tintas:",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 4),
-            _MonedaInput(controller: widget.costoGranTotalTintasController, readOnly: true),
+            _MonedaInput(
+              controller: widget.costoGranTotalTintasController,
+              readOnly: true,
+            ),
             const SizedBox(height: 20),
-            const Text("Cantidad Placas 615 X 724:"),
-            const SizedBox(height: 4),
-            SizedBox(
-              width: 100,
-              child: TextField(
-                controller: widget.cantidadPlacasController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
+
+            // =========================================================
+            // SECCIÓN PLACAS 615 X 724 (MITAD DEL PLIEGO)
+            // =========================================================
+            Opacity(
+              opacity: activa615 ? 1.0 : 0.4,
+              child: IgnorePointer(
+                ignoring: !activa615,
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: activa615
+                        ? Colors.blue.withOpacity(0.05)
+                        : Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: activa615 ? Colors.blue : Colors.grey.shade400,
+                      width: activa615 ? 1.5 : 1.0,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Placas 615 X 724 (Mitad del Pliego)",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: activa615
+                              ? Colors.blue.shade800
+                              : Colors.black54,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text("Cantidad Placas 615 X 724:"),
+                      const SizedBox(height: 4),
+                      SizedBox(
+                        width: 100,
+                        child: TextField(
+                          controller: widget.cantidadPlacasController,
+                          enabled: activa615,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text("Costo por Placa 615 X 724:"),
+                      const SizedBox(height: 4),
+                      _MonedaInput(
+                        controller: widget.costoPlacaController,
+                        readOnly: !widget.cambiarPrecioPlaca || !activa615,
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        "Costo Total Placas 615 X 724:",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      _MonedaInput(
+                        controller: widget.costoTotalPlacasController,
+                        readOnly: true,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 8),
-            const Text("Costo por Placa 615 X 724:"),
-            const SizedBox(height: 4),
-            _MonedaInput(controller: widget.costoPlacaController, readOnly: !widget.cambiarPrecioPlaca),
-            const SizedBox(height: 8),
-            const Text("Costo Total Placas 615 X 724:", style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            _MonedaInput(controller: widget.costoTotalPlacasController, readOnly: true),
-            const SizedBox(height: 24),
-            const Text("Cantidad Placas 790 X 1030:"),
-            const SizedBox(height: 4),
-            SizedBox(
-              width: 100,
-              child: TextField(
-                controller: widget.cantidadPlacas790Controller,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
+
+            const SizedBox(height: 16),
+
+            // =========================================================
+            // SECCIÓN PLACAS 790 X 1030 (PLIEGO EXTENDIDO)
+            // =========================================================
+            Opacity(
+              opacity: activa790 ? 1.0 : 0.4,
+              child: IgnorePointer(
+                ignoring: !activa790,
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: activa790
+                        ? Colors.blue.withOpacity(0.05)
+                        : Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: activa790 ? Colors.blue : Colors.grey.shade400,
+                      width: activa790 ? 1.5 : 1.0,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Placas 790 X 1030 (Pliego Extendido)",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: activa790
+                              ? Colors.blue.shade800
+                              : Colors.black54,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text("Cantidad Placas 790 X 1030:"),
+                      const SizedBox(height: 4),
+                      SizedBox(
+                        width: 100,
+                        child: TextField(
+                          controller: widget.cantidadPlacas790Controller,
+                          enabled: activa790,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text("Costo por Placa 790 X 1030:"),
+                      const SizedBox(height: 4),
+                      _MonedaInput(
+                        controller: widget.costoPlaca790Controller,
+                        readOnly: !widget.cambiarPrecioPlaca || !activa790,
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        "Costo Total Placas 790 X 1030:",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      _MonedaInput(
+                        controller: widget.costoTotalPlacas790Controller,
+                        readOnly: true,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 8),
-            const Text("Costo por Placa 790 X 1030:"),
-            const SizedBox(height: 4),
-            _MonedaInput(controller: widget.costoPlaca790Controller, readOnly: !widget.cambiarPrecioPlaca),
-            const SizedBox(height: 8),
-            const Text("Costo Total Placas 790 X 1030:", style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            _MonedaInput(controller: widget.costoTotalPlacas790Controller, readOnly: true),
+
+            const SizedBox(height: 12),
             Row(
               children: [
-                Checkbox(value: widget.cambiarPrecioPlaca, onChanged: widget.onCambiarPrecioPlacaChanged),
+                Checkbox(
+                  value: widget.cambiarPrecioPlaca,
+                  onChanged: widget.onCambiarPrecioPlacaChanged,
+                ),
                 const Text("Cambiar Precio Por Placa:"),
               ],
             ),
             Row(
               children: [
-                Checkbox(value: widget.cambiarPrecioBarniz, onChanged: widget.onCambiarPrecioBarnizChanged),
+                Checkbox(
+                  value: widget.cambiarPrecioBarniz,
+                  onChanged: widget.onCambiarPrecioBarnizChanged,
+                ),
                 const Text("Cambiar precio barniz"),
               ],
             ),
-            const Text("Costo Barniz de Máquina:", style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              "Costo Barniz de Máquina:",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 4),
-            _MonedaInput(controller: widget.costoBarnizController, readOnly: !widget.cambiarPrecioBarniz),
+            _MonedaInput(
+              controller: widget.costoBarnizController,
+              readOnly: !widget.cambiarPrecioBarniz,
+            ),
             const SizedBox(height: 16),
           ],
         ),
@@ -714,12 +1034,19 @@ class _PanelMaquinaState extends ConsumerState<PanelMaquina> {
 class _MonedaInput extends StatelessWidget {
   final TextEditingController? controller;
   final bool readOnly;
-  const _MonedaInput({this.controller, this.readOnly = false});
+  final ValueChanged<String>? onChanged;
+  const _MonedaInput({
+    this.controller,
+    this.readOnly = false,
+    this.onChanged,
+  });
   @override
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
       readOnly: readOnly,
+      onChanged: onChanged,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
       decoration: InputDecoration(
         prefixText: "\$ ",
         border: const OutlineInputBorder(),

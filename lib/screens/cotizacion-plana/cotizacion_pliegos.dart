@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../segmentacion.dart';
 
-// Panel específico para el cálculo de pliegos
 class PanelPliegos extends StatefulWidget {
   final TextEditingController anchoFinalController;
   final TextEditingController altoFinalController;
@@ -19,6 +18,7 @@ class PanelPliegos extends StatefulWidget {
   final TextEditingController totalPliegosController;
   final TextEditingController millaresController;
   final TextEditingController pliegosExtraController;
+  final ValueChanged<String>? onTipoSegmentacionChanged;
 
   const PanelPliegos({
     super.key,
@@ -35,6 +35,7 @@ class PanelPliegos extends StatefulWidget {
     required this.totalPliegosController,
     required this.millaresController,
     required this.pliegosExtraController,
+    this.onTipoSegmentacionChanged,
   });
 
   @override
@@ -42,40 +43,35 @@ class PanelPliegos extends StatefulWidget {
 }
 
 class _PanelPliegosState extends State<PanelPliegos> {
-  int pliegosExtraSeleccionados = 0;
-
-  /// Cargar valor desde el padre
   @override
   void initState() {
     super.initState();
-    if (widget.pliegosExtraController.text.isEmpty){
+    if (widget.pliegosExtraController.text.isEmpty) {
       widget.pliegosExtraController.text = "150";
     }
 
-    // Recalcula si cambian las piezas totales (edición, recotización, o
-    // tipeo en vivo) — antes solo se recalculaba al usar el buscador de
-    // segmentación o al editar "Pliegos Extra".
     widget.cantidadImpresionesController.addListener(_calcularPliegos);
+    widget.piezasPorPliegoController.addListener(_calcularPliegos);
+    widget.pliegosExtraController.addListener(_calcularPliegos);
 
-    // Y una vez al montar, por si ya viene con datos guardados (edición o
-    // recotización) que no coinciden con lo que había antes de abrir la
-    // pantalla.
     WidgetsBinding.instance.addPostFrameCallback((_) => _calcularPliegos());
   }
 
   @override
   void dispose() {
     widget.cantidadImpresionesController.removeListener(_calcularPliegos);
+    widget.piezasPorPliegoController.removeListener(_calcularPliegos);
+    widget.pliegosExtraController.removeListener(_calcularPliegos);
     super.dispose();
   }
 
-  /// ===============================
-  /// CÁLCULO DE PLIEGOS
-  /// ===============================
   void _calcularPliegos() {
-    final int impresiones = int.tryParse(widget.cantidadImpresionesController.text) ?? 0;
-    final int piezasPorPliego = int.tryParse(widget.piezasPorPliegoController.text) ?? 0;
-    final int pliegosExtra = int.tryParse(widget.pliegosExtraController.text) ?? 0;
+    final int impresiones =
+        int.tryParse(widget.cantidadImpresionesController.text) ?? 0;
+    final int piezasPorPliego =
+        int.tryParse(widget.piezasPorPliegoController.text) ?? 0;
+    final int pliegosExtra =
+        int.tryParse(widget.pliegosExtraController.text) ?? 0;
 
     if (impresiones <= 0 || piezasPorPliego <= 0) {
       widget.cantidadPliegosController.text = "0";
@@ -83,19 +79,17 @@ class _PanelPliegosState extends State<PanelPliegos> {
       widget.totalPliegosController.text = "0";
       widget.millaresController.text = "0.00";
       return;
-  }
+    }
 
-  final int pliegosEnteros = impresiones ~/ piezasPorPliego;
-  final bool haySobrante = impresiones % piezasPorPliego > 0;
-  final int sobrante = haySobrante ? 1 : 0;
-  final int totalPliegos = pliegosEnteros + sobrante + pliegosExtra;
+    final int pliegosEnteros = impresiones ~/ piezasPorPliego;
+    final bool haySobrante = impresiones % piezasPorPliego > 0;
+    final int sobrante = haySobrante ? 1 : 0;
+    final int totalPliegos = pliegosEnteros + sobrante + pliegosExtra;
 
-  widget.cantidadPliegosController.text = pliegosEnteros.toString();
-  widget.pliegosSobrantesController.text = sobrante.toString();
-
-  // Al asignar este texto, notifyListeners / listeners activarán calcularPliegosSuaje() en el padre
-  widget.totalPliegosController.text = totalPliegos.toString();
-  widget.millaresController.text = (totalPliegos / 1000).toStringAsFixed(2);
+    widget.cantidadPliegosController.text = pliegosEnteros.toString();
+    widget.pliegosSobrantesController.text = sobrante.toString();
+    widget.totalPliegosController.text = totalPliegos.toString();
+    widget.millaresController.text = (totalPliegos / 1000).toStringAsFixed(2);
   }
 
   @override
@@ -115,12 +109,16 @@ class _PanelPliegosState extends State<PanelPliegos> {
 
             const SizedBox(height: 12),
 
-            /// MEDIDAS DEL PLIEGO + LUPA
             Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: widget.pliegoAnchoController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    onChanged: (_) =>
+                        widget.onTipoSegmentacionChanged?.call('Manual'),
                     decoration: const InputDecoration(
                       labelText: "Ancho pliego",
                       border: OutlineInputBorder(),
@@ -134,6 +132,11 @@ class _PanelPliegosState extends State<PanelPliegos> {
                 Expanded(
                   child: TextField(
                     controller: widget.pliegoAltoController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    onChanged: (_) =>
+                        widget.onTipoSegmentacionChanged?.call('Manual'),
                     decoration: const InputDecoration(
                       labelText: "Alto pliego",
                       border: OutlineInputBorder(),
@@ -165,17 +168,17 @@ class _PanelPliegosState extends State<PanelPliegos> {
                     );
 
                     if (result != null) {
+                      widget.onTipoSegmentacionChanged?.call(
+                        result["nombre"]?.toString() ?? 'Manual',
+                      );
+
                       widget.pliegoAnchoController.text = result["ancho"]
                           .toString();
-
                       widget.pliegoAltoController.text = result["alto"]
                           .toString();
-
                       widget.piezasPorPliegoController.text =
                           result["piezasPorPliego"].toString();
-
                       widget.posicionPiezasController.text = result["posicion"];
-
                       widget.tamanoPorPliegoController.text =
                           "${widget.anchoFinalController.text} x ${widget.altoFinalController.text}";
 
@@ -193,13 +196,10 @@ class _PanelPliegosState extends State<PanelPliegos> {
                 Expanded(
                   child: TextField(
                     controller: widget.posicionPiezasController,
-                    readOnly: true,
                     decoration: const InputDecoration(
                       labelText: "Orientación de piezas",
                       border: OutlineInputBorder(),
                       isDense: true,
-                      filled: true,
-                      fillColor: Color(0xFFEEEEEE),
                     ),
                   ),
                 ),
@@ -209,13 +209,12 @@ class _PanelPliegosState extends State<PanelPliegos> {
                 Expanded(
                   child: TextField(
                     controller: widget.piezasPorPliegoController,
-                    readOnly: true,
+                    keyboardType: TextInputType.number,
+                    onChanged: (_) => _calcularPliegos(),
                     decoration: const InputDecoration(
                       labelText: "Piezas por pliego",
                       border: OutlineInputBorder(),
                       isDense: true,
-                      filled: true,
-                      fillColor: Color(0xFFEEEEEE),
                     ),
                   ),
                 ),
@@ -238,7 +237,6 @@ class _PanelPliegosState extends State<PanelPliegos> {
 
             const Divider(height: 30),
 
-            /// PLIEGOS EXTRA
             const Text(
               "Pliegos Extra por Producción",
               style: TextStyle(fontWeight: FontWeight.bold),
@@ -259,43 +257,18 @@ class _PanelPliegosState extends State<PanelPliegos> {
               },
             ),
 
-        
-
             const Divider(height: 30),
 
-            /// RESULTADOS
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: widget.cantidadPliegosController,
-                    readOnly: true,
-                    decoration: const InputDecoration(
-                      labelText: "Cantidad de Pliegos",
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                      filled: true,
-                      fillColor: Color(0xFFEEEEEE),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: 10),
-
-                Expanded(
-                  child: TextField(
-                    controller: widget.pliegosSobrantesController,
-                    readOnly: true,
-                    decoration: const InputDecoration(
-                      labelText: "Pliegos Sobrantes",
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                      filled: true,
-                      fillColor: Color(0xFFEEEEEE),
-                    ),
-                  ),
-                ),
-              ],
+            TextField(
+              controller: widget.cantidadPliegosController,
+              readOnly: true,
+              decoration: const InputDecoration(
+                labelText: "Cantidad de Pliegos",
+                border: OutlineInputBorder(),
+                isDense: true,
+                filled: true,
+                fillColor: Color(0xFFEEEEEE),
+              ),
             ),
 
             const SizedBox(height: 10),
