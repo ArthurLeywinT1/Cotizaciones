@@ -152,4 +152,41 @@ class CotizacionService {
       rethrow;
     }
   }
+
+  Future<String?> crearCotizacionYObtenerId(Cotizacion cotizacion) async {
+    try {
+      final resultado = await db.query(
+        '''INSERT INTO cotizaciones (
+            cliente_id, usuario_id, descripcion, ancho_medida, alto_medida,
+            tinta_frontal, tinta_reverso, cantidad_impresiones, total_pliegos,
+            precio_sin_iva, precio_unitario, precio_con_iva, status, tipo_cotizacion, num_pliegos,
+
+            config_acabados_especiales, config_acabados, config_clientes,
+            config_corte, config_costo_papel, config_costo_total,
+            config_datos_papel, config_grabado, config_laminado,
+            config_maquina, config_pliegos, config_serigrafia,
+            config_suaje, config_embalaje
+          ) VALUES (
+            @cliente_id, @usuario_id, @descripcion, @ancho_medida, @alto_medida,
+            @tinta_frontal, @tinta_reverso, @cantidad_impresiones, @total_pliegos,
+            @precio_sin_iva, @precio_unitario, @precio_con_iva, @status, @tipo_cotizacion, @num_pliegos,
+
+            @config_acabados_especiales, @config_acabados, @config_clientes,
+            @config_corte, @config_costo_papel, @config_costo_total,
+            @config_datos_papel, @config_grabado, @config_laminado,
+            @config_maquina, @config_pliegos, @config_serigrafia,
+            @config_suaje, @config_embalaje
+          ) RETURNING id''',
+        params: cotizacion.toMap(),
+      );
+
+      if (resultado.isNotEmpty) {
+        return resultado.first['id']?.toString();
+      }
+      return null;
+    } catch (e) {
+      print('Error al crear cotización y obtener ID: $e');
+      rethrow;
+    }
+  }
 }

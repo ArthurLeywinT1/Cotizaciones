@@ -9,6 +9,7 @@ import '../services/excel.dart';
 import '../screens/modals/incidente_admin.dart';
 import '../widgets/boton.dart';
 import '../widgets/tabla.dart';
+import '../screens/modals/modal_cotizacion_basica.dart';
 
 typedef OrdenMap = Map<String, dynamic>;
 
@@ -305,6 +306,34 @@ class CatalogoOTScreen extends ConsumerWidget {
           ),
         );
       }
+    }
+  }
+
+  Future<void> _crearCotizacionRapida(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final nuevoCotizacionId = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const ModalCotizacionBasica(),
+    );
+
+    if (nuevoCotizacionId == null ||
+        nuevoCotizacionId.isEmpty ||
+        !context.mounted) {
+      return;
+    }
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OrdenTrabajoScreen(cotizacionId: nuevoCotizacionId),
+      ),
+    );
+
+    if (context.mounted) {
+      ref.read(catalogoOTProvider.notifier).cargarOrdenes();
     }
   }
 
@@ -654,6 +683,11 @@ class CatalogoOTScreen extends ConsumerWidget {
               spacing: 16,
               runSpacing: 16,
               children: [
+                Boton(
+                  icon: Icons.note_add,
+                  label: "Crear Cotización",
+                  onPressed: () => _crearCotizacionRapida(context, ref),
+                ),
                 Boton(
                   icon: Icons.edit,
                   label: "Ver/Editar Orden",

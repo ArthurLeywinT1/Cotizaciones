@@ -139,6 +139,18 @@ class CotizacionesNotifier extends Notifier<CotizacionesState> {
   }
 
   Future<void> recargar() async => await _cargarCotizaciones();
+
+  Future<String?> crearCotizacionYObtenerId(Cotizacion cotizacion) async {
+    try {
+      state = state.copyWith(isLoading: true, error: '');
+      final nuevoId = await _service.crearCotizacionYObtenerId(cotizacion);
+      await _cargarCotizaciones();
+      return nuevoId;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return null;
+    }
+  }
 }
 
 class CotizacionesState {
