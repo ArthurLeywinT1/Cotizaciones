@@ -12,6 +12,10 @@ class CorteSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.watch(ordenTrabajoProvider);
 
+    final totalCortes = controller.cuts.length;
+    final cortesCompletados =
+        controller.cuts.where((c) => c.completado).length;
+
     return Card(
       elevation: 2,
       margin: const EdgeInsets.only(bottom: 16),
@@ -25,10 +29,40 @@ class CorteSection extends ConsumerWidget {
               children: [
                 const Icon(Icons.content_cut, color: Colors.red),
                 const SizedBox(width: 8),
-                const Text(
-                  "4. CORTE Y REFILE",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                const Expanded(
+                  child: Text(
+                    "4. CORTE Y REFILE",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
                 ),
+                if (totalCortes > 0)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: cortesCompletados == totalCortes
+                          ? Colors.green[50]
+                          : Colors.red[50],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: cortesCompletados == totalCortes
+                            ? Colors.green[300]!
+                            : Colors.red[200]!,
+                      ),
+                    ),
+                    child: Text(
+                      "$cortesCompletados / $totalCortes",
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: cortesCompletados == totalCortes
+                            ? Colors.green[800]
+                            : Colors.red[800],
+                      ),
+                    ),
+                  ),
               ],
             ),
             const Divider(),
@@ -45,20 +79,85 @@ class CorteSection extends ConsumerWidget {
 
             // --- LISTA DINÁMICA DE CORTES ---
             Column(
-              children: controller.cuts.map((cut) {
+              children: controller.cuts.asMap().entries.map((entry) {
+                final idx = entry.key;
+                final cut = entry.value;
+
+                final Color fondoTarjeta = cut.completado
+                    ? Colors.green[50]!
+                    : (modoProduccion ? Colors.grey[100]! : Colors.red[50]!);
+                final Color bordeTarjeta = cut.completado
+                    ? Colors.green[300]!
+                    : (modoProduccion ? Colors.grey[300]! : Colors.red[200]!);
+
                 return Container(
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    // Mutación de color a gris en modo producción
-                    color: modoProduccion ? Colors.grey[100] : Colors.red[50],
-                    border: Border.all(
-                      color: modoProduccion ? Colors.grey[300]! : Colors.red[200]!,
-                    ),
+                    color: fondoTarjeta,
+                    border: Border.all(color: bordeTarjeta),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Column(
                     children: [
+                      // BARRA SUPERIOR DEL CORTE: CHECK DEL USUARIO + ELIMINAR (ADMIN)
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: cut.completado,
+                            activeColor: Colors.green,
+                            visualDensity: VisualDensity.compact,
+                            onChanged: modoProduccion
+                                ? (val) {
+                                    if (val == null) return;
+                                    ref
+                                        .read(ordenTrabajoProvider)
+                                        .toggleCutCompletado(cut.id, val);
+                                  }
+                                : null,
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: modoProduccion
+                                  ? () => ref
+                                      .read(ordenTrabajoProvider)
+                                      .toggleCutCompletado(
+                                        cut.id,
+                                        !cut.completado,
+                                      )
+                                  : null,
+                              child: Text(
+                                cut.completado
+                                    ? "Corte ${idx + 1} - Completado"
+                                    : "Corte ${idx + 1}",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: cut.completado
+                                      ? Colors.green[800]
+                                      : (modoProduccion
+                                          ? Colors.black87
+                                          : Colors.red[800]),
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (!modoProduccion)
+                            IconButton(
+                              icon: const Icon(
+                                Icons.delete,
+                                color: Colors.redAccent,
+                                size: 20,
+                              ),
+                              tooltip: "Borrar corte",
+                              onPressed: () => controller.removeCut(cut.id),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                        ],
+                      ),
+                      const Divider(height: 8, thickness: 0.5),
+
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -81,7 +180,7 @@ class CorteSection extends ConsumerWidget {
                                     "corte_tipo_${cut.id}_${controller.sessionKey}",
                                   ),
                                   initialValue: cut.tipo,
-                                  readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+                                  readOnly: modoProduccion,
                                   decoration: const InputDecoration(
                                     hintText: "Ej: Tarjetas, Volantes...",
                                     isDense: true,
@@ -90,7 +189,9 @@ class CorteSection extends ConsumerWidget {
                                   style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
-                                    color: modoProduccion ? Colors.black54 : Colors.black,
+                                    color: modoProduccion
+                                        ? Colors.black54
+                                        : Colors.black,
                                   ),
                                   onChanged: (v) => cut.tipo = v,
                                 ),
@@ -100,7 +201,7 @@ class CorteSection extends ConsumerWidget {
                           Container(
                             height: 30,
                             width: 1,
-                            color: modoProduccion ? Colors.grey[300] : Colors.red[200],
+                            color: bordeTarjeta,
                             margin: const EdgeInsets.symmetric(horizontal: 8),
                           ),
 
@@ -123,7 +224,7 @@ class CorteSection extends ConsumerWidget {
                                     "corte_momento_${cut.id}_${controller.sessionKey}",
                                   ),
                                   initialValue: cut.despuesDe,
-                                  readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+                                  readOnly: modoProduccion,
                                   decoration: const InputDecoration(
                                     hintText: "Ej: Antes de Offset, Final...",
                                     isDense: true,
@@ -131,31 +232,19 @@ class CorteSection extends ConsumerWidget {
                                   ),
                                   style: TextStyle(
                                     fontSize: 13,
-                                    color: modoProduccion ? Colors.grey[600] : Colors.red,
+                                    color: modoProduccion
+                                        ? Colors.grey[600]
+                                        : Colors.red,
                                   ),
                                   onChanged: (v) => cut.despuesDe = v,
                                 ),
                               ],
                             ),
                           ),
-
-                          // BOTÓN DE BORRAR (Oculto en modo producción)
-                          if (!modoProduccion)
-                            IconButton(
-                              icon: const Icon(
-                                Icons.delete,
-                                color: Colors.redAccent,
-                                size: 20,
-                              ),
-                              tooltip: "Borrar corte",
-                              onPressed: () => controller.removeCut(cut.id),
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                            ),
                         ],
                       ),
                       const Divider(height: 8, thickness: 0.5),
-                      
+
                       // CAMPO 3: DESCRIPCIÓN Y MEDIDAS
                       Row(
                         children: [
@@ -165,7 +254,7 @@ class CorteSection extends ConsumerWidget {
                                 "corte_desc_${cut.id}_${controller.sessionKey}",
                               ),
                               initialValue: cut.desc,
-                              readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+                              readOnly: modoProduccion,
                               decoration: const InputDecoration(
                                 hintText:
                                     "Medidas finales y descripción del corte (Ej: Refile a marcas de 9x5 cm)...",
@@ -174,7 +263,9 @@ class CorteSection extends ConsumerWidget {
                               ),
                               style: TextStyle(
                                 fontSize: 13,
-                                color: modoProduccion ? Colors.black54 : Colors.black,
+                                color: modoProduccion
+                                    ? Colors.black54
+                                    : Colors.black,
                               ),
                               onChanged: (v) => cut.desc = v,
                             ),
@@ -221,10 +312,11 @@ class CorteSection extends ConsumerWidget {
               key: ValueKey("corte_notas_extras_${controller.sessionKey}"),
               initialValue: controller.corteNotas,
               maxLines: 3,
-              readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+              readOnly: modoProduccion,
               onChanged: modoProduccion
                   ? null
-                  : (v) => ref.read(ordenTrabajoProvider).updateCorte('notas', v),
+                  : (v) =>
+                      ref.read(ordenTrabajoProvider).updateCorte('notas', v),
               decoration: InputDecoration(
                 hintText: modoProduccion
                     ? "Sin notas o especificaciones adicionales para el corte"
@@ -235,20 +327,24 @@ class CorteSection extends ConsumerWidget {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
+                    color: modoProduccion
+                        ? Colors.grey[300]!
+                        : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
+                    color: modoProduccion
+                        ? Colors.grey[300]!
+                        : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
               ),
               style: TextStyle(
-                fontSize: 13, 
+                fontSize: 13,
                 fontStyle: FontStyle.italic,
                 color: modoProduccion ? Colors.black54 : Colors.black,
               ),
@@ -268,10 +364,12 @@ class CorteSection extends ConsumerWidget {
               key: ValueKey("corte_notas_taller_${controller.sessionKey}"),
               initialValue: controller.corteNotasTaller,
               maxLines: 3,
-              readOnly: !modoProduccion, // <--- EDITABLE SOLO EN PRODUCCIÓN
+              readOnly: !modoProduccion,
               onChanged: !modoProduccion
                   ? null
-                  : (v) => ref.read(ordenTrabajoProvider).updateCorte('notasTaller', v),
+                  : (v) => ref
+                      .read(ordenTrabajoProvider)
+                      .updateCorte('notasTaller', v),
               decoration: InputDecoration(
                 hintText: !modoProduccion
                     ? "Sin notas del taller"
@@ -282,20 +380,24 @@ class CorteSection extends ConsumerWidget {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: !modoProduccion ? Colors.grey[300]! : Colors.blue[200]!,
+                    color: !modoProduccion
+                        ? Colors.grey[300]!
+                        : Colors.blue[200]!,
                     width: 0.5,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: !modoProduccion ? Colors.grey[300]! : Colors.blue[200]!,
+                    color: !modoProduccion
+                        ? Colors.grey[300]!
+                        : Colors.blue[200]!,
                     width: 0.5,
                   ),
                 ),
               ),
               style: TextStyle(
-                fontSize: 13, 
+                fontSize: 13,
                 fontStyle: FontStyle.italic,
                 color: !modoProduccion ? Colors.black54 : Colors.black,
               ),

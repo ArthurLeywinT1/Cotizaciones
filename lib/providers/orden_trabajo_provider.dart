@@ -7,6 +7,8 @@ import '../services/ordenTrabajo_service.dart';
 import 'cotizacion_provider.dart';
 import '../services/cotizacion_service.dart';
 
+typedef EventoHistorial = Map<String, dynamic>;
+
 // ==========================================
 // 1. MODELOS DE DATOS (Para estructurar la info)
 // ==========================================
@@ -30,6 +32,7 @@ class CutProcess {
   String desc;
   String despuesDe;
   String fecha;
+  bool completado;
 
   CutProcess({
     required this.id,
@@ -37,6 +40,7 @@ class CutProcess {
     this.desc = '',
     this.despuesDe = 'Offset',
     this.fecha = '',
+    this.completado = false,
   });
 }
 
@@ -47,6 +51,81 @@ class DesignTask {
   DesignTask({required this.id, this.desc = ''});
 }
 
+class ChecklistItem {
+  final String id;
+  final String titulo;
+  bool activo;
+  bool completado;
+  List<ChecklistItem> subItems;
+
+  ChecklistItem({
+    required this.id,
+    required this.titulo,
+    this.activo = true,
+    this.completado = false,
+    List<ChecklistItem>? subItems,
+  }) : subItems = subItems ?? [];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'titulo': titulo,
+        'activo': activo,
+        'completado': completado,
+        if (subItems.isNotEmpty)
+          'subItems': subItems.map((s) => s.toJson()).toList(),
+      };
+}
+
+class OffsetPliegoTintas {
+  String id;
+  String nombre;
+  Map<String, dynamic> frente;
+  Map<String, dynamic> vuelta;
+
+  OffsetPliegoTintas({
+    required this.id,
+    required this.nombre,
+    Map<String, dynamic>? frente,
+    Map<String, dynamic>? vuelta,
+  })  : frente = frente ?? crearMapaTintasVacio(),
+        vuelta = vuelta ?? crearMapaTintasVacio();
+
+  static Map<String, dynamic> crearMapaTintasVacio() => {
+        'C': false,
+        'M': false,
+        'Y': false,
+        'K': false,
+        'especial': false,
+        'pantone': false,
+        'tinta_esp': '',
+      };
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'nombre': nombre,
+        'frente': frente,
+        'vuelta': vuelta,
+      };
+
+  factory OffsetPliegoTintas.fromJson(Map<String, dynamic> json, int index) {
+    final baseFrente = crearMapaTintasVacio();
+    if (json['frente'] is Map) {
+      baseFrente.addAll(Map<String, dynamic>.from(json['frente'] as Map));
+    }
+    final baseVuelta = crearMapaTintasVacio();
+    if (json['vuelta'] is Map) {
+      baseVuelta.addAll(Map<String, dynamic>.from(json['vuelta'] as Map));
+    }
+    return OffsetPliegoTintas(
+      id: json['id']?.toString() ??
+          'pliego_${index + 1}_${DateTime.now().microsecondsSinceEpoch}',
+      nombre: json['nombre']?.toString() ?? 'Pliego ${index + 1}',
+      frente: baseFrente,
+      vuelta: baseVuelta,
+    );
+  }
+}
+
 class PapelExtraItem {
   String id = DateTime.now().millisecondsSinceEpoch.toString();
   String nombrePapel = "";
@@ -54,24 +133,8 @@ class PapelExtraItem {
   String papelNecesario = "";
   String papelLlegara = "";
   Map<String, dynamic> tintas = {
-    'frente': {
-      'C': false,
-      'M': false,
-      'Y': false,
-      'K': false,
-      'especial': false,
-      'pantone': false,
-      'tinta_esp': ''
-    },
-    'vuelta': {
-      'C': false,
-      'M': false,
-      'Y': false,
-      'K': false,
-      'especial': false,
-      'pantone': false,
-      'tinta_esp': ''
-    }
+    'frente': OffsetPliegoTintas.crearMapaTintasVacio(),
+    'vuelta': OffsetPliegoTintas.crearMapaTintasVacio(),
   };
 }
 
@@ -88,14 +151,14 @@ class TiempoProceso {
   String? inicio;
   String? pausa;
   String? fin;
-  List<Map<String, dynamic>> historial;
+  List<EventoHistorial> historial;
 
   TiempoProceso({
     this.estatus = 'Pendiente',
     this.inicio,
     this.pausa,
     this.fin,
-    List<Map<String, dynamic>>? historial,
+    List<EventoHistorial>? historial,
   }) : historial = historial ?? [];
 
   Map<String, dynamic> toJson() => {
@@ -114,9 +177,9 @@ class TiempoProceso {
       pausa: json['pausa'],
       fin: json['fin'],
       historial: json['historial'] is List
-          ? List<Map<String, dynamic>>.from(
+          ? List<EventoHistorial>.from(
               (json['historial'] as List)
-                  .map((e) => Map<String, dynamic>.from(e as Map)),
+                  .map((e) => EventoHistorial.from(e as Map)),
             )
           : [],
     );
@@ -357,6 +420,8 @@ class OrdenTrabajoController extends ChangeNotifier {
         );
       }
     }
+
+    disenoChecklist = _crearChecklistDisenoPorDefecto();
     if (dbData['diseno'] != null) {
       disenoNotas = dbData['diseno']['notas'] ?? '';
       disenoNotasTaller = dbData['diseno']['notasTaller'] ?? '';
@@ -370,24 +435,59 @@ class OrdenTrabajoController extends ChangeNotifier {
           ),
         );
       }
+      _cargarChecklistDiseno(dbData['diseno']['checklist']);
     }
 
     if (dbData['offset'] != null) {
       offsetTipoTrabajo = dbData['offset']['tipoTrabajo'] ?? '';
+      offsetNombrePapel = dbData['offset']['nombrePapel'] ?? '';
       offsetPiezasPedidas = dbData['offset']['piezasPedidas'] ?? 0;
       offsetPapelNecesario = dbData['offset']['papelNecesario'] ?? '';
       offsetPapelLlegara = dbData['offset']['papelLlegara'] ?? '';
       offsetNotas = dbData['offset']['notas'] ?? '';
       offsetNotasTaller = dbData['offset']['notasTaller'] ?? '';
+
       if (dbData['offset']['tintas'] != null) {
         final tintasDb = dbData['offset']['tintas'] as Map<String, dynamic>;
         offsetData = {
-          'frente': Map<String, dynamic>.from(tintasDb['frente'] ?? {}),
-          'vuelta': Map<String, dynamic>.from(tintasDb['vuelta'] ?? {}),
+          'frente': {
+            ...OffsetPliegoTintas.crearMapaTintasVacio(),
+            ...Map<String, dynamic>.from(tintasDb['frente'] ?? {}),
+          },
+          'vuelta': {
+            ...OffsetPliegoTintas.crearMapaTintasVacio(),
+            ...Map<String, dynamic>.from(tintasDb['vuelta'] ?? {}),
+          },
         };
       }
 
-      // >>> CARGAR PAPELES EXTRA DE LA BD EN MEMORIA <<<
+      offsetPliegosTintas.clear();
+      final rawPliegos = dbData['offset']['pliegosTintas'];
+      if (rawPliegos is List && rawPliegos.isNotEmpty) {
+        for (int i = 0; i < rawPliegos.length; i++) {
+          if (rawPliegos[i] is Map) {
+            offsetPliegosTintas.add(
+              OffsetPliegoTintas.fromJson(
+                Map<String, dynamic>.from(rawPliegos[i] as Map),
+                i,
+              ),
+            );
+          }
+        }
+        offsetCantidadPliegos = offsetPliegosTintas.length;
+      } else {
+        offsetCantidadPliegos = 1;
+        offsetPliegosTintas = [
+          OffsetPliegoTintas(
+            id: 'pliego_1_${DateTime.now().microsecondsSinceEpoch}',
+            nombre: 'Pliego 1',
+            frente: Map<String, dynamic>.from(offsetData['frente'] ?? {}),
+            vuelta: Map<String, dynamic>.from(offsetData['vuelta'] ?? {}),
+          ),
+        ];
+      }
+      _sincronizarOffsetDataPrincipal();
+
       papelesExtra.clear();
       if (dbData['offset']['papelesExtra'] != null) {
         for (var p in (dbData['offset']['papelesExtra'] as List? ?? [])) {
@@ -397,8 +497,20 @@ class OrdenTrabajoController extends ChangeNotifier {
           item.piezas = p['piezas']?.toString() ?? '';
           item.papelNecesario = p['papelNecesario']?.toString() ?? '';
           item.papelLlegara = p['papelLlegara']?.toString() ?? '';
-          if (p['tintas'] != null) {
-            item.tintas = Map<String, dynamic>.from(p['tintas']);
+          if (p['tintas'] is Map) {
+            final tMap = p['tintas'] as Map;
+            item.tintas = {
+              'frente': {
+                ...OffsetPliegoTintas.crearMapaTintasVacio(),
+                if (tMap['frente'] is Map)
+                  ...Map<String, dynamic>.from(tMap['frente'] as Map),
+              },
+              'vuelta': {
+                ...OffsetPliegoTintas.crearMapaTintasVacio(),
+                if (tMap['vuelta'] is Map)
+                  ...Map<String, dynamic>.from(tMap['vuelta'] as Map),
+              },
+            };
           }
           papelesExtra.add(item);
         }
@@ -418,6 +530,7 @@ class OrdenTrabajoController extends ChangeNotifier {
             desc: c['desc'] ?? '',
             despuesDe: c['despuesDe'] ?? 'Offset',
             fecha: c['fecha'] ?? '',
+            completado: c['completado'] ?? false,
           ),
         );
       }
@@ -427,6 +540,12 @@ class OrdenTrabajoController extends ChangeNotifier {
       laminadoAcabado = dbData['laminados']['acabado'] ?? 'Brillante';
       laminadoPliegos =
           int.tryParse(dbData['laminados']['pliegos']?.toString() ?? '0') ?? 0;
+      laminadoAnchoBobinas =
+          dbData['laminados']['anchoBobinas']?.toString() ?? '';
+      laminadoCantidadMetros =
+          dbData['laminados']['cantidadMetros']?.toString() ?? '';
+      laminadoCantidadBobinas =
+          dbData['laminados']['cantidadBobinas']?.toString() ?? '';
       laminadoMaquinaChica = dbData['laminados']['maquinaChica'] ?? false;
       laminadoMaquinaGrande = dbData['laminados']['maquinaGrande'] ?? false;
       laminadoNotas = dbData['laminados']['notas'] ?? '';
@@ -536,8 +655,18 @@ class OrdenTrabajoController extends ChangeNotifier {
     materials.clear();
     papelesExtra.clear();
     designTasks.clear();
+    disenoChecklist = _crearChecklistDisenoPorDefecto();
     cuts.clear();
     acabadosManuales.clear();
+
+    offsetNombrePapel = '';
+    offsetCantidadPliegos = 1;
+    offsetPliegosTintas = [_crearPliegoTintas(0)];
+    _sincronizarOffsetDataPrincipal();
+
+    laminadoAnchoBobinas = '';
+    laminadoCantidadMetros = '';
+    laminadoCantidadBobinas = '';
 
     int matIdCounter = 0;
     void agregarMaterial(String nombre, int cantidad) {
@@ -594,10 +723,11 @@ class OrdenTrabajoController extends ChangeNotifier {
           final titulo = pliego["titulo"] ?? "Pliego ${i + 1}";
           final procesos = pliego["procesos"] as Map<String, dynamic>? ?? {};
 
-          final offsetData = pliego["offset_data"] as Map<String, dynamic>?;
-          if (offsetData != null) {
+          final offsetDataPliego =
+              pliego["offset_data"] as Map<String, dynamic>?;
+          if (offsetDataPliego != null) {
             final papelDatos =
-                offsetData["papel_datos"] as Map<String, dynamic>?;
+                offsetDataPliego["papel_datos"] as Map<String, dynamic>?;
             if (papelDatos != null &&
                 papelDatos["nombre"]?.toString().isNotEmpty == true) {
               final pliegosAsignados =
@@ -612,7 +742,7 @@ class OrdenTrabajoController extends ChangeNotifier {
             }
 
             final pruebasColor =
-                offsetData["pruebas_color"] as Map<String, dynamic>?;
+                offsetDataPliego["pruebas_color"] as Map<String, dynamic>?;
             if (pruebasColor != null) {
               pruebasColor.forEach((key, val) {
                 if (val is Map && val["activo"] == true) {
@@ -626,7 +756,7 @@ class OrdenTrabajoController extends ChangeNotifier {
             }
 
             final maquinaDatos =
-                offsetData["maquina_datos"] as Map<String, dynamic>?;
+                offsetDataPliego["maquina_datos"] as Map<String, dynamic>?;
             if (maquinaDatos != null) {
               final cantPlacas =
                   int.tryParse(
@@ -673,7 +803,7 @@ class OrdenTrabajoController extends ChangeNotifier {
             offsetPapelLlegara = pliegosTotales.toString();
           } else {
             final extra = PapelExtraItem();
-            final papelDatos = offsetData?["papel_datos"];
+            final papelDatos = offsetDataPliego?["papel_datos"];
             extra.nombrePapel = "$titulo: ${papelDatos?["nombre"] ?? ""}";
             extra.piezas = cotizacion.cantidadImpresiones.toString();
             extra.papelNecesario = pliegosAImprimir.toString();
@@ -1063,8 +1193,130 @@ class OrdenTrabajoController extends ChangeNotifier {
 
   // --- 2. DISEÑO ---
   List<DesignTask> designTasks = [];
+  List<ChecklistItem> disenoChecklist = _crearChecklistDisenoPorDefecto();
   String disenoNotas = '';
   String disenoNotasTaller = '';
+
+  static List<ChecklistItem> _crearChecklistDisenoPorDefecto() {
+    return [
+      ChecklistItem(
+        id: 'revisar_archivos',
+        titulo: '1. Revisar archivos',
+        subItems: [
+          ChecklistItem(
+            id: 'calidad_resolucion',
+            titulo: '1. Calidad / resolución',
+          ),
+          ChecklistItem(
+            id: 'textos_negro',
+            titulo: '2. Textos en negro',
+          ),
+          ChecklistItem(
+            id: 'margen_corte_suajado',
+            titulo: '3. Margen al corte o suajado',
+          ),
+          ChecklistItem(
+            id: 'medidas_solicitado',
+            titulo: '4. Medidas coincidan con lo solicitado',
+          ),
+        ],
+      ),
+      ChecklistItem(id: 'print_card', titulo: '2. Print card'),
+      ChecklistItem(id: 'planeacion', titulo: '3. Planeación'),
+      ChecklistItem(id: 'destazado_pliego', titulo: '4. Destazado de pliego'),
+      ChecklistItem(
+        id: 'impresion_digital_autorizada',
+        titulo: '5. Impresión digital autorizada',
+      ),
+      ChecklistItem(id: 'formacion', titulo: '6. Formación'),
+      ChecklistItem(id: 'envio_placas', titulo: '7. Envío de placas'),
+      ChecklistItem(id: 'envio_suaje', titulo: '8. Envío suaje'),
+      ChecklistItem(id: 'sobre_viajero', titulo: '9. Sobre viajero'),
+    ];
+  }
+
+  void _cargarChecklistDiseno(dynamic rawChecklist) {
+    final base = _crearChecklistDisenoPorDefecto();
+    if (rawChecklist is List) {
+      for (final saved in rawChecklist) {
+        if (saved is! Map) continue;
+        final savedId = saved['id']?.toString();
+        final idx = base.indexWhere((item) => item.id == savedId);
+        if (idx == -1) continue;
+
+        base[idx].activo = saved['activo'] ?? true;
+        base[idx].completado = saved['completado'] ?? false;
+
+        if (saved['subItems'] is List && base[idx].subItems.isNotEmpty) {
+          for (final savedSub in (saved['subItems'] as List)) {
+            if (savedSub is! Map) continue;
+            final subId = savedSub['id']?.toString();
+            final subIdx =
+                base[idx].subItems.indexWhere((s) => s.id == subId);
+            if (subIdx == -1) continue;
+
+            base[idx].subItems[subIdx].activo = savedSub['activo'] ?? true;
+            base[idx].subItems[subIdx].completado =
+                savedSub['completado'] ?? false;
+          }
+        }
+      }
+    }
+    disenoChecklist = base;
+  }
+
+  void toggleDisenoChecklistActivo(
+    String itemId,
+    bool activo, {
+    String? subItemId,
+  }) {
+    final idx = disenoChecklist.indexWhere((i) => i.id == itemId);
+    if (idx == -1) return;
+    final item = disenoChecklist[idx];
+
+    if (subItemId == null) {
+      item.activo = activo;
+    } else {
+      final subIdx = item.subItems.indexWhere((s) => s.id == subItemId);
+      if (subIdx == -1) return;
+      item.subItems[subIdx].activo = activo;
+
+      final subActivos = item.subItems.where((s) => s.activo).toList();
+      if (subActivos.isNotEmpty) {
+        item.completado = subActivos.every((s) => s.completado);
+      }
+    }
+    notifyListeners();
+  }
+
+  void toggleDisenoChecklistCompletado(
+    String itemId,
+    bool completado, {
+    String? subItemId,
+  }) {
+    final idx = disenoChecklist.indexWhere((i) => i.id == itemId);
+    if (idx == -1) return;
+    final item = disenoChecklist[idx];
+
+    if (subItemId == null) {
+      item.completado = completado;
+      for (final sub in item.subItems) {
+        if (sub.activo) {
+          sub.completado = completado;
+        }
+      }
+    } else {
+      final subIdx = item.subItems.indexWhere((s) => s.id == subItemId);
+      if (subIdx == -1) return;
+      item.subItems[subIdx].completado = completado;
+
+      final subActivos = item.subItems.where((s) => s.activo).toList();
+      if (subActivos.isNotEmpty) {
+        item.completado = subActivos.every((s) => s.completado);
+      }
+    }
+    notifyListeners();
+  }
 
   void addDesignTask() {
     designTasks.add(
@@ -1085,42 +1337,86 @@ class OrdenTrabajoController extends ChangeNotifier {
   }
 
   // --- 3. OFFSET ---
-
   String offsetTipoTrabajo = '';
-  String offsetNombrePapel = ''; // <--- Añade esto para que el getter exista
+  String offsetNombrePapel = '';
   int offsetPiezasPedidas = 0;
   String offsetPapelNecesario = '';
   String offsetPapelLlegara = '';
   String offsetNotas = '';
   String offsetNotasTaller = '';
+  int offsetCantidadPliegos = 1;
+  List<OffsetPliegoTintas> offsetPliegosTintas = [_crearPliegoTintas(0)];
   Map<String, dynamic> offsetData = {
-    'frente': {
-      'C': false,
-      'M': false,
-      'Y': false,
-      'K': false,
-      'especial': false,
-      'pantone': false,
-      'tinta_esp': '',
-    },
-    'vuelta': {
-      'C': false,
-      'M': false,
-      'Y': false,
-      'K': false,
-      'especial': false,
-      'pantone': false,
-      'tinta_esp': '',
-    },
+    'frente': OffsetPliegoTintas.crearMapaTintasVacio(),
+    'vuelta': OffsetPliegoTintas.crearMapaTintasVacio(),
   };
 
-  void updateOffsetInk(String cara, String color, dynamic value) {
-    offsetData[cara][color] = value;
+  static OffsetPliegoTintas _crearPliegoTintas(int index) {
+    return OffsetPliegoTintas(
+      id: 'pliego_${index + 1}_${DateTime.now().microsecondsSinceEpoch}',
+      nombre: 'Pliego ${index + 1}',
+    );
+  }
+
+  void _sincronizarOffsetDataPrincipal() {
+    if (offsetPliegosTintas.isNotEmpty) {
+      offsetData = {
+        'frente': Map<String, dynamic>.from(offsetPliegosTintas.first.frente),
+        'vuelta': Map<String, dynamic>.from(offsetPliegosTintas.first.vuelta),
+      };
+    }
+  }
+
+  void updateOffsetCantidadPliegos(String valor) {
+    final parsed = int.tryParse(valor.trim());
+    if (parsed == null || parsed < 1) return;
+    final cantidad = parsed > 50 ? 50 : parsed;
+    offsetCantidadPliegos = cantidad;
+
+    if (offsetPliegosTintas.length < cantidad) {
+      while (offsetPliegosTintas.length < cantidad) {
+        offsetPliegosTintas.add(_crearPliegoTintas(offsetPliegosTintas.length));
+      }
+    } else if (offsetPliegosTintas.length > cantidad) {
+      offsetPliegosTintas = offsetPliegosTintas.sublist(0, cantidad);
+    }
+    _sincronizarOffsetDataPrincipal();
     notifyListeners();
+  }
+
+  void updateOffsetPliegoNombre(int index, String nombre) {
+    if (index >= 0 && index < offsetPliegosTintas.length) {
+      offsetPliegosTintas[index].nombre = nombre;
+      notifyListeners();
+    }
+  }
+
+  void updateOffsetPliegoInk(
+    int index,
+    String cara,
+    String color,
+    dynamic value,
+  ) {
+    if (index >= 0 && index < offsetPliegosTintas.length) {
+      if (cara == 'frente') {
+        offsetPliegosTintas[index].frente[color] = value;
+      } else if (cara == 'vuelta') {
+        offsetPliegosTintas[index].vuelta[color] = value;
+      }
+      if (index == 0) {
+        _sincronizarOffsetDataPrincipal();
+      }
+      notifyListeners();
+    }
+  }
+
+  void updateOffsetInk(String cara, String color, dynamic value) {
+    updateOffsetPliegoInk(0, cara, color, value);
   }
 
   void updateOffsetTexto(String campo, String valor) {
     if (campo == 'tipo') offsetTipoTrabajo = valor;
+    if (campo == 'nombre_papel') offsetNombrePapel = valor;
     if (campo == 'piezas') offsetPiezasPedidas = int.tryParse(valor) ?? 0;
     if (campo == 'necesario') offsetPapelNecesario = valor;
     if (campo == 'llegara') offsetPapelLlegara = valor;
@@ -1144,6 +1440,13 @@ class OrdenTrabajoController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void toggleCutCompletado(String id, bool completado) {
+    final idx = cuts.indexWhere((c) => c.id == id);
+    if (idx == -1) return;
+    cuts[idx].completado = completado;
+    notifyListeners();
+  }
+
   void updateCorte(String campo, String valor) {
     if (campo == 'notas') corteNotas = valor;
     if (campo == 'notasTaller') corteNotasTaller = valor;
@@ -1154,6 +1457,9 @@ class OrdenTrabajoController extends ChangeNotifier {
   String laminadoProyecto = '';
   String laminadoAcabado = 'Brillante';
   int laminadoPliegos = 0;
+  String laminadoAnchoBobinas = '';
+  String laminadoCantidadMetros = '';
+  String laminadoCantidadBobinas = '';
   Map<String, bool> laminadoAplicacion = {'frente': false, 'vuelta': false};
   bool laminadoMaquinaChica = false;
   bool laminadoMaquinaGrande = false;
@@ -1176,6 +1482,9 @@ class OrdenTrabajoController extends ChangeNotifier {
     if (campo == 'acabado') laminadoAcabado = valor;
     if (campo == 'pliegos')
       laminadoPliegos = int.tryParse(valor.toString()) ?? 0;
+    if (campo == 'anchoBobinas') laminadoAnchoBobinas = valor.toString();
+    if (campo == 'cantidadMetros') laminadoCantidadMetros = valor.toString();
+    if (campo == 'cantidadBobinas') laminadoCantidadBobinas = valor.toString();
     if (campo == 'notas') laminadoNotas = valor;
     if (campo == 'notasTaller') laminadoNotasTaller = valor;
     notifyListeners();
@@ -1402,6 +1711,8 @@ class OrdenTrabajoController extends ChangeNotifier {
     }
 
     try {
+      _sincronizarOffsetDataPrincipal();
+
       final datosCompletos = {
         "tipoCotizacion": tipoCotizacionActual,
         "activeSections": activeSections,
@@ -1432,6 +1743,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "notas": disenoNotas,
           "notasTaller": disenoNotasTaller,
           "tareas": designTasks.map((t) => {"desc": t.desc}).toList(),
+          "checklist": disenoChecklist.map((c) => c.toJson()).toList(),
         },
         "offset": {
           "estatus": tiempos['offset']?.estatus,
@@ -1440,21 +1752,26 @@ class OrdenTrabajoController extends ChangeNotifier {
           "fin": tiempos['offset']?.fin,
           "historial": tiempos['offset']?.historial,
           "tipoTrabajo": offsetTipoTrabajo,
+          "nombrePapel": offsetNombrePapel,
           "piezasPedidas": offsetPiezasPedidas,
           "papelNecesario": offsetPapelNecesario,
           "papelLlegara": offsetPapelLlegara,
+          "cantidadPliegosTintas": offsetCantidadPliegos,
+          "pliegosTintas":
+              offsetPliegosTintas.map((p) => p.toJson()).toList(),
           "tintas": offsetData,
           "notas": offsetNotas,
           "notasTaller": offsetNotasTaller,
-          // >>> MAPEAR LOS SETS ADICIONALES CON SUS TINTAS PARA GUARDAR EN POSTGRES <<<
-          "papelesExtra": papelesExtra.map((p) => {
-            "id": p.id,
-            "nombrePapel": p.nombrePapel,
-            "piezas": p.piezas,
-            "papelNecesario": p.papelNecesario,
-            "papelLlegara": p.papelLlegara,
-            "tintas": p.tintas,
-          }).toList(),
+          "papelesExtra": papelesExtra
+              .map((p) => {
+                    "id": p.id,
+                    "nombrePapel": p.nombrePapel,
+                    "piezas": p.piezas,
+                    "papelNecesario": p.papelNecesario,
+                    "papelLlegara": p.papelLlegara,
+                    "tintas": p.tintas,
+                  })
+              .toList(),
         },
         "corte": {
           "estatus": tiempos['corte']?.estatus,
@@ -1471,6 +1788,7 @@ class OrdenTrabajoController extends ChangeNotifier {
                   "desc": c.desc,
                   "despuesDe": c.despuesDe,
                   "fecha": c.fecha,
+                  "completado": c.completado,
                 },
               )
               .toList(),
@@ -1484,6 +1802,9 @@ class OrdenTrabajoController extends ChangeNotifier {
           "proyecto": laminadoProyecto,
           "acabado": laminadoAcabado,
           "pliegos": laminadoPliegos,
+          "anchoBobinas": laminadoAnchoBobinas,
+          "cantidadMetros": laminadoCantidadMetros,
+          "cantidadBobinas": laminadoCantidadBobinas,
           "aplicacion": laminadoAplicacion,
           "maquinaChica": laminadoMaquinaChica,
           "maquinaGrande": laminadoMaquinaGrande,

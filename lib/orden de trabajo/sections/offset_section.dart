@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/orden_trabajo_provider.dart';
 import 'section_buttons.dart';
@@ -23,7 +24,7 @@ class OffsetSection extends ConsumerWidget {
             Row(
               children: [
                 Icon(
-                  Icons.print, 
+                  Icons.print,
                   color: modoProduccion ? Colors.grey[700] : Colors.blue,
                 ),
                 const SizedBox(width: 8),
@@ -102,51 +103,166 @@ class OffsetSection extends ConsumerWidget {
             ),
             const SizedBox(height: 20),
 
-            // --- MATRIZ DE TINTAS PRINCIPAL ---
-            Text(
-              "TINTAS REQUERIDAS",
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                color: modoProduccion ? Colors.grey[600] : Colors.blue,
-              ),
+            // --- ENCABEZADO TINTAS + CUADRO DE TEXTO "PLIEGOS" ---
+            Wrap(
+              spacing: 16,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  "TINTAS REQUERIDAS",
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: modoProduccion ? Colors.grey[600] : Colors.blue,
+                  ),
+                ),
+                SizedBox(
+                  width: 110,
+                  child: TextFormField(
+                    key: ValueKey(
+                      "offset_cant_pliegos_${controller.sessionKey}",
+                    ),
+                    initialValue: controller.offsetCantidadPliegos.toString(),
+                    readOnly: modoProduccion,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    onChanged: modoProduccion
+                        ? null
+                        : (v) => ref
+                            .read(ordenTrabajoProvider)
+                            .updateOffsetCantidadPliegos(v),
+                    decoration: InputDecoration(
+                      labelText: "Pliegos",
+                      hintText: "1",
+                      isDense: true,
+                      filled: true,
+                      fillColor:
+                          modoProduccion ? Colors.grey[100] : Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: modoProduccion
+                              ? Colors.grey[300]!
+                              : Colors.blue[300]!,
+                        ),
+                      ),
+                    ),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: modoProduccion ? Colors.black54 : Colors.black,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
 
-            // Fila de Frente Principal
-            _buildInkRow(
-              context,
-              ref,
-              'FRENTE',
-              controller.offsetData['frente'],
-              "frente_${controller.sessionKey}",
-              modoProduccion,
-              onChanged: (colorKey, value) => ref
-                  .read(ordenTrabajoProvider)
-                  .updateOffsetInk('frente', colorKey, value),
-            ),
-            const Divider(height: 16),
-            
-            // Fila de Vuelta Principal
-            _buildInkRow(
-              context,
-              ref,
-              'VUELTA',
-              controller.offsetData['vuelta'],
-              "vuelta_${controller.sessionKey}",
-              modoProduccion,
-              onChanged: (colorKey, value) => ref
-                  .read(ordenTrabajoProvider)
-                  .updateOffsetInk('vuelta', colorKey, value),
-            ),
-            const SizedBox(height: 16),
+            // --- MATRIZ DE TINTAS POR CADA PLIEGO (FRENTE Y VUELTA LADO A LADO) ---
+            ...controller.offsetPliegosTintas.asMap().entries.map((entry) {
+              final int idx = entry.key;
+              final OffsetPliegoTintas pliego = entry.value;
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: modoProduccion
+                      ? Colors.grey[50]
+                      : Colors.blue[50]?.withOpacity(0.35),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: modoProduccion
+                        ? Colors.grey[300]!
+                        : Colors.blue[200]!,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Nombre editable del pliego (por defecto: Pliego 1, Pliego 2, ...)
+                    SizedBox(
+                      width: 260,
+                      child: TextFormField(
+                        key: ValueKey(
+                          "offset_pliego_nombre_${pliego.id}_${controller.sessionKey}",
+                        ),
+                        initialValue: pliego.nombre,
+                        readOnly: modoProduccion,
+                        onChanged: modoProduccion
+                            ? null
+                            : (v) => ref
+                                .read(ordenTrabajoProvider)
+                                .updateOffsetPliegoNombre(idx, v),
+                        decoration: InputDecoration(
+                          labelText: "Identificador del pliego",
+                          hintText: "Pliego ${idx + 1}",
+                          isDense: true,
+                          filled: true,
+                          fillColor: modoProduccion
+                              ? Colors.grey[100]
+                              : Colors.white,
+                          prefixIcon: Icon(
+                            Icons.layers_outlined,
+                            size: 18,
+                            color: modoProduccion
+                                ? Colors.grey[600]
+                                : Colors.blue,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(
+                              color: modoProduccion
+                                  ? Colors.grey[300]!
+                                  : Colors.blue[200]!,
+                            ),
+                          ),
+                        ),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: modoProduccion
+                              ? Colors.black54
+                              : Colors.blue[900],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // FRENTE y VUELTA lado a lado
+                    _buildFrenteVueltaLadoALado(
+                      frenteData: pliego.frente,
+                      vueltaData: pliego.vuelta,
+                      uniquePrefix: "${pliego.id}_${controller.sessionKey}",
+                      modoProd: modoProduccion,
+                      onChanged: (cara, colorKey, value) => ref
+                          .read(ordenTrabajoProvider)
+                          .updateOffsetPliegoInk(idx, cara, colorKey, value),
+                    ),
+                  ],
+                ),
+              );
+            }),
+
+            const SizedBox(height: 8),
             const Divider(height: 1, thickness: 0.5),
             const SizedBox(height: 12),
 
             // --- NOTAS / INSTRUCCIONES EXTRAS ---
             const Text(
               "NOTAS / INSTRUCCIONES EXTRAS",
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
             ),
             const SizedBox(height: 4),
             TextFormField(
@@ -166,15 +282,24 @@ class OffsetSection extends ConsumerWidget {
                 isDense: true,
                 filled: true,
                 fillColor: modoProduccion ? Colors.grey[100] : Colors.yellow[50],
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
-              style: TextStyle(fontSize: 13, color: modoProduccion ? Colors.black54 : Colors.black),
+              style: TextStyle(
+                fontSize: 13,
+                color: modoProduccion ? Colors.black54 : Colors.black,
+              ),
             ),
 
             const SizedBox(height: 16),
             const Text(
               "NOTAS DEL TALLER",
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.blueGrey),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: Colors.blueGrey,
+              ),
             ),
             const SizedBox(height: 4),
             TextFormField(
@@ -194,9 +319,14 @@ class OffsetSection extends ConsumerWidget {
                 isDense: true,
                 filled: true,
                 fillColor: !modoProduccion ? Colors.grey[100] : Colors.blue[50],
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
-              style: TextStyle(fontSize: 13, color: !modoProduccion ? Colors.black54 : Colors.black),
+              style: TextStyle(
+                fontSize: 13,
+                color: !modoProduccion ? Colors.black54 : Colors.black,
+              ),
             ),
             const Divider(height: 32),
 
@@ -221,7 +351,10 @@ class OffsetSection extends ConsumerWidget {
                         children: [
                           Text(
                             "Set Adicional ${idx + 1}",
-                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blueGrey,
+                            ),
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
@@ -286,8 +419,8 @@ class OffsetSection extends ConsumerWidget {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      
-                      // >>> REPETICIÓN DE LA MATRIZ DE TINTAS PARA EL SET ADICIONAL <<<
+
+                      // Tintas para el set adicional (FRENTE y VUELTA lado a lado)
                       const Text(
                         "TINTAS REQUERIDAS PARA ESTE SET",
                         style: TextStyle(
@@ -297,42 +430,29 @@ class OffsetSection extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      _buildInkRow(
-                        context,
-                        ref,
-                        'FRENTE',
-                        item.tintas['frente'],
-                        "frente_${item.id}",
-                        modoProduccion,
-                        onChanged: (colorKey, value) => ref
+                      _buildFrenteVueltaLadoALado(
+                        frenteData: item.tintas['frente'],
+                        vueltaData: item.tintas['vuelta'],
+                        uniquePrefix: "extra_${item.id}",
+                        modoProd: modoProduccion,
+                        onChanged: (cara, colorKey, value) => ref
                             .read(ordenTrabajoProvider)
-                            .updatePapelExtraInk(idx, 'frente', colorKey, value),
-                      ),
-                      const Divider(height: 16),
-                      _buildInkRow(
-                        context,
-                        ref,
-                        'VUELTA',
-                        item.tintas['vuelta'],
-                        "vuelta_${item.id}",
-                        modoProduccion,
-                        onChanged: (colorKey, value) => ref
-                            .read(ordenTrabajoProvider)
-                            .updatePapelExtraInk(idx, 'vuelta', colorKey, value),
+                            .updatePapelExtraInk(idx, cara, colorKey, value),
                       ),
                     ],
                   ),
                 ),
               );
-            }).toList(),
-            
+            }),
+
             if (!modoProduccion)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.add_circle_outline),
                   label: const Text("Agregar otro set de piezas"),
-                  onPressed: () => ref.read(ordenTrabajoProvider).agregarPapelExtra(),
+                  onPressed: () =>
+                      ref.read(ordenTrabajoProvider).agregarPapelExtra(),
                 ),
               ),
 
@@ -365,7 +485,14 @@ class OffsetSection extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+          ),
           const SizedBox(height: 4),
           TextFormField(
             key: ValueKey(fieldKey),
@@ -381,71 +508,134 @@ class OffsetSection extends ConsumerWidget {
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: readOnly ? Colors.grey[300]! : Colors.grey[400]!),
+                borderSide: BorderSide(
+                  color: readOnly ? Colors.grey[300]! : Colors.grey[400]!,
+                ),
               ),
             ),
-            style: TextStyle(fontSize: 13, color: readOnly ? Colors.black54 : Colors.black),
+            style: TextStyle(
+              fontSize: 13,
+              color: readOnly ? Colors.black54 : Colors.black,
+            ),
           ),
         ],
       ),
     );
   }
 
-  // >>> HELPER REFACTORIZADO CON CALLBACK "onChanged" DESACOPLADO <<<
-  Widget _buildInkRow(
-    BuildContext context,
-    WidgetRef ref,
-    String label,
-    Map<String, dynamic> data,
-    String uniqueId,
-    bool modoProd, {
-    required Function(String colorKey, dynamic value) onChanged,
+  // Paneles de FRENTE y VUELTA colocados lado a lado
+  Widget _buildFrenteVueltaLadoALado({
+    required Map<String, dynamic> frenteData,
+    required Map<String, dynamic> vueltaData,
+    required String uniquePrefix,
+    required bool modoProd,
+    required Function(String cara, String colorKey, dynamic value) onChanged,
   }) {
-    return Wrap(
-      crossAxisAlignment: WrapCrossAlignment.center,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          width: 70,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12, 
-              fontWeight: FontWeight.bold,
-              color: modoProd ? Colors.black54 : Colors.black,
-            ),
+        Expanded(
+          child: _buildInkPanel(
+            label: 'FRENTE',
+            data: frenteData,
+            uniqueId: 'frente_$uniquePrefix',
+            modoProd: modoProd,
+            onChanged: (colorKey, value) =>
+                onChanged('frente', colorKey, value),
           ),
         ),
-        _buildInkCheck('C', Colors.cyan, data['C'] ?? false, modoProd, (v) => onChanged('C', v)),
-        _buildInkCheck('M', Colors.pink, data['M'] ?? false, modoProd, (v) => onChanged('M', v)),
-        _buildInkCheck('Y', Colors.yellow[700]!, data['Y'] ?? false, modoProd, (v) => onChanged('Y', v)),
-        _buildInkCheck('K', Colors.black, data['K'] ?? false, modoProd, (v) => onChanged('K', v)),
-        const SizedBox(width: 8),
-        _buildInkCheck('Especial', Colors.deepPurple, data['especial'] ?? false, modoProd, (v) => onChanged('especial', v)),
-        _buildInkCheck('Pantone', Colors.orange, data['pantone'] ?? false, modoProd, (v) => onChanged('pantone', v)),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildInkPanel(
+            label: 'VUELTA',
+            data: vueltaData,
+            uniqueId: 'vuelta_$uniquePrefix',
+            modoProd: modoProd,
+            onChanged: (colorKey, value) =>
+                onChanged('vuelta', colorKey, value),
+          ),
+        ),
+      ],
+    );
+  }
 
-        if ((data['especial'] ?? false) || (data['pantone'] ?? false))
-          Container(
-            width: 150,
-            margin: const EdgeInsets.only(left: 8, top: 4),
-            child: TextFormField(
-              key: ValueKey("offset_tinta_esp_${uniqueId}"),
-              initialValue: data['tinta_esp'] ?? '',
-              readOnly: modoProd,
-              onChanged: modoProd ? null : (v) => onChanged('tinta_esp', v),
-              decoration: InputDecoration(
-                hintText: "Especifique tinta...",
-                isDense: true,
-                filled: modoProd,
-                fillColor: modoProd ? Colors.grey[100] : Colors.white,
-                border: const OutlineInputBorder(),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: modoProd ? Colors.grey[300]! : Colors.grey[400]!),
-                ),
-              ),
-              style: TextStyle(fontSize: 12, color: modoProd ? Colors.black54 : Colors.black),
+  // Panel individual de tintas (Frente o Vuelta)
+  Widget _buildInkPanel({
+    required String label,
+    required Map<String, dynamic> data,
+    required String uniqueId,
+    required bool modoProd,
+    required Function(String colorKey, dynamic value) onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: modoProd ? Colors.grey[100] : Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: modoProd ? Colors.grey[300]! : Colors.blue[100]!,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: modoProd ? Colors.black54 : Colors.blue[800],
             ),
           ),
-      ],
+          const Divider(height: 10),
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 4,
+            runSpacing: 2,
+            children: [
+              _buildInkCheck('C', Colors.cyan, data['C'] ?? false, modoProd,
+                  (v) => onChanged('C', v)),
+              _buildInkCheck('M', Colors.pink, data['M'] ?? false, modoProd,
+                  (v) => onChanged('M', v)),
+              _buildInkCheck('Y', Colors.yellow[700]!, data['Y'] ?? false,
+                  modoProd, (v) => onChanged('Y', v)),
+              _buildInkCheck('K', Colors.black, data['K'] ?? false, modoProd,
+                  (v) => onChanged('K', v)),
+              _buildInkCheck('Especial', Colors.deepPurple,
+                  data['especial'] ?? false, modoProd,
+                  (v) => onChanged('especial', v)),
+              _buildInkCheck('Pantone', Colors.orange, data['pantone'] ?? false,
+                  modoProd, (v) => onChanged('pantone', v)),
+            ],
+          ),
+          if ((data['especial'] ?? false) || (data['pantone'] ?? false))
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: TextFormField(
+                key: ValueKey("offset_tinta_esp_$uniqueId"),
+                initialValue: data['tinta_esp'] ?? '',
+                readOnly: modoProd,
+                onChanged: modoProd ? null : (v) => onChanged('tinta_esp', v),
+                decoration: InputDecoration(
+                  hintText: "Especifique tinta...",
+                  isDense: true,
+                  filled: true,
+                  fillColor: modoProd ? Colors.grey[100] : Colors.white,
+                  border: const OutlineInputBorder(),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: modoProd ? Colors.grey[300]! : Colors.grey[400]!,
+                    ),
+                  ),
+                ),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: modoProd ? Colors.black54 : Colors.black,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -463,6 +653,7 @@ class OffsetSection extends ConsumerWidget {
         Checkbox(
           value: value,
           activeColor: color,
+          visualDensity: VisualDensity.compact,
           onChanged: modoProd ? null : onChanged,
         ),
         Text(

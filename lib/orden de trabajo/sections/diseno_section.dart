@@ -12,6 +12,16 @@ class DisenoSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.watch(ordenTrabajoProvider);
 
+    final checklistVisible = modoProduccion
+        ? controller.disenoChecklist.where((item) => item.activo).toList()
+        : controller.disenoChecklist;
+
+    final totalActivos =
+        controller.disenoChecklist.where((item) => item.activo).length;
+    final totalCompletados = controller.disenoChecklist
+        .where((item) => item.activo && item.completado)
+        .length;
+
     return Card(
       elevation: 2,
       margin: const EdgeInsets.only(bottom: 16),
@@ -25,14 +35,163 @@ class DisenoSection extends ConsumerWidget {
               children: [
                 const Icon(Icons.design_services, color: Colors.indigo),
                 const SizedBox(width: 8),
-                const Text(
-                  "2. DISEÑO Y PRE-PRENSA",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                const Expanded(
+                  child: Text(
+                    "2. DISEÑO Y PRE-PRENSA",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
                 ),
+                if (totalActivos > 0)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: totalCompletados == totalActivos
+                          ? Colors.green[50]
+                          : Colors.indigo[50],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: totalCompletados == totalActivos
+                            ? Colors.green[300]!
+                            : Colors.indigo[200]!,
+                      ),
+                    ),
+                    child: Text(
+                      "$totalCompletados / $totalActivos",
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: totalCompletados == totalActivos
+                            ? Colors.green[800]
+                            : Colors.indigo[800],
+                      ),
+                    ),
+                  ),
               ],
             ),
             const Divider(),
 
+            // --- CHECKLIST DE PRE-PRENSA Y DISEÑO ---
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "CHECKLIST DE PRE-PRENSA Y DISEÑO",
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.indigo,
+                  ),
+                ),
+                if (!modoProduccion)
+                  Text(
+                    "Activa / desactiva pasos",
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.grey[600],
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            if (checklistVisible.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  "No hay pasos del checklist habilitados para esta orden.",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              )
+            else
+              Container(
+                decoration: BoxDecoration(
+                  color: modoProduccion ? Colors.white : Colors.indigo[50]?.withOpacity(0.35),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: modoProduccion
+                        ? Colors.grey[300]!
+                        : Colors.indigo[100]!,
+                  ),
+                ),
+                child: Column(
+                  children: checklistVisible.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final item = entry.value;
+                    final subItemsVisibles = modoProduccion
+                        ? item.subItems.where((s) => s.activo).toList()
+                        : item.subItems;
+
+                    return Column(
+                      children: [
+                        if (index > 0)
+                          Divider(
+                            height: 1,
+                            thickness: 0.5,
+                            color: Colors.grey[300],
+                          ),
+                        _buildChecklistRow(
+                          ref: ref,
+                          item: item,
+                          isSubItem: false,
+                          parentActivo: true,
+                        ),
+                        if (subItemsVisibles.isNotEmpty)
+                          Container(
+                            margin: const EdgeInsets.only(
+                              left: 24,
+                              right: 12,
+                              bottom: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: (!modoProduccion && !item.activo)
+                                  ? Colors.grey[100]
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: Colors.grey[200]!),
+                            ),
+                            child: Column(
+                              children: subItemsVisibles.asMap().entries.map((subEntry) {
+                                final subIndex = subEntry.key;
+                                final subItem = subEntry.value;
+                                return Column(
+                                  children: [
+                                    if (subIndex > 0)
+                                      Divider(
+                                        height: 1,
+                                        thickness: 0.5,
+                                        color: Colors.grey[200],
+                                      ),
+                                    _buildChecklistRow(
+                                      ref: ref,
+                                      item: subItem,
+                                      parentId: item.id,
+                                      isSubItem: true,
+                                      parentActivo: item.activo,
+                                    ),
+                                  ],
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ),
+
+            const SizedBox(height: 16),
+            const Divider(height: 1, thickness: 0.5),
+            const SizedBox(height: 12),
+
+            // --- TAREAS DE DISEÑO REQUERIDAS (CONSERVADO) ---
             const Text(
               "TAREAS DE DISEÑO REQUERIDAS",
               style: TextStyle(
@@ -56,7 +215,9 @@ class DisenoSection extends ConsumerWidget {
                     // Mutación de color a gris en modo producción
                     color: modoProduccion ? Colors.grey[100] : Colors.indigo[50],
                     border: Border.all(
-                      color: modoProduccion ? Colors.grey[300]! : Colors.indigo[200]!,
+                      color: modoProduccion
+                          ? Colors.grey[300]!
+                          : Colors.indigo[200]!,
                     ),
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -69,7 +230,8 @@ class DisenoSection extends ConsumerWidget {
                             "diseno_task_${task.id}_${controller.sessionKey}",
                           ),
                           initialValue: task.desc,
-                          readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
+                          readOnly:
+                              modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
                           decoration: const InputDecoration(
                             hintText:
                                 "Ej: Ajustar rebases, revisar tipografías...",
@@ -78,7 +240,8 @@ class DisenoSection extends ConsumerWidget {
                           ),
                           style: TextStyle(
                             fontSize: 13,
-                            color: modoProduccion ? Colors.black54 : Colors.black,
+                            color:
+                                modoProduccion ? Colors.black54 : Colors.black,
                           ),
                           onChanged: (v) => task.desc = v,
                         ),
@@ -140,7 +303,8 @@ class DisenoSection extends ConsumerWidget {
               readOnly: modoProduccion, // <--- BLOQUEADO EN PRODUCCIÓN
               onChanged: modoProduccion
                   ? null
-                  : (v) => ref.read(ordenTrabajoProvider).updateDiseno('notas', v),
+                  : (v) =>
+                      ref.read(ordenTrabajoProvider).updateDiseno('notas', v),
               decoration: InputDecoration(
                 hintText: modoProduccion
                     ? "Sin notas o especificaciones adicionales de diseño"
@@ -151,20 +315,24 @@ class DisenoSection extends ConsumerWidget {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
+                    color: modoProduccion
+                        ? Colors.grey[300]!
+                        : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: modoProduccion ? Colors.grey[300]! : Colors.yellow[600]!,
+                    color: modoProduccion
+                        ? Colors.grey[300]!
+                        : Colors.yellow[600]!,
                     width: 0.5,
                   ),
                 ),
               ),
               style: TextStyle(
-                fontSize: 13, 
+                fontSize: 13,
                 fontStyle: FontStyle.italic,
                 color: modoProduccion ? Colors.black54 : Colors.black,
               ),
@@ -187,7 +355,9 @@ class DisenoSection extends ConsumerWidget {
               readOnly: !modoProduccion, // <--- EDITABLE SOLO EN PRODUCCIÓN
               onChanged: !modoProduccion
                   ? null
-                  : (v) => ref.read(ordenTrabajoProvider).updateDiseno('notasTaller', v),
+                  : (v) => ref
+                      .read(ordenTrabajoProvider)
+                      .updateDiseno('notasTaller', v),
               decoration: InputDecoration(
                 hintText: !modoProduccion
                     ? "Sin notas del taller"
@@ -198,20 +368,24 @@ class DisenoSection extends ConsumerWidget {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: !modoProduccion ? Colors.grey[300]! : Colors.blue[200]!,
+                    color: !modoProduccion
+                        ? Colors.grey[300]!
+                        : Colors.blue[200]!,
                     width: 0.5,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: !modoProduccion ? Colors.grey[300]! : Colors.blue[200]!,
+                    color: !modoProduccion
+                        ? Colors.grey[300]!
+                        : Colors.blue[200]!,
                     width: 0.5,
                   ),
                 ),
               ),
               style: TextStyle(
-                fontSize: 13, 
+                fontSize: 13,
                 fontStyle: FontStyle.italic,
                 color: !modoProduccion ? Colors.black54 : Colors.black,
               ),
@@ -228,5 +402,98 @@ class DisenoSection extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildChecklistRow({
+    required WidgetRef ref,
+    required ChecklistItem item,
+    String? parentId,
+    required bool isSubItem,
+    required bool parentActivo,
+  }) {
+    final bool efectivamenteActivo = parentActivo && item.activo;
+
+    // En modo producción, tocar la fila también palomea el paso.
+    final Widget contenido = Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: isSubItem ? 8 : 10,
+        vertical: isSubItem ? 4 : 6,
+      ),
+      child: Row(
+        children: [
+          // Checkbox de avance: editable solo por el usuario de taller (modoProduccion).
+          Checkbox(
+            value: item.completado,
+            activeColor: Colors.green,
+            visualDensity: VisualDensity.compact,
+            onChanged: modoProduccion
+                ? (val) {
+                    if (val == null) return;
+                    ref
+                        .read(ordenTrabajoProvider)
+                        .toggleDisenoChecklistCompletado(
+                          parentId ?? item.id,
+                          val,
+                          subItemId: parentId != null ? item.id : null,
+                        );
+                  }
+                : null,
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              item.titulo,
+              style: TextStyle(
+                fontSize: isSubItem ? 12.5 : 13.5,
+                fontWeight: isSubItem ? FontWeight.normal : FontWeight.w600,
+                color: !efectivamenteActivo
+                    ? Colors.grey[400]
+                    : (modoProduccion && item.completado
+                        ? Colors.green[800]
+                        : Colors.black87),
+                decoration: !efectivamenteActivo
+                    ? TextDecoration.lineThrough
+                    : TextDecoration.none,
+              ),
+            ),
+          ),
+          // En modo admin: interruptor para activar/desactivar si el paso aplica o no.
+          if (!modoProduccion)
+            Transform.scale(
+              scale: isSubItem ? 0.78 : 0.85,
+              child: Switch(
+                value: item.activo,
+                activeColor: Colors.indigo,
+                onChanged: parentActivo
+                    ? (val) {
+                        ref
+                            .read(ordenTrabajoProvider)
+                            .toggleDisenoChecklistActivo(
+                              parentId ?? item.id,
+                              val,
+                              subItemId: parentId != null ? item.id : null,
+                            );
+                      }
+                    : null,
+              ),
+            ),
+        ],
+      ),
+    );
+
+    if (modoProduccion) {
+      return InkWell(
+        onTap: () {
+          ref.read(ordenTrabajoProvider).toggleDisenoChecklistCompletado(
+                parentId ?? item.id,
+                !item.completado,
+                subItemId: parentId != null ? item.id : null,
+              );
+        },
+        child: contenido,
+      );
+    }
+
+    return contenido;
   }
 }
