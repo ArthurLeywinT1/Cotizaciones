@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/orden_trabajo_provider.dart';
 import '../../screens/modals/incidente.dart';
+import 'section_fecha_entrega.dart';
 
 class SectionButtons extends ConsumerWidget {
   final String area;

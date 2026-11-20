@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/orden_trabajo_provider.dart';
 import 'section_buttons.dart';
+import 'section_fecha_entrega.dart';
 
 class CorteSection extends ConsumerWidget {
   final bool modoProduccion;
@@ -66,6 +67,7 @@ class CorteSection extends ConsumerWidget {
               ],
             ),
             const Divider(),
+            SectionFechaEntrega(area: 'corte', modoProduccion: modoProduccion, accentColor: Colors.red),
 
             const Text(
               "PROCESOS DE CORTE EN GUILLOTINA",

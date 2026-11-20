@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/orden_trabajo_provider.dart';
 import 'section_buttons.dart';
+import 'section_fecha_entrega.dart';
 
 class GrabadoSection extends ConsumerWidget {
   final bool modoProduccion;
@@ -32,6 +33,7 @@ class GrabadoSection extends ConsumerWidget {
               ],
             ),
             const Divider(),
+            SectionFechaEntrega(area: 'grabado', modoProduccion: modoProduccion, accentColor: Colors.amber.shade800),
 
             // --- CAMPO 1: PROYECTO ---
             _buildInput(

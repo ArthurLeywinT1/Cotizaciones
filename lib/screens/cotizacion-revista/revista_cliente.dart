@@ -1,6 +1,5 @@
 // revista_cliente.dart
 import 'package:flutter/material.dart';
-// Asegúrate de importar la ubicación correcta de tu DialogoSelectorCliente y Cliente model
 import '../../screens/cotizacion-plana/buscador_cliente.dart'; 
 import '../../models/cliente_model.dart'; 
 

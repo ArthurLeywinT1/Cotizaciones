@@ -231,6 +231,36 @@ class OrdenTrabajoController extends ChangeNotifier {
     'logistica': TiempoProceso(),
   };
 
+  // --- Fechas de entrega por sección ---
+  Map<String, String> fechasEntregaSeccion = {
+    'adquisiciones': '',
+    'diseno': '',
+    'offset': '',
+    'corte': '',
+    'laminados': '',
+    'suaje': '',
+    'grabado': '',
+    'serigrafia': '',
+    'acabado': '',
+    'barniz': '',
+    'embalaje': '',
+    'logistica': '',
+  };
+
+  String getFechaEntregaSeccion(String seccion) {
+    final key = _normalizarKey(seccion);
+    return fechasEntregaSeccion[key] ?? '';
+  }
+
+  void updateFechaEntregaSeccion(String seccion, String fecha) {
+    final key = _normalizarKey(seccion);
+    fechasEntregaSeccion[key] = fecha;
+    if (key == 'logistica') {
+      logisticaFechaEntrega = fecha;
+    }
+    notifyListeners();
+  }
+
   List<PapelExtraItem> papelesExtra = [];
 
   void agregarPapelExtra() {
@@ -268,6 +298,10 @@ class OrdenTrabajoController extends ChangeNotifier {
   String _normalizarKey(String seccion) {
     String s = seccion.toLowerCase().trim();
     if (s == 'diseño' || s == 'pre-prensa') return 'diseno';
+    if (s == 'laminado') return 'laminados';
+    if (s == 'serigrafía') return 'serigrafia';
+    if (s == 'logística') return 'logistica';
+    if (s == 'barniz uv') return 'barniz';
     return s;
   }
 
@@ -402,6 +436,9 @@ class OrdenTrabajoController extends ChangeNotifier {
       if (dbData[key] != null) {
         tiempos[key] = TiempoProceso.fromJson(dbData[key]);
       }
+      fechasEntregaSeccion[key] = (dbData[key] is Map)
+          ? (dbData[key]['fechaEntrega']?.toString() ?? '')
+          : '';
     }
 
     if (dbData['adquisiciones'] != null) {
@@ -636,6 +673,7 @@ class OrdenTrabajoController extends ChangeNotifier {
     }
     if (dbData['logistica'] != null) {
       logisticaFechaEntrega = dbData['logistica']['fechaEntrega'] ?? '';
+      fechasEntregaSeccion['logistica'] = logisticaFechaEntrega;
       logisticaDireccion = dbData['logistica']['direccion'] ?? '';
       logisticaTransporte = dbData['logistica']['transporte'] ?? '';
       logisticaTotalEntregar = dbData['logistica']['totalEntregar'] ?? 0;
@@ -651,6 +689,7 @@ class OrdenTrabajoController extends ChangeNotifier {
 
     for (var key in tiempos.keys) {
       tiempos[key] = TiempoProceso();
+      fechasEntregaSeccion[key] = '';
     }
     materials.clear();
     papelesExtra.clear();
@@ -1154,6 +1193,7 @@ class OrdenTrabajoController extends ChangeNotifier {
       }
 
       logisticaFechaEntrega = '';
+      fechasEntregaSeccion['logistica'] = '';
       logisticaDireccion = '';
       logisticaTransporte = '';
       logisticaTotalEntregar = cotizacion.cantidadImpresiones;
@@ -1695,7 +1735,10 @@ class OrdenTrabajoController extends ChangeNotifier {
   String logisticaNotasTaller = '';
 
   void updateLogistica(String campo, String valor) {
-    if (campo == 'fecha') logisticaFechaEntrega = valor;
+    if (campo == 'fecha') {
+      logisticaFechaEntrega = valor;
+      fechasEntregaSeccion['logistica'] = valor;
+    }
     if (campo == 'direccion') logisticaDireccion = valor;
     if (campo == 'transporte') logisticaTransporte = valor;
     if (campo == 'total') logisticaTotalEntregar = int.tryParse(valor) ?? 0;
@@ -1722,6 +1765,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "pausa": tiempos['adquisiciones']?.pausa,
           "fin": tiempos['adquisiciones']?.fin,
           "historial": tiempos['adquisiciones']?.historial,
+          "fechaEntrega": fechasEntregaSeccion['adquisiciones'] ?? '',
           "notas": adquisicionesNotas,
           "notasTaller": adquisicionesNotasTaller,
           "materiales": materials
@@ -1740,6 +1784,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "pausa": tiempos['diseno']?.pausa,
           "fin": tiempos['diseno']?.fin,
           "historial": tiempos['diseno']?.historial,
+          "fechaEntrega": fechasEntregaSeccion['diseno'] ?? '',
           "notas": disenoNotas,
           "notasTaller": disenoNotasTaller,
           "tareas": designTasks.map((t) => {"desc": t.desc}).toList(),
@@ -1751,6 +1796,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "pausa": tiempos['offset']?.pausa,
           "fin": tiempos['offset']?.fin,
           "historial": tiempos['offset']?.historial,
+          "fechaEntrega": fechasEntregaSeccion['offset'] ?? '',
           "tipoTrabajo": offsetTipoTrabajo,
           "nombrePapel": offsetNombrePapel,
           "piezasPedidas": offsetPiezasPedidas,
@@ -1779,6 +1825,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "pausa": tiempos['corte']?.pausa,
           "fin": tiempos['corte']?.fin,
           "historial": tiempos['corte']?.historial,
+          "fechaEntrega": fechasEntregaSeccion['corte'] ?? '',
           "notas": corteNotas,
           "notasTaller": corteNotasTaller,
           "procesos": cuts
@@ -1799,6 +1846,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "pausa": tiempos['laminados']?.pausa,
           "fin": tiempos['laminados']?.fin,
           "historial": tiempos['laminados']?.historial,
+          "fechaEntrega": fechasEntregaSeccion['laminados'] ?? '',
           "proyecto": laminadoProyecto,
           "acabado": laminadoAcabado,
           "pliegos": laminadoPliegos,
@@ -1817,6 +1865,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "pausa": tiempos['suaje']?.pausa,
           "fin": tiempos['suaje']?.fin,
           "historial": tiempos['suaje']?.historial,
+          "fechaEntrega": fechasEntregaSeccion['suaje'] ?? '',
           "proyecto": suajeProyecto,
           "pliegos": suajePliegos,
           "esRomosso": suajeEsRomosso,
@@ -1833,6 +1882,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "pausa": tiempos['serigrafia']?.pausa,
           "fin": tiempos['serigrafia']?.fin,
           "historial": tiempos['serigrafia']?.historial,
+          "fechaEntrega": fechasEntregaSeccion['serigrafia'] ?? '',
           "proyecto": serigrafiaProyecto,
           "piezas": serigrafiaPiezas,
           "marcos": serigrafiaMarcos,
@@ -1853,6 +1903,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "pausa": tiempos['grabado']?.pausa,
           "fin": tiempos['grabado']?.fin,
           "historial": tiempos['grabado']?.historial,
+          "fechaEntrega": fechasEntregaSeccion['grabado'] ?? '',
           "proyecto": grabadoProyecto,
           "placas": grabadoPlacas,
           "piezas": grabadoPiezas,
@@ -1868,6 +1919,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "pausa": tiempos['acabado']?.pausa,
           "fin": tiempos['acabado']?.fin,
           "historial": tiempos['acabado']?.historial,
+          "fechaEntrega": fechasEntregaSeccion['acabado'] ?? '',
           "proyecto": acabadoProyecto,
           "descripcionBD": acabadoDescripcion,
           "cantidadBD": acabadoCantidad,
@@ -1883,6 +1935,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "pausa": tiempos['barniz']?.pausa,
           "fin": tiempos['barniz']?.fin,
           "historial": tiempos['barniz']?.historial,
+          "fechaEntrega": fechasEntregaSeccion['barniz'] ?? '',
           "proyecto": barnizProyecto,
           "pliegos": barnizPliegos,
           "aplicacion": barnizAplicacion,
@@ -1898,6 +1951,7 @@ class OrdenTrabajoController extends ChangeNotifier {
           "pausa": tiempos['embalaje']?.pausa,
           "fin": tiempos['embalaje']?.fin,
           "historial": tiempos['embalaje']?.historial,
+          "fechaEntrega": fechasEntregaSeccion['embalaje'] ?? '',
           "tipo": embalajeTipo,
           "cantidadCajas": embalajeCantidadCajas,
           "notas": embalajeNotas,

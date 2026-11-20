@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/orden_trabajo_provider.dart';
 import 'section_buttons.dart';
+import 'section_fecha_entrega.dart';
 
 class DisenoSection extends ConsumerWidget {
   final bool modoProduccion;
@@ -72,6 +73,7 @@ class DisenoSection extends ConsumerWidget {
               ],
             ),
             const Divider(),
+            SectionFechaEntrega(area: 'diseno', modoProduccion: modoProduccion, accentColor: Colors.indigo),
 
             // --- CHECKLIST DE PRE-PRENSA Y DISEÑO ---
             Row(

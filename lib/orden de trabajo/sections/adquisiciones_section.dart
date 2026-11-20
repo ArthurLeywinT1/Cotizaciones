@@ -4,6 +4,7 @@ import '../../providers/orden_trabajo_provider.dart';
 import 'section_buttons.dart';
 import '../../screens/modals/modal_proveedor.dart';
 import '../../providers/proveedor_provider.dart';
+import 'section_fecha_entrega.dart';
 
 class AdquisicionesSection extends ConsumerWidget {
   final bool modoProduccion;
@@ -54,6 +55,7 @@ class AdquisicionesSection extends ConsumerWidget {
               ],
             ),
             const Divider(),
+            SectionFechaEntrega(area: 'adquisiciones', modoProduccion: modoProduccion, accentColor: Colors.teal),
 
             const Text(
               "MATERIALES REQUERIDOS",

@@ -4,6 +4,7 @@ import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/orden_trabajo_provider.dart';
 import 'section_buttons.dart';
+import 'section_fecha_entrega.dart';
 
 class SerigrafiaSection extends ConsumerWidget {
   final bool modoProduccion;
@@ -96,6 +97,7 @@ class SerigrafiaSection extends ConsumerWidget {
               ],
             ),
             const Divider(),
+            SectionFechaEntrega(area: 'serigrafia', modoProduccion: modoProduccion, accentColor: Colors.purple),
 
             // --- 1. PROYECTO Y PIEZAS ---
             Row(

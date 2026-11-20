@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/orden_trabajo_provider.dart';
 import 'section_buttons.dart';
+import 'section_fecha_entrega.dart';
 
 class SuajeSection extends ConsumerWidget {
   final bool modoProduccion;
@@ -42,6 +43,7 @@ class SuajeSection extends ConsumerWidget {
               ],
             ),
             const Divider(),
+            SectionFechaEntrega(area: 'suaje', modoProduccion: modoProduccion, accentColor: Colors.pink),
 
             // --- PROYECTO Y PLIEGOS ---
             Row(

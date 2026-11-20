@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/orden_trabajo_provider.dart';
 import 'section_buttons.dart';
+import 'section_fecha_entrega.dart';
 
 class LaminadosSection extends ConsumerWidget {
   final bool modoProduccion;
@@ -31,6 +32,7 @@ class LaminadosSection extends ConsumerWidget {
               ],
             ),
             const Divider(),
+            SectionFechaEntrega(area: 'laminados', modoProduccion: modoProduccion, accentColor: Colors.indigo),
 
             // --- FILA 1: PROYECTO Y ACABADO ---
             Row(

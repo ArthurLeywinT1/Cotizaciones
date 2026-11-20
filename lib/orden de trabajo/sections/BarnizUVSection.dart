@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/orden_trabajo_provider.dart';
 import 'section_buttons.dart';
+import 'section_fecha_entrega.dart';
 
 class BarnizUVSection extends ConsumerWidget {
   final bool modoProduccion;
@@ -31,6 +32,7 @@ class BarnizUVSection extends ConsumerWidget {
               ],
             ),
             const Divider(),
+            SectionFechaEntrega(area: 'barniz', modoProduccion: modoProduccion, accentColor: Colors.orange),
 
             // --- PROYECTO Y PLIEGOS ---
             Row(
