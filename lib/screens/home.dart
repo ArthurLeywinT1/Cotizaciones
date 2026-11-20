@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
+import '../providers/catalogoOT_provider.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/barra.dart';
 
@@ -19,6 +20,7 @@ import '../orden de trabajo/ordenTrabajo.dart';
 import '../orden de trabajo/catalogo_OT.dart';
 import 'calendario_screen.dart';
 import 'cotizacion-revista/revista.dart';
+import 'modals/modal_cotizacion_basica.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -31,9 +33,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   String pantallaActual = '';
 
   void _abrirPantalla(String pantalla) {
+    if (pantalla == 'OrdenTrabajo') {
+      _crearOrdenTrabajoRapida();
+      return;
+    }
     setState(() {
       pantallaActual = pantalla;
     });
+  }
+
+  Future<void> _crearOrdenTrabajoRapida() async {
+    final nuevoCotizacionId = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const ModalCotizacionBasica(),
+    );
+
+    if (nuevoCotizacionId == null || nuevoCotizacionId.isEmpty || !mounted) {
+      return;
+    }
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OrdenTrabajoScreen(cotizacionId: nuevoCotizacionId),
+      ),
+    );
+
+    if (mounted) {
+      ref.read(catalogoOTProvider.notifier).cargarOrdenes();
+      setState(() {
+        pantallaActual = 'catalogo_ot';
+      });
+    }
   }
 
   void _volverPrincipal() {
@@ -73,13 +105,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         return 'Catálogo de Cotizaciones';
       case 'cotizacion_plana':
         return 'Catálogo de Cotización Plana';
-      case 'cotizacion_revista': // 🔥 2. TÍTULO PARA LA NUEVA PANTALLA
+      case 'cotizacion_revista':
         return 'Crear Cotización Revista';
       case 'catalogo_ot':
         return 'Catálogo de Órdenes de Trabajo';
       case 'OrdenTrabajo':
         return 'Crear / Editar Orden de Trabajo';
-      case 'calendario': 
+      case 'calendario':
         return 'Calendario de Actividades';
       default:
         return 'Romosso - Cotizador';
@@ -110,13 +142,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         return CotizacionPlanaScreen(
           onNavigateToCatalog: () => _abrirPantalla('catalogo_cotizaciones'),
         );
-      case 'cotizacion_revista': // 🔥 3. ENRUTAMIENTO HACIA REVISTAPAGE
-        return const RevistaPage(); 
+      case 'cotizacion_revista':
+        return const RevistaPage();
       case 'catalogo_ot':
         return const CatalogoOTScreen();
       case 'OrdenTrabajo':
         return const OrdenTrabajoScreen(cotizacionId: '');
-      case 'calendario': 
+      case 'calendario':
         return const CalendarioScreen();
       default:
         return _buildDashboard();
@@ -150,7 +182,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     icon: const Icon(Icons.arrow_back),
                     onPressed: _volverPrincipal,
                   )
-                : (!esDesktop 
+                : (!esDesktop
                     ? Builder(
                         builder: (context) => IconButton(
                           icon: const Icon(Icons.menu),
@@ -178,71 +210,148 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ],
           ),
-          
-          drawer: !esDesktop ? Drawer(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                DrawerHeader(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
+          drawer: !esDesktop
+              ? Drawer(
+                  child: ListView(
+                    padding: EdgeInsets.zero,
+                    children: [
+                      DrawerHeader(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primaryContainer,
+                        ),
+                        child: Text(
+                          'Menú Cotizador\nUsuario: ${usuario?.usuario ?? 'Admin'}',
+                          style: TextStyle(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onPrimaryContainer,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.person),
+                        title: const Text('Usuarios'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          _abrirPantalla('usuarios');
+                        },
+                      ),
+                      ExpansionTile(
+                        leading: const Icon(Icons.folder),
+                        title: const Text('Catálogos'),
+                        children: [
+                          ListTile(
+                            title: const Text('Clientes'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _abrirPantalla('clientes');
+                            },
+                          ),
+                          ListTile(
+                            title: const Text('Proveedores'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _abrirPantalla('proveedores');
+                            },
+                          ),
+                          ListTile(
+                            title: const Text('Papeles'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _abrirPantalla('papeles');
+                            },
+                          ),
+                          ListTile(
+                            title: const Text('Descuentos Papel'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _abrirPantalla('descuentos');
+                            },
+                          ),
+                          ListTile(
+                            title: const Text('Máquinas'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _abrirPantalla('maquinas');
+                            },
+                          ),
+                          ListTile(
+                            title: const Text('Extras'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _abrirPantalla('extras');
+                            },
+                          ),
+                        ],
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.layers),
+                        title: const Text('Segmentación'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          _abrirPantalla('segmentacion');
+                        },
+                      ),
+                      ExpansionTile(
+                        leading: const Icon(Icons.request_quote),
+                        title: const Text('Cotizaciones'),
+                        children: [
+                          ListTile(
+                            title: const Text('Catálogo'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _abrirPantalla('catalogo_cotizaciones');
+                            },
+                          ),
+                          ListTile(
+                            title: const Text('Crear Plana'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _abrirPantalla('cotizacion_plana');
+                            },
+                          ),
+                          ListTile(
+                            title: const Text('Crear Revista'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _abrirPantalla('cotizacion_revista');
+                            },
+                          ),
+                        ],
+                      ),
+                      ExpansionTile(
+                        leading: const Icon(Icons.assignment),
+                        title: const Text('Órdenes de Trabajo'),
+                        children: [
+                          ListTile(
+                            title: const Text('Catálogo'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _abrirPantalla('catalogo_ot');
+                            },
+                          ),
+                          ListTile(
+                            title: const Text('Crear Orden'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _abrirPantalla('OrdenTrabajo');
+                            },
+                          ),
+                        ],
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.calendar_month_rounded),
+                        title: const Text('Calendario de Actividades'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          _abrirPantalla('calendario');
+                        },
+                      ),
+                    ],
                   ),
-                  child: Text(
-                    'Menú Cotizador\nUsuario: ${usuario?.usuario ?? 'Admin'}',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      fontSize: 18,
-                    ),
-                  ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.person),
-                  title: const Text('Usuarios'),
-                  onTap: () { Navigator.pop(context); _abrirPantalla('usuarios'); },
-                ),
-                ExpansionTile(
-                  leading: const Icon(Icons.folder),
-                  title: const Text('Catálogos'),
-                  children: [
-                    ListTile(title: const Text('Clientes'), onTap: () { Navigator.pop(context); _abrirPantalla('clientes'); }),
-                    ListTile(title: const Text('Proveedores'), onTap: () { Navigator.pop(context); _abrirPantalla('proveedores'); }),
-                    ListTile(title: const Text('Papeles'), onTap: () { Navigator.pop(context); _abrirPantalla('papeles'); }),
-                    ListTile(title: const Text('Descuentos Papel'), onTap: () { Navigator.pop(context); _abrirPantalla('descuentos'); }),
-                    ListTile(title: const Text('Máquinas'), onTap: () { Navigator.pop(context); _abrirPantalla('maquinas'); }),
-                    ListTile(title: const Text('Extras'), onTap: () { Navigator.pop(context); _abrirPantalla('extras'); }),
-                  ],
-                ),
-                ListTile(
-                  leading: const Icon(Icons.layers),
-                  title: const Text('Segmentación'),
-                  onTap: () { Navigator.pop(context); _abrirPantalla('segmentacion'); },
-                ),
-                ExpansionTile(
-                  leading: const Icon(Icons.request_quote),
-                  title: const Text('Cotizaciones'),
-                  children: [
-                    ListTile(title: const Text('Catálogo'), onTap: () { Navigator.pop(context); _abrirPantalla('catalogo_cotizaciones'); }),
-                    ListTile(title: const Text('Crear Plana'), onTap: () { Navigator.pop(context); _abrirPantalla('cotizacion_plana'); }),
-                    ListTile(title: const Text('Crear Revista'), onTap: () { Navigator.pop(context); _abrirPantalla('cotizacion_revista'); }), // 🔥 4a. NUEVA OPCIÓN EN EL DRAWER (MÓVIL)
-                  ],
-                ),
-                ExpansionTile(
-                  leading: const Icon(Icons.assignment),
-                  title: const Text('Órdenes de Trabajo'),
-                  children: [
-                    ListTile(title: const Text('Catálogo'), onTap: () { Navigator.pop(context); _abrirPantalla('catalogo_ot'); }),
-                    ListTile(title: const Text('Crear Orden'), onTap: () { Navigator.pop(context); _abrirPantalla('OrdenTrabajo'); }),
-                  ],
-                ),
-                ListTile(
-                  leading: const Icon(Icons.calendar_month_rounded),
-                  title: const Text('Calendario de Actividades'),
-                  onTap: () { Navigator.pop(context); _abrirPantalla('calendario'); },
-                ),
-              ],
-            ),
-          ) : null,
-          
+                )
+              : null,
           body: Column(
             children: [
               if (esDesktop)
@@ -260,12 +369,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       BarraDropdown(
                         titulo: "Catálogos",
                         opciones: const [
-                          PopupMenuItem(value: "clientes", child: Text("Clientes")),
-                          PopupMenuItem(value: "proveedores", child: Text("Proveedores")),
-                          PopupMenuItem(value: "papeles", child: Text("Papeles")),
-                          PopupMenuItem(value: "descuentos", child: Text("Descuentos Papel")),
-                          PopupMenuItem(value: "maquinas", child: Text("Máquinas")),
-                          PopupMenuItem(value: "extras", child: Text("Extras")),
+                          PopupMenuItem(
+                            value: "clientes",
+                            child: Text("Clientes"),
+                          ),
+                          PopupMenuItem(
+                            value: "proveedores",
+                            child: Text("Proveedores"),
+                          ),
+                          PopupMenuItem(
+                            value: "papeles",
+                            child: Text("Papeles"),
+                          ),
+                          PopupMenuItem(
+                            value: "descuentos",
+                            child: Text("Descuentos Papel"),
+                          ),
+                          PopupMenuItem(
+                            value: "maquinas",
+                            child: Text("Máquinas"),
+                          ),
+                          PopupMenuItem(
+                            value: "extras",
+                            child: Text("Extras"),
+                          ),
                         ],
                         onSelected: _abrirPantalla,
                       ),
@@ -276,17 +403,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       BarraDropdown(
                         titulo: "Cotizaciones",
                         opciones: const [
-                          PopupMenuItem(value: "catalogo_cotizaciones", child: Text("Catálogo de Cotizaciones")),
-                          PopupMenuItem(value: "cotizacion_plana", child: Text("Crear Cotización Plana")),
-                          PopupMenuItem(value: "cotizacion_revista", child: Text("Crear Cotización Revista")), // 🔥 4b. NUEVA OPCIÓN EN EL DROPDOWN (PC)
+                          PopupMenuItem(
+                            value: "catalogo_cotizaciones",
+                            child: Text("Catálogo de Cotizaciones"),
+                          ),
+                          PopupMenuItem(
+                            value: "cotizacion_plana",
+                            child: Text("Crear Cotización Plana"),
+                          ),
+                          PopupMenuItem(
+                            value: "cotizacion_revista",
+                            child: Text("Crear Cotización Revista"),
+                          ),
                         ],
                         onSelected: _abrirPantalla,
                       ),
                       BarraDropdown(
                         titulo: "Órdenes de Trabajo",
                         opciones: const [
-                          PopupMenuItem(value: "catalogo_ot", child: Text("Catálogo de Órdenes de Trabajo")),
-                          PopupMenuItem(value: "OrdenTrabajo", child: Text("Crear Orden de Trabajo")),
+                          PopupMenuItem(
+                            value: "catalogo_ot",
+                            child: Text("Catálogo de Órdenes de Trabajo"),
+                          ),
+                          PopupMenuItem(
+                            value: "OrdenTrabajo",
+                            child: Text("Crear Orden de Trabajo"),
+                          ),
                         ],
                         onSelected: _abrirPantalla,
                       ),
@@ -297,7 +439,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ],
                   ),
                 ),
-                
               Expanded(child: _construirPantallaActual()),
             ],
           ),
