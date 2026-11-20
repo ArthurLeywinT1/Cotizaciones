@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+typedef PanelPliego = Map<String, dynamic>;
 class SegmentacionPliegosScreen extends StatefulWidget {
   final double anchoTrabajo;
   final double altoTrabajo;
@@ -23,21 +24,26 @@ class _SegmentacionPliegosScreenState extends State<SegmentacionPliegosScreen> {
 
   final TextEditingController anchoController = TextEditingController();
   final TextEditingController altoController = TextEditingController();
-  
-  // 🔹 NUEVO: Controladores fijos para que la "Medida Especial" no pierda el foco al borrar
+
+  // 🔹 Controladores fijos para que la "Medida Especial" no pierda el foco al borrar
   final TextEditingController especialAnchoController = TextEditingController();
   final TextEditingController especialAltoController = TextEditingController();
 
-  final List<Map<String, dynamic>> panels = [
+ final List<PanelPliego> panels = [
+    // --- Mitad del Pliego ---
     {"titulo": "Mitad del Pliego (4 Cartas)", "ancho": 57.0, "alto": 43.5},
     {"titulo": "Mitad del Pliego (4 Oficios)", "ancho": 70.0, "alto": 47.5},
-    {"titulo": "Pliego Extendido (8 Cartas)", "ancho": 57.0, "alto": 87.0},
-    {"titulo": "Pliego Extendido (8 Oficios)", "ancho": 70.0, "alto": 95.0},
     {"titulo": "Mitad del Pliego (4 Cartas)", "ancho": 61.0, "alto": 45.0},
     {"titulo": "Mitad del Pliego (4 Oficios)", "ancho": 72.0, "alto": 51.0},
+
+    // --- Pliego Extendido ---
+    {"titulo": "Pliego Extendido (8 Cartas)", "ancho": 57.0, "alto": 87.0},
+    {"titulo": "Pliego Extendido (8 Oficios)", "ancho": 70.0, "alto": 95.0},
     {"titulo": "Pliego Extendido (8 Cartas)", "ancho": 61.0, "alto": 90.0},
     {"titulo": "Pliego Extendido (8 Oficios)", "ancho": 72.0, "alto": 102.0},
     {"titulo": "Pliego Extendido (Couché 150g)", "ancho": 58.0, "alto": 88.0},
+
+    // --- Medida Especial ---
     {"titulo": "Medida Especial", "ancho": 0.0, "alto": 0.0, "especial": true},
   ];
 
@@ -67,7 +73,7 @@ class _SegmentacionPliegosScreenState extends State<SegmentacionPliegosScreen> {
   void dispose() {
     anchoController.dispose();
     altoController.dispose();
-    // 🔹 NUEVO: Limpiamos los controladores especiales al salir de la pantalla
+    // 🔹 Limpiamos los controladores especiales al salir de la pantalla
     especialAnchoController.dispose();
     especialAltoController.dispose();
     super.dispose();
@@ -134,7 +140,8 @@ class _SegmentacionPliegosScreenState extends State<SegmentacionPliegosScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: compatibles.length,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: anchoPantalla > 950 ? 3 : (anchoPantalla > 600 ? 2 : 1),
+                  crossAxisCount:
+                      anchoPantalla > 950 ? 3 : (anchoPantalla > 600 ? 2 : 1),
                   crossAxisSpacing: 14,
                   mainAxisSpacing: 14,
                   mainAxisExtent: 210,
@@ -214,7 +221,6 @@ class _SegmentacionPliegosScreenState extends State<SegmentacionPliegosScreen> {
                         "posicion": opcion,
                       });
                     },
-
                     child: Card(
                       elevation: 2,
                       child: Padding(
@@ -236,16 +242,16 @@ class _SegmentacionPliegosScreenState extends State<SegmentacionPliegosScreen> {
                               "Medidas del papel (cm):",
                               style: TextStyle(fontSize: 12, color: Colors.grey),
                             ),
-                            
                             Row(
                               children: [
                                 Expanded(
                                   child: TextField(
-                                    // 🔹 NUEVO: Si es la tarjeta especial, usa el controlador persistente
-                                    controller: especial 
-                                        ? especialAnchoController 
+                                    controller: especial
+                                        ? especialAnchoController
                                         : TextEditingController(
-                                            text: p["ancho"] == 0 ? "" : p["ancho"].toString(),
+                                            text: p["ancho"] == 0
+                                                ? ""
+                                                : p["ancho"].toString(),
                                           ),
                                     enabled: especial,
                                     decoration: const InputDecoration(
@@ -257,7 +263,8 @@ class _SegmentacionPliegosScreenState extends State<SegmentacionPliegosScreen> {
                                     onChanged: especial
                                         ? (v) {
                                             setState(() {
-                                              p["ancho"] = double.tryParse(v) ?? 0;
+                                              p["ancho"] =
+                                                  double.tryParse(v) ?? 0;
                                             });
                                           }
                                         : null,
@@ -266,11 +273,12 @@ class _SegmentacionPliegosScreenState extends State<SegmentacionPliegosScreen> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: TextField(
-                                    // 🔹 NUEVO: Si es la tarjeta especial, usa el controlador persistente
-                                    controller: especial 
-                                        ? especialAltoController 
+                                    controller: especial
+                                        ? especialAltoController
                                         : TextEditingController(
-                                            text: p["ancho"] == 0 ? "" : p["alto"].toString(),
+                                            text: p["ancho"] == 0
+                                                ? ""
+                                                : p["alto"].toString(),
                                           ),
                                     enabled: especial,
                                     decoration: const InputDecoration(
@@ -282,7 +290,8 @@ class _SegmentacionPliegosScreenState extends State<SegmentacionPliegosScreen> {
                                     onChanged: especial
                                         ? (v) {
                                             setState(() {
-                                              p["alto"] = double.tryParse(v) ?? 0;
+                                              p["alto"] =
+                                                  double.tryParse(v) ?? 0;
                                             });
                                           }
                                         : null,
@@ -290,31 +299,48 @@ class _SegmentacionPliegosScreenState extends State<SegmentacionPliegosScreen> {
                                 ),
                               ],
                             ),
-
                             const Divider(height: 10),
-
                             Row(
                               children: [
-                                const Icon(Icons.arrow_downward, color: Colors.green, size: 16),
+                                const Icon(
+                                  Icons.arrow_downward,
+                                  color: Colors.green,
+                                  size: 16,
+                                ),
                                 const SizedBox(width: 6),
-                                const Text("Piezas normal: ", style: TextStyle(fontSize: 12)),
+                                const Text(
+                                  "Piezas normal: ",
+                                  style: TextStyle(fontSize: 12),
+                                ),
                                 const Spacer(),
                                 Text(
                                   trabajoAncho > 0 ? "$piezasNormal" : "-",
-                                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ],
                             ),
-
                             Row(
                               children: [
-                                const Icon(Icons.sync_alt, color: Colors.green, size: 16),
+                                const Icon(
+                                  Icons.sync_alt,
+                                  color: Colors.green,
+                                  size: 16,
+                                ),
                                 const SizedBox(width: 6),
-                                const Text("Piezas invertido: ", style: TextStyle(fontSize: 12)),
+                                const Text(
+                                  "Piezas invertido: ",
+                                  style: TextStyle(fontSize: 12),
+                                ),
                                 const Spacer(),
                                 Text(
                                   trabajoAlto > 0 ? "$piezasInvertido" : "-",
-                                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ],
                             ),
